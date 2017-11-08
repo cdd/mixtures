@@ -1,0 +1,24 @@
+{
+    "name": "mixture_editor",
+    "version": "0.1.0",
+    "main": "main.js",
+    "productName": "Mixfile Editor",
+    "description": "Viewer, editor and support libraries for Mixfile",
+    "author": "Collaborative Drug Discovery, Inc.",
+    "devDependencies": 
+    {
+        "electron": "^1.6.10",
+        "electron-packager": "^8.1.0"
+    },
+    "build": 
+    {
+        "appId": "com.cdd.mixture.MixfileEditor",
+        "mac": 
+        {
+            "category": "public.app-category.productivity"
+        }
+    },
+    "scripts": 
+    {
+    }
+}

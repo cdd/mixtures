@@ -1,0 +1,31 @@
+{
+	"version": "0.2.0",
+	"configurations": 
+	[
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Launch Program",
+			"program": "${workspaceRoot}/app/main.js",
+			"cwd": "${workspaceRoot}",
+			"outFiles": [],
+			"sourceMaps": true,
+			"runtimeExecutable": "electron",
+			"runtimeArgs": ["--enable-logging"],
+			"console": "integratedTerminal",
+			"args": 
+			[
+                "play/test.el"
+			],
+			"protocol": "legacy"
+		},
+		{
+			"type": "node",
+			"request": "attach",
+			"name": "Attach to Process",
+			"port": 5858,
+			"outFiles": [],
+			"sourceMaps": true
+		}
+	]
+}

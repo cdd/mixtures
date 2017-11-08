@@ -1,0 +1,6 @@
+#!/bin/sh
+echo ---- Mixfile ----
+git status
+echo ---- WebMolKit ----
+cd ../WebMolKit
+git status
