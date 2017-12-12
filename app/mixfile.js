@@ -14075,6 +14075,25 @@ class Sketcher extends Widget {
 }
 Sketcher.UNDO_SIZE = 20;
 const MIXFILE_VERSION = 0.01;
+class Mixture {
+    constructor(mixfile) {
+        this.mixfile = mixfile;
+        if (!mixfile)
+            this.mixfile = { 'mixfileVersion': MIXFILE_VERSION };
+    }
+    isEmpty() {
+        const BITS = ['name', 'description', 'synonyms', 'formula', 'molfile', 'inchi', 'inchiKey', 'smiles',
+            'ratio', 'quantity', 'units', 'relation', 'identifiers', 'links', 'contents'];
+        for (let bit of BITS)
+            if (this.mixfile[bit] != null)
+                return false;
+        return true;
+    }
+    static deserialise(data) {
+        let mixfile = JSON.parse(data);
+        return new Mixture(mixfile);
+    }
+}
 class Aspect {
     constructor(ds, allowModify) {
         this.allowModify = true;
@@ -15373,7 +15392,7 @@ class ArrangeMixture {
                 for (let subComp of mixcomp.contents)
                     examineBranch(subComp, parentIdx);
         };
-        examineBranch(this.mixture, -1);
+        examineBranch(this.mixture.mixfile, -1);
         let padding = this.PADDING * this.scale;
         for (let comp of this.components) {
             let mixcomp = comp.content;
@@ -15532,25 +15551,57 @@ class DrawMixture {
 class EditMixture extends Widget {
     constructor() {
         super();
+        this.mixture = new Mixture();
         this.policy = RenderPolicy.defaultColourOnWhite();
+        this.offsetX = 0;
+        this.offsetY = 0;
+        this.pointScale = this.policy.data.pointScale;
+        this.gfxMixture = null;
+        this.filthy = true;
     }
     render(parent) {
         super.render(parent);
         this.content.css({ 'width': '100%', 'height': '100%' });
         this.content.css('background-color', '#F0F0F0');
+        let canvasStyle = 'position: absolute; left: 0; top: 0; pointer-events: none;';
+        this.canvasMixture = newElement(this.content, 'canvas', { 'style': canvasStyle });
+        this.canvasOver = newElement(this.content, 'canvas', { 'style': canvasStyle });
+        this.content.resize(() => this.redraw());
     }
+    getMixture() { return this.mixture; }
     setMixture(mixture) {
-        let measure = new OutlineMeasurement(0, 0, this.policy.data.pointScale);
-        let layout = new ArrangeMixture(mixture, measure, this.policy);
+        this.mixture = mixture;
+        this.offsetX = 0;
+        this.offsetY = 0;
+        this.pointScale = this.policy.data.pointScale;
+        this.filthy = true;
+        this.redraw();
+    }
+    delayedRedraw() {
+        this.filthy = true;
+        window.setTimeout(() => { if (this.filthy)
+            this.redraw(); }, 10);
+    }
+    redraw() {
+        if (!this.filthy)
+            return;
+        this.filthy = false;
+        let width = this.content.width(), height = this.content.height();
+        console.log('REDRAW:' + width + ',' + height);
+        let density = pixelDensity();
+        for (let canvas of [this.canvasMixture, this.canvasOver]) {
+            canvas.width = width * density;
+            canvas.height = height * density;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+        }
+        let measure = new OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
+        let layout = new ArrangeMixture(this.mixture, measure, this.policy);
         layout.arrange();
-        let vg = new MetaVector();
-        new DrawMixture(layout, vg).draw();
-        vg.normalise();
-        this.content.empty();
-        let svg = vg.createSVG();
-        let div = $('<div></div>').appendTo(this.content);
-        div.css('padding', '1em');
-        div.append(svg);
+        this.gfxMixture = new MetaVector();
+        new DrawMixture(layout, this.gfxMixture).draw();
+        this.gfxMixture.normalise();
+        this.gfxMixture.renderCanvas(this.canvasMixture, true);
     }
 }
 class MixturePanel extends MainPanel {
@@ -15567,7 +15618,7 @@ class MixturePanel extends MainPanel {
                 throw err;
             let mixture;
             try {
-                mixture = JSON.parse(data);
+                mixture = Mixture.deserialise(data);
             }
             catch (e) {
                 console.log('Invalid mixture file: ' + e + '\n' + data);
@@ -15581,9 +15632,36 @@ class MixturePanel extends MainPanel {
     }
     onResize() {
         super.onResize();
-        let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
+        this.editor.delayedRedraw();
     }
     menuAction(cmd) {
+        if (cmd == 'new')
+            openNewWindow('DrawPanel');
+        else if (cmd == 'open')
+            this.actionFileOpen();
+    }
+    actionFileOpen() {
+        const electron = require('electron');
+        const dialog = electron.remote.dialog;
+        let params = {
+            'title': 'Open Molecule',
+            'properties': ['openFile'],
+            'filters': [
+                { 'name': 'Mixfile', 'extensions': ['mixfile'] }
+            ]
+        };
+        dialog.showOpenDialog(params, (filenames) => {
+            let inPlace = this.editor.getMixture().isEmpty();
+            if (filenames)
+                for (let fn of filenames) {
+                    if (inPlace) {
+                        this.loadFile(fn);
+                        inPlace = false;
+                    }
+                    else
+                        openNewWindow('MixturePanel', fn);
+                }
+        });
     }
     updateTitle() {
         if (this.filename == null) {

@@ -37,7 +37,7 @@ class MainPanel
 	}
 
 	// minimum required functionality for resizing windows; override to capture
-	protected onResize()
+	protected onResize():void
 	{
 		this.root.css('height', document.documentElement.clientHeight + 'px');
 	}

@@ -69,7 +69,6 @@ class MixturePanel extends MainPanel
 			this.updateTitle();			
 		});		
 	}
-	
 
 	/*
 	public saveFile(filename:string):void
@@ -92,8 +91,9 @@ class MixturePanel extends MainPanel
 	protected onResize()
 	{
 		super.onResize();
+		this.editor.delayedRedraw();
 
-		let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
+		//let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
 		//this.sketcher.changeSize(w, h); // force a re-layout to match the new size
 	}
 
