@@ -23,6 +23,8 @@
 
 ///<reference path='../mixture/Mixfile.ts'/>
 ///<reference path='../mixture/ArrangeMixture.ts'/>
+///<reference path='../mixture/DrawMixture.ts'/>
+///<reference path='../mixture/EditMixture.ts'/>
 ///<reference path='MainPanel.ts'/>
 
 /*
@@ -32,6 +34,7 @@
 class MixturePanel extends MainPanel
 {
 	private filename:string = null;
+	private editor = new EditMixture();
 	
 	// ------------ public methods ------------
 
@@ -39,37 +42,9 @@ class MixturePanel extends MainPanel
 	{
 		super(root);
 
-		let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
-		/*this.sketcher.setSize(w, h);
-		this.sketcher.setup(() => this.sketcher.render(root));*/
+		//let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
 
-		let mixtext = $('#exampleMixture7').text();
-		let mixture:Mixfile;
-		try {mixture = JSON.parse(mixtext);}
-		catch (e)
-		{
-			console.log('Invalid mixture file: ' + e + '\n' + mixtext);
-			return;
-		}
-
-		let policy = RenderPolicy.defaultColourOnWhite();
-		let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
-		let layout = new ArrangeMixture(mixture, measure, policy);
-		layout.arrange();
-
-		let vg = new MetaVector();
-		new DrawMixture(layout, vg).draw();
-		vg.normalise();
-
-		let svg = vg.createSVG();
-		let div = $('<div></div>').appendTo(root);
-		div.css('padding', '1em');
-		div.append(svg);
-	}
-
-	/*public setMolecule(mol:Molecule):void
-	{
-        this.sketcher.defineMolecule(mol);
+		this.editor.render(root);
 	}
 
 	public loadFile(filename:string):void
@@ -78,19 +53,26 @@ class MixturePanel extends MainPanel
 		fs.readFile(filename, 'utf-8', (err:any, data:string):void =>
 		{
 			if (err) throw err;
-			let mol = Molecule.fromString(data);
-			if (!mol)
+			
+			let mixture:Mixfile;
+			try {mixture = JSON.parse(data);}
+			catch (e)
 			{
-				let mdl = new MDLMOLReader(data);
-				mol = mdl.parse();
+				console.log('Invalid mixture file: ' + e + '\n' + data);
+				alert('Not a valid mixture file.');
+				return;
 			}
-			// (other formats to be added later)
-			if (!mol) {alert('Molecule not readable:\n\n' + filename); return;}
-			this.sketcher.defineMolecule(mol);
 
+			this.editor.setMixture(mixture);
 			this.filename = filename;
-			this.updateTitle();
+			this.updateTitle();			
 		});		
+	}
+	
+
+	/*public setMolecule(mol:Molecule):void
+	{
+        this.sketcher.defineMolecule(mol);
 	}
 
 	public saveFile(filename:string):void
@@ -234,13 +216,13 @@ class MixturePanel extends MainPanel
 			this.sketcher.pasteMolecule(mol);
 		}
 		catch (ex) {alert('Clipboard does not contain a recognisable molecule.'); return;}
-	}
+	}*/
 
 	private updateTitle():void
 	{
-		if (this.filename == null) {document.title = 'SketchEl'; return;}
+		if (this.filename == null) {document.title = 'Mixtures'; return;}
 
 		let slash = Math.max(this.filename.lastIndexOf('/'), this.filename.lastIndexOf('\\'));
-		document.title = 'SketchEl - ' + this.filename.substring(slash + 1);
-	}*/
+		document.title = 'Mixtures - ' + this.filename.substring(slash + 1);
+	}
 }

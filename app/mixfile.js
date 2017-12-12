@@ -15490,37 +15490,108 @@ class ArrangeMixture {
         return str;
     }
 }
-class MixturePanel extends MainPanel {
-    constructor(root) {
-        super(root);
-        this.filename = null;
-        let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
-        let mixtext = $('#exampleMixture7').text();
-        let mixture;
-        try {
-            mixture = JSON.parse(mixtext);
+class DrawMixture {
+    constructor(layout, vg) {
+        this.layout = layout;
+        this.vg = vg;
+        this.measure = layout.measure;
+        this.policy = layout.policy;
+        this.scale = layout.scale;
+        this.invScale = 1.0 / this.scale;
+    }
+    draw() {
+        for (let comp of this.layout.components)
+            if (comp.parentIdx >= 0)
+                this.drawConnection(this.layout.components[comp.parentIdx], comp);
+        for (let comp of this.layout.components)
+            this.drawComponent(comp);
+    }
+    drawConnection(parent, child) {
+        let x1 = parent.boundary.maxX(), x2 = child.boundary.minX();
+        let y1 = parent.boundary.midY(), y2 = child.boundary.midY();
+        let xm = 0.5 * (x1 + x2), ym = 0.5 * (y1 + y2), d = 4, xd = d, yd = y1 < y2 - 1 ? -d : y1 > y2 + 1 ? d : 0;
+        let px = [x1, xm - xd, xm, xm, xm, xm, xm + xd, x2];
+        let py = [y1, y1, y1, y1 - yd, y2 + yd, y2, y2, y2];
+        this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, 1.5, MetaVector.NOCOLOUR, false);
+    }
+    drawComponent(comp) {
+        let box = comp.boundary;
+        this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, 0xF0F0F0);
+        if (comp.molLayout)
+            new DrawMolecule(comp.molLayout, this.vg).draw();
+        if (comp.nameLines.length > 0) {
+            let x = box.x + comp.nameBox.midX(), y = box.y + comp.nameBox.y;
+            for (let line of comp.nameLines) {
+                let wad = this.measure.measureText(line, comp.fontSize);
+                this.vg.drawText(x, y, line, comp.fontSize, 0x000000, TextAlign.Centre | TextAlign.Top);
+                y += wad[1] + 2 * wad[2];
+            }
         }
-        catch (e) {
-            console.log('Invalid mixture file: ' + e + '\n' + mixtext);
-            return;
-        }
-        let policy = RenderPolicy.defaultColourOnWhite();
-        let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
-        let layout = new ArrangeMixture(mixture, measure, policy);
+    }
+}
+class EditMixture extends Widget {
+    constructor() {
+        super();
+        this.policy = RenderPolicy.defaultColourOnWhite();
+    }
+    render(parent) {
+        super.render(parent);
+        this.content.css({ 'width': '100%', 'height': '100%' });
+        this.content.css('background-color', '#F0F0F0');
+    }
+    setMixture(mixture) {
+        let measure = new OutlineMeasurement(0, 0, this.policy.data.pointScale);
+        let layout = new ArrangeMixture(mixture, measure, this.policy);
         layout.arrange();
         let vg = new MetaVector();
         new DrawMixture(layout, vg).draw();
         vg.normalise();
+        this.content.empty();
         let svg = vg.createSVG();
-        let div = $('<div></div>').appendTo(root);
+        let div = $('<div></div>').appendTo(this.content);
         div.css('padding', '1em');
         div.append(svg);
+    }
+}
+class MixturePanel extends MainPanel {
+    constructor(root) {
+        super(root);
+        this.filename = null;
+        this.editor = new EditMixture();
+        this.editor.render(root);
+    }
+    loadFile(filename) {
+        const fs = require('fs');
+        fs.readFile(filename, 'utf-8', (err, data) => {
+            if (err)
+                throw err;
+            let mixture;
+            try {
+                mixture = JSON.parse(data);
+            }
+            catch (e) {
+                console.log('Invalid mixture file: ' + e + '\n' + data);
+                alert('Not a valid mixture file.');
+                return;
+            }
+            this.editor.setMixture(mixture);
+            this.filename = filename;
+            this.updateTitle();
+        });
     }
     onResize() {
         super.onResize();
         let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
     }
     menuAction(cmd) {
+    }
+    updateTitle() {
+        if (this.filename == null) {
+            document.title = 'Mixtures';
+            return;
+        }
+        let slash = Math.max(this.filename.lastIndexOf('/'), this.filename.lastIndexOf('\\'));
+        document.title = 'Mixtures - ' + this.filename.substring(slash + 1);
     }
 }
 let BASE_APP = '';
@@ -15563,45 +15634,6 @@ function openNewWindow(panelClass, filename) {
     if (filename)
         url += '&fn=' + encodeURIComponent(filename);
     bw.loadURL(url);
-}
-class DrawMixture {
-    constructor(layout, vg) {
-        this.layout = layout;
-        this.vg = vg;
-        this.measure = layout.measure;
-        this.policy = layout.policy;
-        this.scale = layout.scale;
-        this.invScale = 1.0 / this.scale;
-    }
-    draw() {
-        for (let comp of this.layout.components)
-            if (comp.parentIdx >= 0)
-                this.drawConnection(this.layout.components[comp.parentIdx], comp);
-        for (let comp of this.layout.components)
-            this.drawComponent(comp);
-    }
-    drawConnection(parent, child) {
-        let x1 = parent.boundary.maxX(), x2 = child.boundary.minX();
-        let y1 = parent.boundary.midY(), y2 = child.boundary.midY();
-        let xm = 0.5 * (x1 + x2), ym = 0.5 * (y1 + y2), d = 4, xd = d, yd = y1 < y2 - 1 ? -d : y1 > y2 + 1 ? d : 0;
-        let px = [x1, xm - xd, xm, xm, xm, xm, xm + xd, x2];
-        let py = [y1, y1, y1, y1 - yd, y2 + yd, y2, y2, y2];
-        this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, 1.5, MetaVector.NOCOLOUR, false);
-    }
-    drawComponent(comp) {
-        let box = comp.boundary;
-        this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, 0xF0F0F0);
-        if (comp.molLayout)
-            new DrawMolecule(comp.molLayout, this.vg).draw();
-        if (comp.nameLines.length > 0) {
-            let x = box.x + comp.nameBox.midX(), y = box.y + comp.nameBox.y;
-            for (let line of comp.nameLines) {
-                let wad = this.measure.measureText(line, comp.fontSize);
-                this.vg.drawText(x, y, line, comp.fontSize, 0x000000, TextAlign.Centre | TextAlign.Top);
-                y += wad[1] + 2 * wad[2];
-            }
-        }
-    }
 }
 class SARTable extends Aspect {
     constructor(ds, allowModify) {

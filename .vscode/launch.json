@@ -15,7 +15,7 @@
 			"console": "integratedTerminal",
 			"args": 
 			[
-                "play/test.el"
+                "play/mixture1.mixfile"
 			],
 			"protocol": "legacy"
 		},

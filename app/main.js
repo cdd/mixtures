@@ -84,7 +84,7 @@ function setupMenu()
 			'label': 'File',
 			'submenu': 
 			[
-				{'label': 'New Molecule', 'accelerator': 'CmdOrCtrl+N', 'click': () => new BrowserWindow(BROWSER_PARAMS).loadURL(INIT_URL)},
+				{'label': 'New Mixture', 'accelerator': 'CmdOrCtrl+N', 'click': () => new BrowserWindow(BROWSER_PARAMS).loadURL(INIT_URL)},
 				{'label': 'Open...', 'accelerator': 'CmdOrCtrl+O', 'click': () => sendCommand('open')},
 				{'label': 'Save', 'accelerator': 'CmdOrCtrl+S', 'click': () => sendCommand('save')},
 				{'label': 'Save As...', 'accelerator': 'CmdOrCtrl+Shift+S', 'click': () => sendCommand('saveAs')},
@@ -143,7 +143,7 @@ function setupMenu()
 	{
 		template.unshift(
 		{
-			'label': 'SketchEl',
+			'label': 'Mixtures',
 			'submenu': 
 			[
 				{'role': 'about'},
