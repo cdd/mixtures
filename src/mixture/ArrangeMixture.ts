@@ -59,7 +59,7 @@ class ArrangeMixture
 	// --------------------- public methods ---------------------
 
 	// sets up the object with the mandatory information
-	constructor(public mixture:Mixfile, public measure:ArrangeMeasurement, public policy:RenderPolicy)
+	constructor(public mixture:Mixture, public measure:ArrangeMeasurement, public policy:RenderPolicy)
 	{
 		this.scale = policy.data.pointScale;
 		this.limitStructW = this.limitStructH = this.scale * 10;
@@ -129,7 +129,7 @@ class ArrangeMixture
 			let parentIdx = this.components.push(comp) - 1;
 			if (mixcomp.contents) for (let subComp of mixcomp.contents) examineBranch(subComp, parentIdx);
 		};
-		examineBranch(this.mixture, -1);
+		examineBranch(this.mixture.mixfile, -1);
 
 		let padding = this.PADDING * this.scale;
 

@@ -22,6 +22,7 @@
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 
 ///<reference path='../mixture/Mixfile.ts'/>
+///<reference path='../mixture/Mixture.ts'/>
 ///<reference path='../mixture/ArrangeMixture.ts'/>
 ///<reference path='../mixture/DrawMixture.ts'/>
 ///<reference path='../mixture/EditMixture.ts'/>
@@ -54,8 +55,8 @@ class MixturePanel extends MainPanel
 		{
 			if (err) throw err;
 			
-			let mixture:Mixfile;
-			try {mixture = JSON.parse(data);}
+			let mixture:Mixture;
+			try {mixture = Mixture.deserialise(data);}
 			catch (e)
 			{
 				console.log('Invalid mixture file: ' + e + '\n' + data);
@@ -70,11 +71,7 @@ class MixturePanel extends MainPanel
 	}
 	
 
-	/*public setMolecule(mol:Molecule):void
-	{
-        this.sketcher.defineMolecule(mol);
-	}
-
+	/*
 	public saveFile(filename:string):void
 	{
 		const fs = require('fs');
@@ -102,9 +99,9 @@ class MixturePanel extends MainPanel
 
 	public menuAction(cmd:string):void
 	{
-		/*if (cmd == 'new') openNewWindow('DrawPanel');
+		if (cmd == 'new') openNewWindow('DrawPanel');
 		else if (cmd == 'open') this.actionFileOpen();
-		else if (cmd == 'save') this.actionFileSave();
+		/*else if (cmd == 'save') this.actionFileSave();
 		else if (cmd == 'saveAs') this.actionFileSaveAs();
 		else if (cmd == 'undo') this.sketcher.performUndo();
 		else if (cmd == 'redo') this.sketcher.performRedo();
@@ -121,7 +118,7 @@ class MixturePanel extends MainPanel
 
 	// ------------ private methods ------------
 
-	/*private actionFileOpen():void
+	private actionFileOpen():void
 	{
 		const electron = require('electron');
 		const dialog = electron.remote.dialog; 
@@ -131,13 +128,12 @@ class MixturePanel extends MainPanel
 			'properties': ['openFile'],
 			'filters':
 			[
-				{'name': 'SketchEl Molecule', 'extensions': ['el']},
-				{'name': 'MDL Molfile', 'extensions': ['mol']}
+				{'name': 'Mixfile', 'extensions': ['mixfile']}
 			]
 		};
 		dialog.showOpenDialog(params, (filenames:string[]):void =>
 		{
-			let inPlace = this.sketcher.getMolecule().numAtoms == 0;
+			let inPlace = this.editor.getMixture().isEmpty();
 			if (filenames) for (let fn of filenames) 
 			{
 				if (inPlace)
@@ -145,12 +141,12 @@ class MixturePanel extends MainPanel
 					this.loadFile(fn);
 					inPlace = false;
 				}
-				else openNewWindow('DrawPanel', fn);
+				else openNewWindow('MixturePanel', fn);
 			}
 		});
 	}
 
-	private actionFileSave():void
+	/*private actionFileSave():void
 	{
 		if (!this.filename) {this.actionFileSaveAs(); return;}
 

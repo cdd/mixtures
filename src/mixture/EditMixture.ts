@@ -32,7 +32,7 @@
 
 class EditMixture extends Widget
 {
-	private mixture:Mixfile;
+	private mixture = new Mixture();
 	private policy = RenderPolicy.defaultColourOnWhite();
 	
 	// ------------ public methods ------------
@@ -50,8 +50,11 @@ class EditMixture extends Widget
 		this.content.css('background-color', '#F0F0F0');
 	}
 
-	public setMixture(mixture:Mixfile):void
+	public getMixture():Mixture {return this.mixture;}
+	public setMixture(mixture:Mixture):void
 	{
+		this.mixture = mixture;
+
 		let measure = new OutlineMeasurement(0, 0, this.policy.data.pointScale);
 		let layout = new ArrangeMixture(mixture, measure, this.policy);
 		layout.arrange();
