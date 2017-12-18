@@ -103,7 +103,6 @@ class EditMixture extends Widget
 			canvas.style.height = height + 'px';
 		}
 
-
 		let measure = new OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
 		let layout = new ArrangeMixture(this.mixture, measure, this.policy);
 		layout.arrange();

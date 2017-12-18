@@ -2099,6 +2099,7 @@ class MetaVector {
     createSVG() {
         let svg = $('<svg></svg>');
         svg.attr('xmlns', 'http://www.w3.org/2000/svg');
+        svg.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink');
         svg.attr('width', this.width);
         svg.attr('height', this.height);
         svg.attr('viewBox', '0 0 ' + this.width + ' ' + this.height);
@@ -15587,7 +15588,6 @@ class EditMixture extends Widget {
             return;
         this.filthy = false;
         let width = this.content.width(), height = this.content.height();
-        console.log('REDRAW:' + width + ',' + height);
         let density = pixelDensity();
         for (let canvas of [this.canvasMixture, this.canvasOver]) {
             canvas.width = width * density;
@@ -15639,6 +15639,8 @@ class MixturePanel extends MainPanel {
             openNewWindow('DrawPanel');
         else if (cmd == 'open')
             this.actionFileOpen();
+        else if (cmd == 'exportSVG')
+            this.actionFileExportSVG();
     }
     actionFileOpen() {
         const electron = require('electron');
@@ -15661,6 +15663,31 @@ class MixturePanel extends MainPanel {
                     else
                         openNewWindow('MixturePanel', fn);
                 }
+        });
+    }
+    actionFileExportSVG() {
+        const electron = require('electron');
+        const dialog = electron.remote.dialog;
+        let params = {
+            'title': 'Save Molecule',
+            'filters': [
+                { 'name': 'Scalable Vector Graphics', 'extensions': ['svg'] }
+            ]
+        };
+        dialog.showSaveDialog(params, (filename) => {
+            let policy = RenderPolicy.defaultColourOnWhite();
+            let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
+            let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
+            layout.arrange();
+            let gfx = new MetaVector();
+            new DrawMixture(layout, gfx).draw();
+            gfx.normalise();
+            let svg = gfx.createSVG();
+            const fs = require('fs');
+            fs.writeFile(filename, svg, (err) => {
+                if (err)
+                    alert('Unable to save: ' + err);
+            });
         });
     }
     updateTitle() {

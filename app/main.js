@@ -88,6 +88,7 @@ function setupMenu()
 				{'label': 'Open...', 'accelerator': 'CmdOrCtrl+O', 'click': () => sendCommand('open')},
 				{'label': 'Save', 'accelerator': 'CmdOrCtrl+S', 'click': () => sendCommand('save')},
 				{'label': 'Save As...', 'accelerator': 'CmdOrCtrl+Shift+S', 'click': () => sendCommand('saveAs')},
+				{'label': 'Export as SVG', 'accelerator': 'CmdOrCtrl+Shift+G', 'click': () => sendCommand('exportSVG')},
 				{'role': 'close'}
 			]
 		},
