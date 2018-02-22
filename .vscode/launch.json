@@ -17,13 +17,13 @@
 			[
                 "play/mixture5.mixfile"
 			],
-			"protocol": "legacy"
+			"protocol": "inspector"
 		},
 		{
 			"type": "node",
 			"request": "attach",
 			"name": "Attach to Process",
-			"port": 5858,
+			//"port": 5858,
 			"outFiles": [],
 			"sourceMaps": true
 		}

@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017 Collaborative Drug Discovery, Inc
+    (c) 2017-2018 Collaborative Drug Discovery, Inc
 
     All rights reserved
     
@@ -23,9 +23,11 @@
 
 ///<reference path='../mixture/Mixfile.ts'/>
 ///<reference path='../mixture/Mixture.ts'/>
+///<reference path='../mixture/Units.ts'/>
 ///<reference path='../mixture/ArrangeMixture.ts'/>
 ///<reference path='../mixture/DrawMixture.ts'/>
 ///<reference path='../mixture/EditMixture.ts'/>
+///<reference path='../mixture/InteropSDFile.ts'/>
 ///<reference path='MainPanel.ts'/>
 
 /*
@@ -102,8 +104,9 @@ class MixturePanel extends MainPanel
 		if (cmd == 'new') openNewWindow('DrawPanel');
 		else if (cmd == 'open') this.actionFileOpen();
 		/*else if (cmd == 'save') this.actionFileSave();
-		else if (cmd == 'saveAs') this.actionFileSaveAs();
-		else if (cmd == 'undo') this.sketcher.performUndo();
+		else if (cmd == 'saveAs') this.actionFileSaveAs();*/
+		else if (cmd == 'exportSDF') this.actionExportSDF();
+		/*else if (cmd == 'undo') this.sketcher.performUndo();
 		else if (cmd == 'redo') this.sketcher.performRedo();
 		else if (cmd == 'cut') this.actionCopy(true);
 		else if (cmd == 'copy') this.actionCopy(false);
@@ -176,9 +179,41 @@ class MixturePanel extends MainPanel
 			this.filename = filename;
 			this.updateTitle();
 		});
+	}*/
+
+	private actionExportSDF():void
+	{
+		let mixture = this.editor.getMixture();
+		if (mixture.isEmpty()) return;
+
+		let exportSDF = new ExportSDFile();
+		exportSDF.append(mixture.mixfile);
+		let sdfile = exportSDF.write();
+
+		const electron = require('electron'), fs = require('fs');
+		const dialog = electron.remote.dialog;
+
+		let params:any =
+		{
+			'title': 'Export as SDfile',
+			'filters':
+			[
+				{'name': 'SDfile', 'extensions': ['sdf']}
+			]
+		};
+		if (this.filename && this.filename.endsWith('.mixfile')) 
+			params.defaultPath = (this.filename.substring(0, this.filename.length - 8) + '.sdf').split(/[\/\\]/).pop();
+
+		dialog.showSaveDialog(params, (filename:string):void =>
+		{
+			fs.writeFile(filename, sdfile, (err:any):void =>
+			{
+				if (err) alert('Unable to save: ' + err);
+			});
+		});
 	}
 
-	private actionCopy(andCut:boolean):void
+	/*private actionCopy(andCut:boolean):void
 	{
 		let input = this.sketcher.getState(), mol = input.mol;
 		let mask = Vec.booleanArray(false, mol.numAtoms);
