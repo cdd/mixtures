@@ -15540,7 +15540,8 @@ QuantityCalc.STAT_CONFLICT = 3;
 QuantityCalc.MAX_DENOM = 16;
 QuantityCalc.RATIO_FRACT = null;
 class ArrangeMixtureComponent {
-    constructor(content, parentIdx) {
+    constructor(origin, content, parentIdx) {
+        this.origin = origin;
         this.content = content;
         this.parentIdx = parentIdx;
     }
@@ -15583,14 +15584,16 @@ class ArrangeMixture {
         this.height = outline.h;
     }
     createComponents() {
-        let examineBranch = (mixcomp, idx) => {
-            let comp = new ArrangeMixtureComponent(mixcomp, idx);
+        let examineBranch = (origin, mixcomp, idx) => {
+            let comp = new ArrangeMixtureComponent(origin, mixcomp, idx);
             let parentIdx = this.components.push(comp) - 1;
             if (mixcomp.contents)
-                for (let subComp of mixcomp.contents)
-                    examineBranch(subComp, parentIdx);
+                for (let n = 0; n < mixcomp.contents.length; n++) {
+                    let subOrigin = Vec.append(origin, n);
+                    examineBranch(subOrigin, mixcomp.contents[n], parentIdx);
+                }
         };
-        examineBranch(this.mixture.mixfile, -1);
+        examineBranch([], this.mixture.mixfile, -1);
         let padding = this.PADDING * this.scale;
         for (let comp of this.components) {
             let mixcomp = comp.content;
@@ -15854,10 +15857,8 @@ class ExportSDFile {
         if (comp.quantity == null || comp.units == null)
             return null;
         let unitURI = comp.units;
-        console.log('UNITURI:' + unitURI);
         if (!unitURI.startsWith('http://'))
             unitURI = Units.nameToURI(unitURI);
-        console.log('       :' + unitURI);
         if (!unitURI)
             return;
         let bits = [];
@@ -15913,6 +15914,8 @@ class MixturePanel extends MainPanel {
             this.actionFileOpen();
         else if (cmd == 'exportSDF')
             this.actionExportSDF();
+        else if (cmd == 'exportSVG')
+            this.actionFileExportSVG();
     }
     actionFileOpen() {
         const electron = require('electron');
@@ -15956,6 +15959,31 @@ class MixturePanel extends MainPanel {
             params.defaultPath = (this.filename.substring(0, this.filename.length - 8) + '.sdf').split(/[\/\\]/).pop();
         dialog.showSaveDialog(params, (filename) => {
             fs.writeFile(filename, sdfile, (err) => {
+                if (err)
+                    alert('Unable to save: ' + err);
+            });
+        });
+    }
+    actionFileExportSVG() {
+        const electron = require('electron');
+        const dialog = electron.remote.dialog;
+        let params = {
+            'title': 'Save Molecule',
+            'filters': [
+                { 'name': 'Scalable Vector Graphics', 'extensions': ['svg'] }
+            ]
+        };
+        dialog.showSaveDialog(params, (filename) => {
+            let policy = RenderPolicy.defaultColourOnWhite();
+            let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
+            let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
+            layout.arrange();
+            let gfx = new MetaVector();
+            new DrawMixture(layout, gfx).draw();
+            gfx.normalise();
+            let svg = gfx.createSVG();
+            const fs = require('fs');
+            fs.writeFile(filename, svg, (err) => {
                 if (err)
                     alert('Unable to save: ' + err);
             });

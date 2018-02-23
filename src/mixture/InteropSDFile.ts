@@ -95,6 +95,7 @@ class ExportSDFile
     private formatConcentration(comp:MixfileComponent):string
     {
         // TODO: need special deal for ratio without denominator - can sometimes add them up to form an implicit denominator
+
         if (comp.ratio && comp.ratio.length >= 2)
         {
             let numer = comp.ratio[0], denom = comp.ratio[1];
@@ -106,10 +107,11 @@ class ExportSDFile
 
         // special deal (maybe temporary): units that are written with common names that map to a URI are converted automatically
         let unitURI = comp.units;
-console.log('UNITURI:'+unitURI);        
         if (!unitURI.startsWith('http://')) unitURI = Units.nameToURI(unitURI);
-console.log('       :'+unitURI);        
         if (!unitURI) return;
+
+        // TODO: maybe another special deal for absolute weight/volume/mole quantities - convert them into ratios, to the extent that's
+        // possible... maybe approximating where necessary
 
         let bits:string[] = [];
         

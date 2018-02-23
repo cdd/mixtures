@@ -106,6 +106,7 @@ class MixturePanel extends MainPanel
 		/*else if (cmd == 'save') this.actionFileSave();
 		else if (cmd == 'saveAs') this.actionFileSaveAs();*/
 		else if (cmd == 'exportSDF') this.actionExportSDF();
+		else if (cmd == 'exportSVG') this.actionFileExportSVG();
 		/*else if (cmd == 'undo') this.sketcher.performUndo();
 		else if (cmd == 'redo') this.sketcher.performRedo();
 		else if (cmd == 'cut') this.actionCopy(true);
@@ -213,7 +214,41 @@ class MixturePanel extends MainPanel
 		});
 	}
 
-	/*private actionCopy(andCut:boolean):void
+	private actionFileExportSVG():void
+	{
+		const electron = require('electron');
+		const dialog = electron.remote.dialog; 
+		let params:any =
+		{
+			'title': 'Save Molecule',
+			//defaultPath...
+			'filters':
+			[
+				{'name': 'Scalable Vector Graphics', 'extensions': ['svg']}
+			]
+		};
+		dialog.showSaveDialog(params, (filename:string):void =>
+		{
+			let policy = RenderPolicy.defaultColourOnWhite();
+			let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
+			let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
+			layout.arrange();
+
+			let gfx = new MetaVector();
+			new DrawMixture(layout, gfx).draw();
+			gfx.normalise();
+			let svg = gfx.createSVG();
+
+			const fs = require('fs');			
+			fs.writeFile(filename, svg, (err:any):void =>
+			{
+				if (err) alert('Unable to save: ' + err);
+			});		
+		});
+	}
+
+/*
+	private actionCopy(andCut:boolean):void
 	{
 		let input = this.sketcher.getState(), mol = input.mol;
 		let mask = Vec.booleanArray(false, mol.numAtoms);

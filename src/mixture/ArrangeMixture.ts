@@ -34,7 +34,7 @@ class ArrangeMixtureComponent
 	public nameLines:string[];
 	public fontSize:number;
 
-	constructor(public content:MixfileComponent, public parentIdx:number)
+	constructor(public origin:number[], public content:MixfileComponent, public parentIdx:number)
 	{
 	}
 }
@@ -123,13 +123,18 @@ class ArrangeMixture
 	private createComponents():void
 	{
 		// assemble the components into a flat hierarchy
-		let examineBranch = (mixcomp:MixfileComponent, idx:number):void =>
+		let examineBranch = (origin:number[], mixcomp:MixfileComponent, idx:number):void =>
 		{
-			let comp = new ArrangeMixtureComponent(mixcomp, idx);
+			let comp = new ArrangeMixtureComponent(origin, mixcomp, idx);
 			let parentIdx = this.components.push(comp) - 1;
-			if (mixcomp.contents) for (let subComp of mixcomp.contents) examineBranch(subComp, parentIdx);
+			//if (mixcomp.contents) for (let subComp of mixcomp.contents) examineBranch(subComp, parentIdx);
+			if (mixcomp.contents) for (let n = 0; n < mixcomp.contents.length; n++)
+			{
+				let subOrigin = Vec.append(origin, n);
+				examineBranch(subOrigin, mixcomp.contents[n], parentIdx);
+			}
 		};
-		examineBranch(this.mixture.mixfile, -1);
+		examineBranch([], this.mixture.mixfile, -1);
 
 		let padding = this.PADDING * this.scale;
 
