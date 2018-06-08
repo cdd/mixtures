@@ -1361,6 +1361,9 @@ var WebMolKit;
         intersects(other) {
             return GeomUtil.rectsIntersect(this.x, this.y, this.w, this.h, other.x, other.y, other.w, other.h);
         }
+        contains(x, y) {
+            return x >= this.x && x < this.x + this.w && y >= this.y && y < this.y + this.h;
+        }
         union(other) {
             let x1 = Math.min(this.x, other.x), x2 = Math.max(this.x + this.w, other.x + other.w);
             let y1 = Math.min(this.y, other.y), y2 = Math.max(this.y + this.h, other.y + other.h);
@@ -16232,6 +16235,9 @@ var Mixtures;
         constructor(layout, vg) {
             this.layout = layout;
             this.vg = vg;
+            this.hoverIndex = -1;
+            this.activeIndex = -1;
+            this.selectedIndex = -1;
             this.measure = layout.measure;
             this.policy = layout.policy;
             this.scale = layout.scale;
@@ -16241,8 +16247,8 @@ var Mixtures;
             for (let comp of this.layout.components)
                 if (comp.parentIdx >= 0)
                     this.drawConnection(this.layout.components[comp.parentIdx], comp);
-            for (let comp of this.layout.components)
-                this.drawComponent(comp);
+            for (let n = 0; n < this.layout.components.length; n++)
+                this.drawComponent(n);
         }
         drawConnection(parent, child) {
             let x1 = parent.boundary.maxX(), x2 = child.boundary.minX();
@@ -16252,9 +16258,17 @@ var Mixtures;
             let py = [y1, y1, y1, y1 - yd, y2 + yd, y2, y2, y2];
             this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, 1.5, wmk.MetaVector.NOCOLOUR, false);
         }
-        drawComponent(comp) {
+        drawComponent(idx) {
+            let comp = this.layout.components[idx];
             let box = comp.boundary;
-            this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, 0xF0F0F0);
+            let bg = 0xF8F8F8;
+            if (idx == this.activeIndex)
+                bg = 0x8296E4;
+            else if (idx == this.selectedIndex)
+                bg = 0xA9BBFF;
+            else if (idx == this.hoverIndex)
+                bg = 0xE0E0E0;
+            this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, bg);
             if (comp.molLayout)
                 new wmk.DrawMolecule(comp.molLayout, this.vg).draw();
             if (comp.nameLines.length > 0) {
@@ -16342,6 +16356,10 @@ var Mixtures;
             this.pointScale = this.policy.data.pointScale;
             this.gfxMixture = null;
             this.filthy = true;
+            this.layout = null;
+            this.hoverIndex = -1;
+            this.activeIndex = -1;
+            this.selectedIndex = -1;
         }
         render(parent) {
             super.render(parent);
@@ -16351,6 +16369,16 @@ var Mixtures;
             this.canvasMixture = newElement(this.content, 'canvas', { 'style': canvasStyle });
             this.canvasOver = newElement(this.content, 'canvas', { 'style': canvasStyle });
             this.content.resize(() => this.redraw());
+            this.content.click((event) => this.mouseClick(event));
+            this.content.dblclick((event) => this.mouseDoubleClick(event));
+            this.content.mousedown((event) => this.mouseDown(event));
+            this.content.mouseup((event) => this.mouseUp(event));
+            this.content.mouseover((event) => this.mouseOver(event));
+            this.content.mouseout((event) => this.mouseOut(event));
+            this.content.mousemove((event) => this.mouseMove(event));
+            this.content.keypress((event) => this.keyPressed(event));
+            this.content.keydown((event) => this.keyDown(event));
+            this.content.keyup((event) => this.keyUp(event));
         }
         getMixture() { return this.mixture; }
         setMixture(mixture) {
@@ -16359,6 +16387,10 @@ var Mixtures;
             this.offsetY = 0;
             this.pointScale = this.policy.data.pointScale;
             this.filthy = true;
+            this.layout = null;
+            this.hoverIndex = -1;
+            this.activeIndex = -1;
+            this.selectedIndex = -1;
             this.redraw();
         }
         delayedRedraw() {
@@ -16378,13 +16410,79 @@ var Mixtures;
                 canvas.style.width = width + 'px';
                 canvas.style.height = height + 'px';
             }
-            let measure = new wmk.OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
-            let layout = new Mixtures.ArrangeMixture(this.mixture, measure, this.policy);
-            layout.arrange();
+            if (!this.layout) {
+                let measure = new wmk.OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
+                this.layout = new Mixtures.ArrangeMixture(this.mixture, measure, this.policy);
+                this.layout.arrange();
+            }
             this.gfxMixture = new wmk.MetaVector();
-            new Mixtures.DrawMixture(layout, this.gfxMixture).draw();
+            let draw = new Mixtures.DrawMixture(this.layout, this.gfxMixture);
+            draw.hoverIndex = this.hoverIndex;
+            draw.activeIndex = this.activeIndex;
+            draw.selectedIndex = this.selectedIndex;
+            draw.draw();
             this.gfxMixture.normalise();
             this.gfxMixture.renderCanvas(this.canvasMixture, true);
+        }
+        updateHoverCursor(event) {
+            let [x, y] = eventCoords(event, this.content);
+            let comp = this.activeIndex >= 0 ? -1 : this.pickComponent(x, y);
+            if (comp != this.hoverIndex) {
+                this.hoverIndex = comp;
+                this.delayedRedraw();
+            }
+        }
+        pickComponent(x, y) {
+            if (!this.layout)
+                return -1;
+            for (let n = 0; n < this.layout.components.length; n++) {
+                let comp = this.layout.components[n];
+                if (comp.boundary.contains(x, y))
+                    return n;
+            }
+            return -1;
+        }
+        mouseClick(event) {
+            this.content.focus();
+        }
+        mouseDoubleClick(event) {
+            event.stopImmediatePropagation();
+        }
+        mouseDown(event) {
+            event.preventDefault();
+            let [x, y] = eventCoords(event, this.content);
+            let comp = this.pickComponent(x, y);
+            if (comp != this.activeIndex) {
+                this.activeIndex = comp;
+                this.delayedRedraw();
+            }
+        }
+        mouseUp(event) {
+            if (this.activeIndex >= 0) {
+                let [x, y] = eventCoords(event, this.content);
+                let comp = this.pickComponent(x, y);
+                if (comp == this.activeIndex)
+                    this.selectedIndex = comp;
+                this.activeIndex = -1;
+                this.delayedRedraw();
+            }
+        }
+        mouseOver(event) {
+            this.updateHoverCursor(event);
+        }
+        mouseOut(event) {
+            this.updateHoverCursor(event);
+        }
+        mouseMove(event) {
+            this.updateHoverCursor(event);
+        }
+        keyPressed(event) {
+        }
+        keyDown(event) {
+        }
+        keyUp(event) {
+        }
+        mouseWheel(event) {
         }
     }
     Mixtures.EditMixture = EditMixture;

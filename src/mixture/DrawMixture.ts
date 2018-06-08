@@ -27,6 +27,10 @@ namespace Mixtures /* BOF */ {
 
 export class DrawMixture
 {
+	public hoverIndex = -1; // component to give a faint tinting to (for hover-over effect)
+	public activeIndex = -1; // component that is actively engaged with UI
+	public selectedIndex = -1; // component that is passively selected
+
 	private measure:wmk.ArrangeMeasurement; 
 	private policy:wmk.RenderPolicy;
 
@@ -49,7 +53,7 @@ export class DrawMixture
 		for (let comp of this.layout.components) if (comp.parentIdx >= 0)
 			this.drawConnection(this.layout.components[comp.parentIdx], comp);
 
-		for (let comp of this.layout.components) this.drawComponent(comp);
+		for (let n = 0; n < this.layout.components.length; n++) this.drawComponent(n);
 	}
 
 	// --------------------- private methods ---------------------
@@ -67,10 +71,17 @@ export class DrawMixture
 		//this.vg.drawLine(x1, y1, x2, y2, 0x000000, 2);
 	}
 
-	private drawComponent(comp:ArrangeMixtureComponent):void
+	private drawComponent(idx:number):void
 	{
+		let comp = this.layout.components[idx];
+
 		let box = comp.boundary;
-		this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, 0xF0F0F0);
+		let bg = 0xF8F8F8;
+		if (idx == this.activeIndex) bg = 0x8296E4;
+		else if (idx == this.selectedIndex) bg = 0xA9BBFF;
+		else if (idx == this.hoverIndex) bg = 0xE0E0E0;
+
+		this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, bg);
 		
 		if (comp.molLayout) new wmk.DrawMolecule(comp.molLayout, this.vg).draw();
 		
