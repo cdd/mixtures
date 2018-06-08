@@ -66,9 +66,8 @@ export class DrawMixture
 
 		let px = [x1, xm - xd, xm, xm, xm, xm, xm + xd, x2];
 		let py = [y1, y1, y1, y1 - yd, y2 + yd, y2, y2, y2];
-		this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, 1.5, wmk.MetaVector.NOCOLOUR, false);
-
-		//this.vg.drawLine(x1, y1, x2, y2, 0x000000, 2);
+		let lsz = this.scale * 0.1;
+		this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, lsz, wmk.MetaVector.NOCOLOUR, false);
 	}
 
 	private drawComponent(idx:number):void

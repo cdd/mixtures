@@ -16281,7 +16281,8 @@ var Mixtures;
             let xm = 0.5 * (x1 + x2), ym = 0.5 * (y1 + y2), d = 4, xd = d, yd = y1 < y2 - 1 ? -d : y1 > y2 + 1 ? d : 0;
             let px = [x1, xm - xd, xm, xm, xm, xm, xm + xd, x2];
             let py = [y1, y1, y1, y1 - yd, y2 + yd, y2, y2, y2];
-            this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, 1.5, wmk.MetaVector.NOCOLOUR, false);
+            let lsz = this.scale * 0.1;
+            this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, lsz, wmk.MetaVector.NOCOLOUR, false);
         }
         drawComponent(idx) {
             let comp = this.layout.components[idx];
@@ -16379,7 +16380,6 @@ var Mixtures;
             this.offsetX = 0;
             this.offsetY = 0;
             this.pointScale = this.policy.data.pointScale;
-            this.gfxMixture = null;
             this.filthy = true;
             this.layout = null;
             this.hoverIndex = -1;
@@ -16423,9 +16423,16 @@ var Mixtures;
             window.setTimeout(() => { if (this.filthy)
                 this.redraw(); }, 10);
         }
+        zoom(scale) {
+            this.pointScale *= scale;
+            this.layout = null;
+            this.redraw();
+        }
+        zoomFull() {
+            this.layout = null;
+            this.redraw(true);
+        }
         redraw(rescale = false) {
-            if (!this.filthy)
-                return;
             this.filthy = false;
             let width = this.content.width(), height = this.content.height();
             let density = pixelDensity();
@@ -16436,20 +16443,24 @@ var Mixtures;
                 canvas.style.height = height + 'px';
             }
             if (!this.layout) {
-                let measure = new wmk.OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
-                this.layout = new Mixtures.ArrangeMixture(this.mixture, measure, this.policy);
+                let measure = new wmk.OutlineMeasurement(0, 0, this.pointScale);
+                let policy = new wmk.RenderPolicy(deepClone(this.policy.data));
+                policy.data.pointScale = this.pointScale;
+                this.layout = new Mixtures.ArrangeMixture(this.mixture, measure, policy);
                 this.layout.arrange();
                 if (rescale)
                     this.scaleToFit();
             }
-            this.gfxMixture = new wmk.MetaVector();
-            let draw = new Mixtures.DrawMixture(this.layout, this.gfxMixture);
+            let gfx = new wmk.MetaVector();
+            let draw = new Mixtures.DrawMixture(this.layout, gfx);
             draw.hoverIndex = this.hoverIndex;
             draw.activeIndex = this.activeIndex;
             draw.selectedIndex = this.selectedIndex;
             draw.draw();
-            this.gfxMixture.normalise();
-            this.gfxMixture.renderCanvas(this.canvasMixture, true);
+            gfx.normalise();
+            gfx.offsetX = this.offsetX;
+            gfx.offsetY = this.offsetY;
+            gfx.renderCanvas(this.canvasMixture, true);
         }
         scaleToFit() {
             let width = this.content.width(), height = this.content.height(), pad = 4;
@@ -16458,6 +16469,8 @@ var Mixtures;
                 this.pointScale *= scale;
                 this.layout.scaleComponents(scale);
             }
+            this.offsetX = 0.5 * (width - this.layout.width);
+            this.offsetY = 0.5 * (height - this.layout.height);
         }
         updateHoverCursor(event) {
             let [x, y] = eventCoords(event, this.content);
@@ -16472,7 +16485,7 @@ var Mixtures;
                 return -1;
             for (let n = 0; n < this.layout.components.length; n++) {
                 let comp = this.layout.components[n];
-                if (comp.boundary.contains(x, y))
+                if (comp.boundary.contains(x - this.offsetX, y - this.offsetY))
                     return n;
             }
             return -1;
@@ -16640,6 +16653,12 @@ var Mixtures;
                 this.actionExportSDF();
             else if (cmd == 'exportSVG')
                 this.actionFileExportSVG();
+            else if (cmd == 'zoomFull')
+                this.editor.zoomFull();
+            else if (cmd == 'zoomIn')
+                this.editor.zoom(1.25);
+            else if (cmd == 'zoomOut')
+                this.editor.zoom(0.8);
             else
                 console.log('MENU:' + cmd);
         }

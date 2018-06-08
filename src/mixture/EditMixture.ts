@@ -43,7 +43,6 @@ export class EditMixture extends wmk.Widget
 	private offsetX = 0;
 	private offsetY = 0;
 	private pointScale = this.policy.data.pointScale;
-	private gfxMixture:wmk.MetaVector = null;
 	private filthy = true;
 	private layout:ArrangeMixture = null;
 	private hoverIndex = -1; // component over which the mouse is hovering
@@ -88,7 +87,6 @@ export class EditMixture extends wmk.Widget
 	{
 		this.mixture = mixture;
 
-		// !! centre or shrink as necessary
 		this.offsetX = 0;
 		this.offsetY = 0;
 		this.pointScale = this.policy.data.pointScale;
@@ -107,11 +105,25 @@ export class EditMixture extends wmk.Widget
 		window.setTimeout(() => {if (this.filthy) this.redraw();}, 10);		
 	}
 
+	// alter zoom level by a factor
+	public zoom(scale:number):void
+	{
+		this.pointScale *= scale;
+		this.layout = null;
+		this.redraw();
+	}
+
+	// rescale to fit & recentre
+	public zoomFull():void
+	{
+		this.layout = null;
+		this.redraw(true);
+	}
+
 	// ------------ private methods ------------
 	
 	private redraw(rescale = false):void
 	{
-		if (!this.filthy) return;
 		this.filthy = false;
 
 		let width = this.content.width(), height = this.content.height();
@@ -127,21 +139,25 @@ export class EditMixture extends wmk.Widget
 
 		if (!this.layout)
 		{
-			let measure = new wmk.OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
-			this.layout = new ArrangeMixture(this.mixture, measure, this.policy);
+			let measure = new wmk.OutlineMeasurement(0, 0, this.pointScale);
+			let policy = new wmk.RenderPolicy(deepClone(this.policy.data));
+			policy.data.pointScale = this.pointScale;
+			this.layout = new ArrangeMixture(this.mixture, measure, policy);
 			this.layout.arrange();
 			if (rescale) this.scaleToFit();
 		}
 
-		this.gfxMixture = new wmk.MetaVector();
-		let draw = new DrawMixture(this.layout, this.gfxMixture);
+		let gfx = new wmk.MetaVector();
+		let draw = new DrawMixture(this.layout, gfx);
 		draw.hoverIndex = this.hoverIndex;
 		draw.activeIndex = this.activeIndex;
 		draw.selectedIndex = this.selectedIndex;
 		draw.draw();
-		this.gfxMixture.normalise();
-		
-		this.gfxMixture.renderCanvas(this.canvasMixture, true);
+
+		gfx.normalise();
+		gfx.offsetX = this.offsetX;
+		gfx.offsetY = this.offsetY;
+		gfx.renderCanvas(this.canvasMixture, true);
 	}
 
 	// assuming that layout is already defined, modifies the offset/scale so that 
@@ -154,8 +170,8 @@ export class EditMixture extends wmk.Widget
 			this.pointScale *= scale;
 			this.layout.scaleComponents(scale);
 		}
-
-		// !! NOW, ox|oy...
+		this.offsetX = 0.5 * (width - this.layout.width);
+		this.offsetY = 0.5 * (height - this.layout.height);
 	}
 
 	// mouse has moved: see if we need to update the hover
@@ -177,7 +193,7 @@ export class EditMixture extends wmk.Widget
 		for (let n = 0; n < this.layout.components.length; n++)
 		{
 			let comp = this.layout.components[n];
-			if (comp.boundary.contains(x, y)) return n;
+			if (comp.boundary.contains(x - this.offsetX, y - this.offsetY)) return n;
 		}
 		return -1;
 	}

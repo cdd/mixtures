@@ -115,10 +115,10 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'copy') this.actionCopy(false);
 		else if (cmd == 'paste') this.actionPaste();
 		else if (cmd == 'delete') new MoleculeActivity(this.sketcher, ActivityType.Delete, {});
-		else if (cmd == 'selectAll') new MoleculeActivity(this.sketcher, ActivityType.SelectAll, {});
-		else if (cmd == 'zoomFull') this.sketcher.autoScale();
-		else if (cmd == 'zoomIn') this.sketcher.zoom(1.25);
-		else if (cmd == 'zoomOut') this.sketcher.zoom(0.8);*/
+		else if (cmd == 'selectAll') new MoleculeActivity(this.sketcher, ActivityType.SelectAll, {});*/
+		else if (cmd == 'zoomFull') this.editor.zoomFull();
+		else if (cmd == 'zoomIn') this.editor.zoom(1.25);
+		else if (cmd == 'zoomOut') this.editor.zoom(0.8);
 		else console.log('MENU:'+cmd);
 	}
 
