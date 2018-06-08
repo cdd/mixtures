@@ -22,25 +22,28 @@
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
 
+///<reference path='../main/startup.ts'/>
 ///<reference path='Mixfile.ts'/>
 ///<reference path='ArrangeMixture.ts'/>
 ///<reference path='DrawMixture.ts'/>
+
+namespace Mixtures /* BOF */ {
 
 /*
 	High level widget for the editing area for a mixture.
 */
 
-class EditMixture extends Widget
+export class EditMixture extends wmk.Widget
 {
 	private mixture = new Mixture();
-	private policy = RenderPolicy.defaultColourOnWhite();
+	private policy = wmk.RenderPolicy.defaultColourOnWhite();
 	private canvasMixture:HTMLCanvasElement;
 	private canvasOver:HTMLCanvasElement;
 
 	private offsetX = 0;
 	private offsetY = 0;
 	private pointScale = this.policy.data.pointScale;
-	private gfxMixture:MetaVector = null;
+	private gfxMixture:wmk.MetaVector = null;
 	private filthy = true;
 
 	// ------------ public methods ------------
@@ -103,14 +106,16 @@ class EditMixture extends Widget
 			canvas.style.height = height + 'px';
 		}
 
-		let measure = new OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
+		let measure = new wmk.OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
 		let layout = new ArrangeMixture(this.mixture, measure, this.policy);
 		layout.arrange();
 
-		this.gfxMixture = new MetaVector();
+		this.gfxMixture = new wmk.MetaVector();
 		new DrawMixture(layout, this.gfxMixture).draw();
 		this.gfxMixture.normalise();
 		
 		this.gfxMixture.renderCanvas(this.canvasMixture, true);
 	}
 }
+
+/* EOF */ }

@@ -30,11 +30,13 @@
 ///<reference path='../mixture/InteropSDFile.ts'/>
 ///<reference path='MainPanel.ts'/>
 
+namespace Mixtures /* BOF */ {
+
 /*
 	Viewing/editing window: dedicated entirely to the sketching of a mixture.
 */
 
-class MixturePanel extends MainPanel
+export class MixturePanel extends MainPanel
 {
 	private filename:string = null;
 	private editor = new EditMixture();
@@ -229,12 +231,12 @@ class MixturePanel extends MainPanel
 		};
 		dialog.showSaveDialog(params, (filename:string):void =>
 		{
-			let policy = RenderPolicy.defaultColourOnWhite();
-			let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
+			let policy = wmk.RenderPolicy.defaultColourOnWhite();
+			let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
 			let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
 			layout.arrange();
 
-			let gfx = new MetaVector();
+			let gfx = new wmk.MetaVector();
 			new DrawMixture(layout, gfx).draw();
 			gfx.normalise();
 			let svg = gfx.createSVG();
@@ -292,3 +294,5 @@ class MixturePanel extends MainPanel
 		document.title = 'Mixtures - ' + this.filename.substring(slash + 1);
 	}
 }
+
+/* EOF */ }

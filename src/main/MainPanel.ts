@@ -14,11 +14,13 @@
 ///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
 
+namespace Mixtures /* BOF */ {
+
 /*
 	Base class for "main windows": an object that takes up the entire browser window document, responds to resizing, etc.
 */
 
-class MainPanel
+export class MainPanel
 {
 	constructor(public root:JQuery)
 	{
@@ -46,4 +48,6 @@ class MainPanel
 	public menuAction(cmd:string):void
 	{
 	}
-} 
+}
+
+/* EOF */ }

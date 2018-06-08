@@ -13,11 +13,13 @@
 ///<reference path='../decl/node.d.ts'/>
 ///<reference path='Mixfile.ts'/>
 
+namespace Mixtures /* BOF */ {
+
 /*
 	Data container for mixtures: basically wraps the Mixfile interface, with additional functionality.
 */
 
-class Mixture
+export class Mixture
 {
 	// ------------ public methods ------------
 
@@ -44,3 +46,5 @@ class Mixture
 	
 	// ------------ private methods ------------
 }
+
+/* EOF */ }

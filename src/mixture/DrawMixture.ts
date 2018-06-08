@@ -19,21 +19,23 @@
 ///<reference path='../../../WebMolKit/src/gfx/MetaVector.ts'/>
 ///<reference path='../../../WebMolKit/src/util/Geom.ts'/>
 
+namespace Mixtures /* BOF */ {
+
 /*
 	Drawing a Mixfile, which has been rendered.
 */
 
-class DrawMixture
+export class DrawMixture
 {
-	private measure:ArrangeMeasurement; 
-	private policy:RenderPolicy;
+	private measure:wmk.ArrangeMeasurement; 
+	private policy:wmk.RenderPolicy;
 
 	private scale:number;
 	private invScale:number;
 	
 	// --------------------- public methods ---------------------
 	
-	constructor(private layout:ArrangeMixture, private vg:MetaVector)
+	constructor(private layout:ArrangeMixture, private vg:wmk.MetaVector)
 	{
 		this.measure = layout.measure;
 		this.policy = layout.policy;
@@ -60,7 +62,7 @@ class DrawMixture
 
 		let px = [x1, xm - xd, xm, xm, xm, xm, xm + xd, x2];
 		let py = [y1, y1, y1, y1 - yd, y2 + yd, y2, y2, y2];
-		this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, 1.5, MetaVector.NOCOLOUR, false);
+		this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, 1.5, wmk.MetaVector.NOCOLOUR, false);
 
 		//this.vg.drawLine(x1, y1, x2, y2, 0x000000, 2);
 	}
@@ -70,7 +72,7 @@ class DrawMixture
 		let box = comp.boundary;
 		this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, 0xF0F0F0);
 		
-		if (comp.molLayout) new DrawMolecule(comp.molLayout, this.vg).draw();
+		if (comp.molLayout) new wmk.DrawMolecule(comp.molLayout, this.vg).draw();
 		
 		if (comp.nameLines.length > 0)
 		{
@@ -78,7 +80,7 @@ class DrawMixture
 			for (let line of comp.nameLines)
 			{
 				let wad = this.measure.measureText(line, comp.fontSize);
-				this.vg.drawText(x, y, line, comp.fontSize, 0x000000, TextAlign.Centre | TextAlign.Top);
+				this.vg.drawText(x, y, line, comp.fontSize, 0x000000, wmk.TextAlign.Centre | wmk.TextAlign.Top);
 				y += wad[1] + 2 * wad[2];
 			}
 		}
@@ -257,3 +259,5 @@ class DrawMixture
 		this.vg.drawPoly(px, py, MetaVector.NOCOLOUR, 0, colour, true);
 	}*/
 }
+
+/* EOF */ }

@@ -18,19 +18,21 @@
 ///<reference path='../../../WebMolKit/src/gfx/FontData.ts'/>
 ///<reference path='../../../WebMolKit/src/util/Geom.ts'/>
 
+namespace Mixtures /* BOF */ {
+
 /*
 	Arranging a Mixfile: will create a tree layout for all of the components, according to parameters. 
 */
 
-class ArrangeMixtureComponent
+export class ArrangeMixtureComponent
 {
-	public boundary:Box; // outer boundary (position on canvas)
+	public boundary:wmk.Box; // outer boundary (position on canvas)
 
-	public mol:Molecule;
-	public molLayout:ArrangeMolecule;
-	public molBox:Box;
+	public mol:wmk.Molecule;
+	public molLayout:wmk.ArrangeMolecule;
+	public molBox:wmk.Box;
 
-	public nameBox:Box;
+	public nameBox:wmk.Box;
 	public nameLines:string[];
 	public fontSize:number;
 
@@ -39,7 +41,7 @@ class ArrangeMixtureComponent
 	}
 }
 
-class ArrangeMixture
+export class ArrangeMixture
 {
 	public scale:number;
 	public width = 0;
@@ -59,7 +61,7 @@ class ArrangeMixture
 	// --------------------- public methods ---------------------
 
 	// sets up the object with the mandatory information
-	constructor(public mixture:Mixture, public measure:ArrangeMeasurement, public policy:RenderPolicy)
+	constructor(public mixture:Mixture, public measure:wmk.ArrangeMeasurement, public policy:wmk.RenderPolicy)
 	{
 		this.scale = policy.data.pointScale;
 		this.limitStructW = this.limitStructH = this.scale * 10;
@@ -79,7 +81,7 @@ class ArrangeMixture
 		//for (let comp of this.components) console.log('BOX:'+JSON.stringify(comp.boundary));
 
 		// normalize boundaries
-		let outline:Box = null;
+		let outline:wmk.Box = null;
 		for (let comp of this.components)
 		{
 			if (outline) outline = outline.union(comp.boundary); else outline = comp.boundary;
@@ -144,16 +146,16 @@ class ArrangeMixture
 			let mixcomp = comp.content;
 
 			// handle molecule, if any
-			if (mixcomp.molfile) comp.mol = MoleculeStream.readMDLMOL(mixcomp.molfile);
+			if (mixcomp.molfile) comp.mol = wmk.MoleculeStream.readMDLMOL(mixcomp.molfile);
 			if (comp.mol)
 			{
-				comp.molLayout = new ArrangeMolecule(comp.mol, this.measure, this.policy);
+				comp.molLayout = new wmk.ArrangeMolecule(comp.mol, this.measure, this.policy);
 				comp.molLayout.arrange();
 				let bounds = comp.molLayout.determineBoundary();
 				// !! check limiting size
-				comp.molBox = new Box(padding, padding, Math.ceil(bounds[2] - bounds[0]), Math.ceil(bounds[3] - bounds[1]));
+				comp.molBox = new wmk.Box(padding, padding, Math.ceil(bounds[2] - bounds[0]), Math.ceil(bounds[3] - bounds[1]));
 			}
-			else comp.molBox = Box.zero();
+			else comp.molBox = wmk.Box.zero();
 
 			// handle name, or other content needing representation
 			comp.nameLines = [];
@@ -173,7 +175,7 @@ class ArrangeMixture
 				comp.nameLines.push(line);
 			}
 
-			comp.nameBox = new Box(padding, padding);
+			comp.nameBox = new wmk.Box(padding, padding);
 			comp.fontSize = 0.5 * this.scale;
 			for (let n = 0; n < comp.nameLines.length; n++)
 			{
@@ -182,7 +184,7 @@ class ArrangeMixture
 				comp.nameBox.h += wad[1] + (n > 0 ? wad[2] * 2 : 0);
 			}
 			
-			comp.boundary = Box.zero();
+			comp.boundary = wmk.Box.zero();
 			comp.boundary.w = Math.max(comp.molBox.w, comp.nameBox.w) + 2 * padding;
 			comp.boundary.h = comp.molBox.h + comp.nameBox.h + 2 * padding;
 			if (comp.molBox.notEmpty() && comp.nameBox.notEmpty()) 
@@ -200,7 +202,7 @@ class ArrangeMixture
 	{
 		let wholeBranch:number[] = [idx];
 		let branchSet:number[][] = [];
-		let branchBox:Box[] = [];
+		let branchBox:wmk.Box[] = [];
 
 		let totalWidth = 0, totalHeight = 0;
 
@@ -212,7 +214,7 @@ class ArrangeMixture
 			let branch = this.layoutSubComponents(n);
 			if (branch.length == 0) continue;
 
-			let box:Box = null;
+			let box:wmk.Box = null;
 			for (let i of branch)
 			{
 				wholeBranch.push(i);
@@ -278,3 +280,5 @@ class ArrangeMixture
 		return str;
 	}
 }
+
+/* EOF */ }

@@ -18,18 +18,21 @@
 ///<reference path='../../../WebMolKit/src/data/DataSheetStream.ts'/>
 ///<reference path='../../../WebMolKit/src/data/MDLWriter.ts'/>
 
+///<reference path='../main/startup.ts'/>
 ///<reference path='Mixfile.ts'/>
 ///<reference path='Mixture.ts'/>
 ///<reference path='Units.ts'/>
+
+namespace Mixtures /* BOF */ {
 
 /*
 	Interoperability with SDfiles: conversion of the Mixfile hierarchy into a flattened SDfile is useful for presenting to
     software that can read this format, and is also a waypoint en route to a MInChI string.
 */
 
-class ExportSDFile
+export class ExportSDFile
 {
-    private ds = new DataSheet();
+    private ds = new wmk.DataSheet();
     private colMol:number;
     private colSeq:number;
     private colConc:number;
@@ -38,9 +41,9 @@ class ExportSDFile
 
     constructor()
     {
-        this.colMol = this.ds.appendColumn('Molecule', DataSheet.COLTYPE_MOLECULE, '');
-        this.colSeq = this.ds.appendColumn('MINCHI$N', DataSheet.COLTYPE_STRING, '');
-        this.colConc = this.ds.appendColumn('MINCHI$C', DataSheet.COLTYPE_STRING, '');
+        this.colMol = this.ds.appendColumn('Molecule', wmk.DataSheet.COLTYPE_MOLECULE, '');
+        this.colSeq = this.ds.appendColumn('MINCHI$N', wmk.DataSheet.COLTYPE_STRING, '');
+        this.colConc = this.ds.appendColumn('MINCHI$C', wmk.DataSheet.COLTYPE_STRING, '');
     }
 
     // can add any number of mixtures, which will be numbered automatically
@@ -61,7 +64,7 @@ class ExportSDFile
     // return the SDF-serialised representation
     public write():string
     {
-        return new MDLSDFWriter(this.ds).write();
+        return new wmk.MDLSDFWriter(this.ds).write();
     }
 
 	// ------------ private methods ------------
@@ -71,13 +74,13 @@ class ExportSDFile
     {
         let row = this.ds.appendRow();
 
-        let mol:Molecule = null;
+        let mol:wmk.Molecule = null;
         if (comp.molfile)
         {
-            mol = Molecule.fromString(comp.molfile);
-            if (!mol) try {mol = new MDLMOLReader(comp.molfile).parse();} catch (e) {}
+            mol = wmk.Molecule.fromString(comp.molfile);
+            if (!mol) try {mol = new wmk.MDLMOLReader(comp.molfile).parse();} catch (e) {}
         }
-        if (!mol) mol = new Molecule();
+        if (!mol) mol = new wmk.Molecule();
 
         this.ds.setMolecule(row, this.colMol, mol);
         this.ds.setString(row, this.colSeq, seq.join('.'));
@@ -128,3 +131,5 @@ class ExportSDFile
         return bits.join(' ');
     }
 }
+
+/* EOF */ }

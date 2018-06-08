@@ -10,12 +10,14 @@
 	Made available under the Gnu Public License v3.0
 */
 
+namespace Mixtures /* BOF */ {
+
 /*
 	Unit definitions and conversions. Units are preferentially stored by URI, displayed by common name, and interconverted
 	as necessary to other schemes, such as MInChI mnemonics.
 */
 
-enum StandardUnits
+export enum StandardUnits
 {
 	pc = 'http://purl.obolibrary.org/obo/UO_0000187', // percent (of arbitrary type)
 	pcWV = 'http://purl.obolibrary.org/obo/UO_0000164', // percent (weight per volume),
@@ -78,7 +80,7 @@ const PAIR_UNIT_MINCHI:any[] =
 	[StandardUnits.mol_kg, 'mb', 1],
 ];
 
-class Units
+export class Units
 {
 	private static COMMON_NAMES:string[] = [];
 	private static URI_TO_NAME:{[id:string] : string} = {};
@@ -126,3 +128,5 @@ class Units
 		return [mnemonic, Vec.mul(values, scale)];
 	}
 }
+
+/* EOF */ }

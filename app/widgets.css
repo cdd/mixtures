@@ -10,6 +10,11 @@
 	[PKG=molsync]
 */
 
+.wmk-dialog
+{
+	font-family: 'Open Sans', sans-serif;
+}
+
 /* standard buttons */
 
 .button
