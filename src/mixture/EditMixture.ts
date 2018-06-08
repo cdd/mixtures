@@ -33,6 +33,15 @@ namespace Mixtures /* BOF */ {
 	High level widget for the editing area for a mixture.
 */
 
+const DEFAULT_SCALE = 20;
+
+enum DragReason
+{
+	None,
+	Any,
+	Pan,
+}
+
 export class EditMixture extends wmk.Widget
 {
 	private mixture = new Mixture();
@@ -42,12 +51,17 @@ export class EditMixture extends wmk.Widget
 
 	private offsetX = 0;
 	private offsetY = 0;
-	private pointScale = this.policy.data.pointScale;
+	private pointScale = DEFAULT_SCALE;
 	private filthy = true;
 	private layout:ArrangeMixture = null;
 	private hoverIndex = -1; // component over which the mouse is hovering
 	private activeIndex = -1; // component that is currently being clicked upon
 	private selectedIndex = -1; // selected component (having been previously clicked)
+
+	private dragReason = DragReason.None;
+	private dragIndex = -1;
+	private dragX = 0;
+	private dragY = 0;
 
 	// ------------ public methods ------------
 
@@ -117,6 +131,7 @@ export class EditMixture extends wmk.Widget
 	public zoomFull():void
 	{
 		this.layout = null;
+		this.pointScale = DEFAULT_SCALE;
 		this.redraw(true);
 	}
 
@@ -214,11 +229,18 @@ export class EditMixture extends wmk.Widget
 
 		let [x, y] = eventCoords(event, this.content);
 		let comp = this.pickComponent(x, y);
+
+		this.dragReason = DragReason.Any;
+		this.dragIndex = comp;
+		this.dragX = x;
+		this.dragY = y;
+
 		if (comp != this.activeIndex)
 		{
 			this.activeIndex = comp;
 			this.delayedRedraw();
 		}
+
 
 		/*this.clearMessage();
 
@@ -343,59 +365,7 @@ export class EditMixture extends wmk.Widget
 			this.delayedRedraw();
 		}
 
-		/*
-		// if the mouse hasn't moved, it's a click operation
-		if (!this.opBudged)
-		{
-			let xy = eventCoords(event, this.container);
-
-			let clickObj = this.pickObject(xy[0], xy[1]);
-			let clickAtom = clickObj > 0 ? clickObj : 0, clickBond = clickObj < 0 ? -clickObj : 0;
-
-			//let tool = 'finger';
-			//if (this.toolView != null && this.toolView.selectedButton) tool = this.toolView.selectedButton;
-
-			if (this.dragType == DraggingTool.Press)
-			{
-				// special key modifiers for the arrow tool:
-				//		CTRL: open context menu [see mouseDown]
-				//		SHIFT: toggle selection of object
-				//		ALT: enter pan-mode [see mouseDown]
-				//		ALT+CTRL: enter zoom mode [see mouseDown]
-			
-				if (!this.opShift && !this.opCtrl && !this.opAlt)
-				{
-					if (clickAtom == 0 && clickBond == 0)
-					{
-						if (Vec.anyTrue(this.selectedMask)) this.selectedMask = null;
-						else if (this.currentAtom > 0) this.currentAtom = 0;
-						else if (this.currentBond > 0) this.currentBond = 0;
-					}
-					else if (clickAtom != this.currentAtom || clickBond != this.currentBond)
-					{
-						this.currentAtom = clickAtom;
-						this.currentBond = clickBond;
-						this.delayedRedraw();
-					}
-					else if (clickAtom == 0 && clickBond == 0 && this.anySelected())
-					{
-						this.selectedMask = null;
-						this.delayedRedraw();
-					}
-				}
-				else if (this.opShift && !this.opCtrl && !this.opAlt)
-				{
-					// !! toggle selected state of clickobj...
-				}
-			}
-			....
-		
-		this.dragType = DraggingTool.None;
-		this.lassoX = null;
-		this.lassoY = null;
-		this.lassoMask = null;
-		this.dragGuides = null;
-		this.delayedRedraw();*/
+		this.dragReason = DragReason.None;
 	}
 	private mouseOver(event:JQueryEventObject):void
 	{
@@ -404,17 +374,29 @@ export class EditMixture extends wmk.Widget
 	private mouseOut(event:JQueryEventObject):void
 	{
 		this.updateHoverCursor(event);
+		this.dragReason = DragReason.None;
 	}
 	private mouseMove(event:JQueryEventObject):void
 	{
 		this.updateHoverCursor(event);
 
-		/*
-		if (this.dragType == DraggingTool.None) return; // mouse button isn't pressed
+		if (this.dragReason == DragReason.Any && this.dragIndex < 0)
+		{
+			this.dragReason = DragReason.Pan;
+		}
 
-		let xy = eventCoords(event, this.container);
-		
-		}*/
+		if (this.dragReason == DragReason.Pan)
+		{
+			let [x, y] = eventCoords(event, this.content);
+			let dx = x - this.dragX, dy = y - this.dragY;
+			if (dx != 0 && dy != 0)
+			{
+				this.offsetX += dx;
+				this.offsetY += dy;
+				this.delayedRedraw();
+				[this.dragX, this.dragY] = [x, y];
+			}
+		}
 	}
 	private keyPressed(event:JQueryEventObject):void
 	{

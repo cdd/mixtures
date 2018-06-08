@@ -16372,6 +16372,13 @@ var Mixtures;
 })(Mixtures || (Mixtures = {}));
 var Mixtures;
 (function (Mixtures) {
+    const DEFAULT_SCALE = 20;
+    let DragReason;
+    (function (DragReason) {
+        DragReason[DragReason["None"] = 0] = "None";
+        DragReason[DragReason["Any"] = 1] = "Any";
+        DragReason[DragReason["Pan"] = 2] = "Pan";
+    })(DragReason || (DragReason = {}));
     class EditMixture extends wmk.Widget {
         constructor() {
             super();
@@ -16379,12 +16386,16 @@ var Mixtures;
             this.policy = wmk.RenderPolicy.defaultColourOnWhite();
             this.offsetX = 0;
             this.offsetY = 0;
-            this.pointScale = this.policy.data.pointScale;
+            this.pointScale = DEFAULT_SCALE;
             this.filthy = true;
             this.layout = null;
             this.hoverIndex = -1;
             this.activeIndex = -1;
             this.selectedIndex = -1;
+            this.dragReason = DragReason.None;
+            this.dragIndex = -1;
+            this.dragX = 0;
+            this.dragY = 0;
         }
         render(parent) {
             super.render(parent);
@@ -16430,6 +16441,7 @@ var Mixtures;
         }
         zoomFull() {
             this.layout = null;
+            this.pointScale = DEFAULT_SCALE;
             this.redraw(true);
         }
         redraw(rescale = false) {
@@ -16500,6 +16512,10 @@ var Mixtures;
             event.preventDefault();
             let [x, y] = eventCoords(event, this.content);
             let comp = this.pickComponent(x, y);
+            this.dragReason = DragReason.Any;
+            this.dragIndex = comp;
+            this.dragX = x;
+            this.dragY = y;
             if (comp != this.activeIndex) {
                 this.activeIndex = comp;
                 this.delayedRedraw();
@@ -16514,15 +16530,30 @@ var Mixtures;
                 this.activeIndex = -1;
                 this.delayedRedraw();
             }
+            this.dragReason = DragReason.None;
         }
         mouseOver(event) {
             this.updateHoverCursor(event);
         }
         mouseOut(event) {
             this.updateHoverCursor(event);
+            this.dragReason = DragReason.None;
         }
         mouseMove(event) {
             this.updateHoverCursor(event);
+            if (this.dragReason == DragReason.Any && this.dragIndex < 0) {
+                this.dragReason = DragReason.Pan;
+            }
+            if (this.dragReason == DragReason.Pan) {
+                let [x, y] = eventCoords(event, this.content);
+                let dx = x - this.dragX, dy = y - this.dragY;
+                if (dx != 0 && dy != 0) {
+                    this.offsetX += dx;
+                    this.offsetY += dy;
+                    this.delayedRedraw();
+                    [this.dragX, this.dragY] = [x, y];
+                }
+            }
         }
         keyPressed(event) {
         }
