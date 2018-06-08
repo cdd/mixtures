@@ -97,7 +97,7 @@ export class EditMixture extends wmk.Widget
 		this.hoverIndex = -1;
 		this.activeIndex = -1;
 		this.selectedIndex = -1;
-		this.redraw();
+		this.redraw(true);
 	}
 
 	// makes sure the content gets redrawn imminently; calling many times is not a performance issue
@@ -109,7 +109,7 @@ export class EditMixture extends wmk.Widget
 
 	// ------------ private methods ------------
 	
-	private redraw():void
+	private redraw(rescale = false):void
 	{
 		if (!this.filthy) return;
 		this.filthy = false;
@@ -130,6 +130,7 @@ export class EditMixture extends wmk.Widget
 			let measure = new wmk.OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
 			this.layout = new ArrangeMixture(this.mixture, measure, this.policy);
 			this.layout.arrange();
+			if (rescale) this.scaleToFit();
 		}
 
 		this.gfxMixture = new wmk.MetaVector();
@@ -141,6 +142,20 @@ export class EditMixture extends wmk.Widget
 		this.gfxMixture.normalise();
 		
 		this.gfxMixture.renderCanvas(this.canvasMixture, true);
+	}
+
+	// assuming that layout is already defined, modifies the offset/scale so that 
+	private scaleToFit():void
+	{
+		let width = this.content.width(), height = this.content.height(), pad = 4;
+		if (this.layout.width > width - pad || this.layout.height > height - pad)
+		{
+			let scale = Math.min((width - pad) / this.layout.width, (height - pad) / this.layout.height);
+			this.pointScale *= scale;
+			this.layout.scaleComponents(scale);
+		}
+
+		// !! NOW, ox|oy...
 	}
 
 	// mouse has moved: see if we need to update the hover

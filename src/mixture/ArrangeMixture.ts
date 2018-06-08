@@ -26,15 +26,15 @@ namespace Mixtures /* BOF */ {
 
 export class ArrangeMixtureComponent
 {
-	public boundary:wmk.Box; // outer boundary (position on canvas)
+	public boundary:wmk.Box = null; // outer boundary (position on canvas)
 
-	public mol:wmk.Molecule;
-	public molLayout:wmk.ArrangeMolecule;
-	public molBox:wmk.Box;
+	public mol:wmk.Molecule = null;
+	public molLayout:wmk.ArrangeMolecule = null;
+	public molBox:wmk.Box = null;
 
-	public nameBox:wmk.Box;
-	public nameLines:string[];
-	public fontSize:number;
+	public nameBox:wmk.Box = null;
+	public nameLines:string[] = null;
+	public fontSize:number = null;
 
 	constructor(public origin:number[], public content:MixfileComponent, public parentIdx:number)
 	{
@@ -103,21 +103,25 @@ export class ArrangeMixture
 	}
 
 	// resize the whole thing
-	/*public scaleComponents(modScale:number):void
+	public scaleComponents(modScale:number):void
 	{
 		if (modScale == 1) return;
 
 		this.scale *= modScale;
 		this.width *= modScale;
 		this.height *= modScale;
-		for (let xc of this.components)
+		for (let comp of this.components)
 		{
-			xc.box.scaleBy(modScale);
-			xc.fszText *= modScale;
-			xc.fszLeft *= modScale;
-			xc.padding *= modScale;
+			comp.boundary.scaleBy(modScale);
+			if (comp.molBox)
+			{
+				comp.molBox.scaleBy(modScale);
+				if (comp.molLayout) comp.molLayout.squeezeInto(comp.boundary.x + comp.molBox.x, comp.boundary.y + comp.molBox.y, comp.molBox.w, comp.molBox.h);
+			}
+			if (comp.nameBox) comp.nameBox.scaleBy(modScale);
+			comp.fontSize *= modScale;
 		}
-	}*/
+	}
 		
 	// --------------------- private methods ---------------------
 

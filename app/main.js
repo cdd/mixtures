@@ -97,6 +97,12 @@ function setupMenu()
 			'label': 'Edit',
 			'submenu': 
 			[
+				{'label': 'Modify', 'accelerator': 'Enter', 'click': () => sendCommand('modify')},
+				{'label': 'Delete', 'accelerator': 'Delete', 'click': () => sendCommand('delete')},
+				{'label': 'Append', 'accelerator': '/', 'click': () => sendCommand('append')},
+				{'label': 'Move Up', 'accelerator': 'CmdOrCtrl+Up', 'click': () => sendCommand('moveUp')},
+				{'label': 'Move Down', 'accelerator': 'CmdOrCtrl+Down', 'click': () => sendCommand('moveDown')},
+				{'type': 'separator'},
 				{'label': 'Undo', 'accelerator': 'CmdOrCtrl+Z', 'click': () => sendCommand('undo')},
 				{'label': 'Redo', 'accelerator': 'CmdOrCtrl+Shift+Z', 'click': () => sendCommand('redo')},
 				{'type': 'separator'},

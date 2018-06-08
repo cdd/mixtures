@@ -16060,6 +16060,13 @@ var Mixtures;
             this.origin = origin;
             this.content = content;
             this.parentIdx = parentIdx;
+            this.boundary = null;
+            this.mol = null;
+            this.molLayout = null;
+            this.molBox = null;
+            this.nameBox = null;
+            this.nameLines = null;
+            this.fontSize = null;
         }
     }
     Mixtures.ArrangeMixtureComponent = ArrangeMixtureComponent;
@@ -16099,6 +16106,24 @@ var Mixtures;
             }
             this.width = outline.w;
             this.height = outline.h;
+        }
+        scaleComponents(modScale) {
+            if (modScale == 1)
+                return;
+            this.scale *= modScale;
+            this.width *= modScale;
+            this.height *= modScale;
+            for (let comp of this.components) {
+                comp.boundary.scaleBy(modScale);
+                if (comp.molBox) {
+                    comp.molBox.scaleBy(modScale);
+                    if (comp.molLayout)
+                        comp.molLayout.squeezeInto(comp.boundary.x + comp.molBox.x, comp.boundary.y + comp.molBox.y, comp.molBox.w, comp.molBox.h);
+                }
+                if (comp.nameBox)
+                    comp.nameBox.scaleBy(modScale);
+                comp.fontSize *= modScale;
+            }
         }
         createComponents() {
             let examineBranch = (origin, mixcomp, idx) => {
@@ -16391,14 +16416,14 @@ var Mixtures;
             this.hoverIndex = -1;
             this.activeIndex = -1;
             this.selectedIndex = -1;
-            this.redraw();
+            this.redraw(true);
         }
         delayedRedraw() {
             this.filthy = true;
             window.setTimeout(() => { if (this.filthy)
                 this.redraw(); }, 10);
         }
-        redraw() {
+        redraw(rescale = false) {
             if (!this.filthy)
                 return;
             this.filthy = false;
@@ -16414,6 +16439,8 @@ var Mixtures;
                 let measure = new wmk.OutlineMeasurement(this.offsetX, this.offsetY, this.pointScale);
                 this.layout = new Mixtures.ArrangeMixture(this.mixture, measure, this.policy);
                 this.layout.arrange();
+                if (rescale)
+                    this.scaleToFit();
             }
             this.gfxMixture = new wmk.MetaVector();
             let draw = new Mixtures.DrawMixture(this.layout, this.gfxMixture);
@@ -16423,6 +16450,14 @@ var Mixtures;
             draw.draw();
             this.gfxMixture.normalise();
             this.gfxMixture.renderCanvas(this.canvasMixture, true);
+        }
+        scaleToFit() {
+            let width = this.content.width(), height = this.content.height(), pad = 4;
+            if (this.layout.width > width - pad || this.layout.height > height - pad) {
+                let scale = Math.min((width - pad) / this.layout.width, (height - pad) / this.layout.height);
+                this.pointScale *= scale;
+                this.layout.scaleComponents(scale);
+            }
         }
         updateHoverCursor(event) {
             let [x, y] = eventCoords(event, this.content);
@@ -16605,6 +16640,8 @@ var Mixtures;
                 this.actionExportSDF();
             else if (cmd == 'exportSVG')
                 this.actionFileExportSVG();
+            else
+                console.log('MENU:' + cmd);
         }
         actionFileOpen() {
             const electron = require('electron');
