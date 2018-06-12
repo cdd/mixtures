@@ -37,13 +37,43 @@ export class Mixture
 		return true;
 	}
 
+	// makes a deep copy of self
+	public clone():Mixture
+	{
+		return new Mixture(deepClone(this.mixfile));
+	}
+
 	// unpacks a string into a mixture; throws an exception if anything went wrong
 	public static deserialise(data:string):Mixture
 	{
 		let mixfile = JSON.parse(data);
 		return new Mixture(mixfile);
 	}
-	
+
+	// uses the "origin vector" to fetch a particular component; this is an array of indices, where [] indicates the root; its first component is [0], 
+	// the second child of its first component is [0,1], etc.
+	public getComponent(origin:number[]):MixfileComponent
+	{
+		if (origin.length == 0) return this.mixfile;
+		let find:MixfileComponent = null, look:MixfileComponent[] = this.mixfile.contents;
+		for (let o of origin)
+		{
+			find = look[o];
+			look = find.contents;
+		}
+		return find;
+	}
+
+	// deletes the component with the indicated origin
+	public deleteComponent(origin:number[]):void
+	{
+		if (origin.length == 0) throw 'Cannot delete the root of a mixture.';
+		let parent = origin.slice(0);
+		let idx = parent.splice(origin.length - 1, 1)[0];
+		this.getComponent(parent).contents.splice(idx, 1);
+	}
+
+
 	// ------------ private methods ------------
 }
 

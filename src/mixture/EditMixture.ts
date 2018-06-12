@@ -135,6 +135,17 @@ export class EditMixture extends wmk.Widget
 		this.redraw(true);
 	}
 
+	// deletes selected component, if any
+	public deleteCurrent():void
+	{
+		if (this.selectedIndex < 0) return;
+
+		let modmix = this.mixture.clone();
+		let origin = this.layout.components[this.selectedIndex].origin;
+		modmix.deleteComponent(origin);
+		this.setMixture(modmix);
+	}
+
 	// ------------ private methods ------------
 	
 	private redraw(rescale = false):void
@@ -356,14 +367,11 @@ export class EditMixture extends wmk.Widget
 	}
 	private mouseUp(event:JQueryEventObject):void
 	{
-		if (this.activeIndex >= 0)
-		{
-			let [x, y] = eventCoords(event, this.content);
-			let comp = this.pickComponent(x, y);
-			if (comp == this.activeIndex) this.selectedIndex = comp;
-			this.activeIndex = -1;
-			this.delayedRedraw();
-		}
+		let [x, y] = eventCoords(event, this.content);
+		let comp = this.pickComponent(x, y);
+		if (comp == this.activeIndex) this.selectedIndex = comp;
+		this.activeIndex = -1;
+		this.delayedRedraw();
 
 		this.dragReason = DragReason.None;
 	}

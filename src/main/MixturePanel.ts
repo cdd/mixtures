@@ -109,13 +109,12 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'saveAs') this.actionFileSaveAs();*/
 		else if (cmd == 'exportSDF') this.actionExportSDF();
 		else if (cmd == 'exportSVG') this.actionFileExportSVG();
-		/*else if (cmd == 'undo') this.sketcher.performUndo();
-		else if (cmd == 'redo') this.sketcher.performRedo();
+		/*else if (cmd == 'undo') this.editor.performUndo();
+		else if (cmd == 'redo') this.editor.performRedo();
 		else if (cmd == 'cut') this.actionCopy(true);
 		else if (cmd == 'copy') this.actionCopy(false);
-		else if (cmd == 'paste') this.actionPaste();
-		else if (cmd == 'delete') new MoleculeActivity(this.sketcher, ActivityType.Delete, {});
-		else if (cmd == 'selectAll') new MoleculeActivity(this.sketcher, ActivityType.SelectAll, {});*/
+		else if (cmd == 'paste') this.actionPaste();*/
+		else if (cmd == 'delete') this.editor.deleteCurrent();
 		else if (cmd == 'zoomFull') this.editor.zoomFull();
 		else if (cmd == 'zoomIn') this.editor.zoom(1.25);
 		else if (cmd == 'zoomOut') this.editor.zoom(0.8);

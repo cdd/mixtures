@@ -14691,9 +14691,29 @@ var Mixtures;
                     return false;
             return true;
         }
+        clone() {
+            return new Mixture(deepClone(this.mixfile));
+        }
         static deserialise(data) {
             let mixfile = JSON.parse(data);
             return new Mixture(mixfile);
+        }
+        getComponent(origin) {
+            if (origin.length == 0)
+                return this.mixfile;
+            let find = null, look = this.mixfile.contents;
+            for (let o of origin) {
+                find = look[o];
+                look = find.contents;
+            }
+            return find;
+        }
+        deleteComponent(origin) {
+            if (origin.length == 0)
+                throw 'Cannot delete the root of a mixture.';
+            let parent = origin.slice(0);
+            let idx = parent.splice(origin.length - 1, 1)[0];
+            this.getComponent(parent).contents.splice(idx, 1);
         }
     }
     Mixtures.Mixture = Mixture;
@@ -16444,6 +16464,14 @@ var Mixtures;
             this.pointScale = DEFAULT_SCALE;
             this.redraw(true);
         }
+        deleteCurrent() {
+            if (this.selectedIndex < 0)
+                return;
+            let modmix = this.mixture.clone();
+            let origin = this.layout.components[this.selectedIndex].origin;
+            modmix.deleteComponent(origin);
+            this.setMixture(modmix);
+        }
         redraw(rescale = false) {
             this.filthy = false;
             let width = this.content.width(), height = this.content.height();
@@ -16522,14 +16550,12 @@ var Mixtures;
             }
         }
         mouseUp(event) {
-            if (this.activeIndex >= 0) {
-                let [x, y] = eventCoords(event, this.content);
-                let comp = this.pickComponent(x, y);
-                if (comp == this.activeIndex)
-                    this.selectedIndex = comp;
-                this.activeIndex = -1;
-                this.delayedRedraw();
-            }
+            let [x, y] = eventCoords(event, this.content);
+            let comp = this.pickComponent(x, y);
+            if (comp == this.activeIndex)
+                this.selectedIndex = comp;
+            this.activeIndex = -1;
+            this.delayedRedraw();
             this.dragReason = DragReason.None;
         }
         mouseOver(event) {
@@ -16684,6 +16710,8 @@ var Mixtures;
                 this.actionExportSDF();
             else if (cmd == 'exportSVG')
                 this.actionFileExportSVG();
+            else if (cmd == 'delete')
+                this.editor.deleteCurrent();
             else if (cmd == 'zoomFull')
                 this.editor.zoomFull();
             else if (cmd == 'zoomIn')
