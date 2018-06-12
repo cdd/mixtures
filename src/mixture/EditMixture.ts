@@ -34,6 +34,7 @@ namespace Mixtures /* BOF */ {
 */
 
 const DEFAULT_SCALE = 20;
+const UNDO_SIZE = 10;
 
 enum DragReason
 {
@@ -48,6 +49,9 @@ export class EditMixture extends wmk.Widget
 	private policy = wmk.RenderPolicy.defaultColourOnWhite();
 	private canvasMixture:HTMLCanvasElement;
 	private canvasOver:HTMLCanvasElement;
+
+	private undoStack:Mixture[] = [];
+	private redoStack:Mixture[] = [];
 
 	private offsetX = 0;
 	private offsetY = 0;
@@ -96,9 +100,13 @@ export class EditMixture extends wmk.Widget
 		this.content.keyup((event:JQueryEventObject) => this.keyUp(event));
 	}
 
+	// access to current state
 	public getMixture():Mixture {return this.mixture;}
-	public setMixture(mixture:Mixture):void
+	public setMixture(mixture:Mixture, withAutoScale:boolean = false, withStashUndo:boolean = true):void
 	{
+		// NOTE: the "withAutoScale" parameter is currently not very meaningful since the modified mixture gets a re-layout
+
+		if (withStashUndo) this.stashUndo();
 		this.mixture = mixture;
 
 		this.offsetX = 0;
@@ -109,7 +117,41 @@ export class EditMixture extends wmk.Widget
 		this.hoverIndex = -1;
 		this.activeIndex = -1;
 		this.selectedIndex = -1;
-		this.redraw(true);
+		this.redraw(withAutoScale);
+	}
+
+	// wipes the undo & redo stacks
+	public clearHistory():void
+	{
+		this.undoStack = [];
+		this.redoStack = [];
+	}
+
+	// appends the current state to the undo-stack
+	public stashUndo():void
+	{
+		if (this.undoStack.length == 0 && this.mixture.isEmpty()) return; // don't put empty stuff at the beginning
+		this.undoStack.push(this.mixture.clone());
+		while (this.undoStack.length > UNDO_SIZE) this.undoStack.splice(0, 1);
+		this.redoStack = [];
+	}
+	
+	// reports on the state of the undo/redo buffers
+	public canUndo():boolean {return this.undoStack.length > 0;}
+	public canRedo():boolean {return this.redoStack.length > 0;}
+
+	// actually does the undo/redo operation
+	public performUndo():void
+	{
+		if (this.undoStack.length == 0) return;
+		this.redoStack.push(this.mixture.clone());
+		this.setMixture(this.undoStack.pop(), false, false);
+	}
+	public performRedo():void
+	{
+		if (this.redoStack.length == 0) return;
+		this.undoStack.push(this.mixture.clone());
+		this.setMixture(this.redoStack.pop(), false, false);
 	}
 
 	// makes sure the content gets redrawn imminently; calling many times is not a performance issue

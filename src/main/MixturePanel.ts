@@ -68,7 +68,8 @@ export class MixturePanel extends MainPanel
 				return;
 			}
 
-			this.editor.setMixture(mixture);
+			this.editor.clearHistory();
+			this.editor.setMixture(mixture, true, false);
 			this.filename = filename;
 			this.updateTitle();			
 		});		
@@ -109,9 +110,9 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'saveAs') this.actionFileSaveAs();*/
 		else if (cmd == 'exportSDF') this.actionExportSDF();
 		else if (cmd == 'exportSVG') this.actionFileExportSVG();
-		/*else if (cmd == 'undo') this.editor.performUndo();
+		else if (cmd == 'undo') this.editor.performUndo();
 		else if (cmd == 'redo') this.editor.performRedo();
-		else if (cmd == 'cut') this.actionCopy(true);
+		/*else if (cmd == 'cut') this.actionCopy(true);
 		else if (cmd == 'copy') this.actionCopy(false);
 		else if (cmd == 'paste') this.actionPaste();*/
 		else if (cmd == 'delete') this.editor.deleteCurrent();

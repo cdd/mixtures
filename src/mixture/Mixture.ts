@@ -72,8 +72,7 @@ export class Mixture
 		let idx = parent.splice(origin.length - 1, 1)[0];
 		this.getComponent(parent).contents.splice(idx, 1);
 	}
-
-
+	
 	// ------------ private methods ------------
 }
 

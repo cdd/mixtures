@@ -16393,6 +16393,7 @@ var Mixtures;
 var Mixtures;
 (function (Mixtures) {
     const DEFAULT_SCALE = 20;
+    const UNDO_SIZE = 10;
     let DragReason;
     (function (DragReason) {
         DragReason[DragReason["None"] = 0] = "None";
@@ -16404,6 +16405,8 @@ var Mixtures;
             super();
             this.mixture = new Mixtures.Mixture();
             this.policy = wmk.RenderPolicy.defaultColourOnWhite();
+            this.undoStack = [];
+            this.redoStack = [];
             this.offsetX = 0;
             this.offsetY = 0;
             this.pointScale = DEFAULT_SCALE;
@@ -16437,7 +16440,10 @@ var Mixtures;
             this.content.keyup((event) => this.keyUp(event));
         }
         getMixture() { return this.mixture; }
-        setMixture(mixture) {
+        setMixture(mixture, withAutoScale = false, withStashUndo = true) {
+            console.log('SET:scale=' + withAutoScale + ',' + withStashUndo);
+            if (withStashUndo)
+                this.stashUndo();
             this.mixture = mixture;
             this.offsetX = 0;
             this.offsetY = 0;
@@ -16447,7 +16453,33 @@ var Mixtures;
             this.hoverIndex = -1;
             this.activeIndex = -1;
             this.selectedIndex = -1;
-            this.redraw(true);
+            this.redraw(withAutoScale);
+        }
+        clearHistory() {
+            this.undoStack = [];
+            this.redoStack = [];
+        }
+        stashUndo() {
+            if (this.undoStack.length == 0 && this.mixture.isEmpty())
+                return;
+            this.undoStack.push(this.mixture.clone());
+            while (this.undoStack.length > UNDO_SIZE)
+                this.undoStack.splice(0, 1);
+            this.redoStack = [];
+        }
+        canUndo() { return this.undoStack.length > 0; }
+        canRedo() { return this.redoStack.length > 0; }
+        performUndo() {
+            if (this.undoStack.length == 0)
+                return;
+            this.redoStack.push(this.mixture.clone());
+            this.setMixture(this.undoStack.pop(), false, false);
+        }
+        performRedo() {
+            if (this.redoStack.length == 0)
+                return;
+            this.undoStack.push(this.mixture.clone());
+            this.setMixture(this.redoStack.pop(), false, false);
         }
         delayedRedraw() {
             this.filthy = true;
@@ -16692,7 +16724,8 @@ var Mixtures;
                     alert('Not a valid mixture file.');
                     return;
                 }
-                this.editor.setMixture(mixture);
+                this.editor.clearHistory();
+                this.editor.setMixture(mixture, true, false);
                 this.filename = filename;
                 this.updateTitle();
             });
@@ -16710,6 +16743,10 @@ var Mixtures;
                 this.actionExportSDF();
             else if (cmd == 'exportSVG')
                 this.actionFileExportSVG();
+            else if (cmd == 'undo')
+                this.editor.performUndo();
+            else if (cmd == 'redo')
+                this.editor.performRedo();
             else if (cmd == 'delete')
                 this.editor.deleteCurrent();
             else if (cmd == 'zoomFull')
