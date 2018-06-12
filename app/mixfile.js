@@ -16415,6 +16415,7 @@ var Mixtures;
             this.hoverIndex = -1;
             this.activeIndex = -1;
             this.selectedIndex = -1;
+            this.delayedSelect = null;
             this.dragReason = DragReason.None;
             this.dragIndex = -1;
             this.dragX = 0;
@@ -16507,6 +16508,7 @@ var Mixtures;
             let modmix = this.mixture.clone();
             let [parent, idx] = Mixtures.Mixture.splitOrigin(origin);
             modmix.getComponent(parent).contents.splice(idx, 1);
+            this.delayedSelect = parent;
             this.setMixture(modmix);
         }
         appendToCurrent() {
@@ -16518,6 +16520,7 @@ var Mixtures;
             if (!comp.contents)
                 comp.contents = [];
             comp.contents.push({});
+            this.delayedSelect = Vec.concat(origin, [comp.contents.length - 1]);
             this.setMixture(modmix);
         }
         reorderCurrent(dir) {
@@ -16532,6 +16535,7 @@ var Mixtures;
             if (idx + dir < 0 || idx + dir >= comp.contents.length)
                 return;
             Vec.swap(comp.contents, idx, idx + dir);
+            this.delayedSelect = Vec.concat(parent, [idx + dir]);
             this.setMixture(modmix);
         }
         redraw(rescale = false) {
@@ -16552,6 +16556,14 @@ var Mixtures;
                 this.layout.arrange();
                 if (rescale)
                     this.scaleToFit();
+            }
+            if (this.delayedSelect) {
+                for (let n = 0; n < this.layout.components.length; n++)
+                    if (Vec.equals(this.delayedSelect, this.layout.components[n].origin)) {
+                        this.selectedIndex = n;
+                        break;
+                    }
+                this.delayedSelect = null;
             }
             let gfx = new wmk.MetaVector();
             let draw = new Mixtures.DrawMixture(this.layout, gfx);

@@ -61,6 +61,7 @@ export class EditMixture extends wmk.Widget
 	private hoverIndex = -1; // component over which the mouse is hovering
 	private activeIndex = -1; // component that is currently being clicked upon
 	private selectedIndex = -1; // selected component (having been previously clicked)
+	private delayedSelect:number[] = null; // if set to an origin vector, will be used to rederive selectedIndex next time the layout is evaluated
 
 	private dragReason = DragReason.None;
 	private dragIndex = -1;
@@ -194,6 +195,7 @@ export class EditMixture extends wmk.Widget
 		let modmix = this.mixture.clone();
 		let [parent, idx] = Mixture.splitOrigin(origin);
 		modmix.getComponent(parent).contents.splice(idx, 1);
+		this.delayedSelect = parent;
 		this.setMixture(modmix);
 	}
 
@@ -207,6 +209,7 @@ export class EditMixture extends wmk.Widget
 		let comp = modmix.getComponent(origin);
 		if (!comp.contents) comp.contents = [];
 		comp.contents.push({});
+		this.delayedSelect = Vec.concat(origin, [comp.contents.length - 1]);
 		this.setMixture(modmix);
 	}
 
@@ -222,6 +225,7 @@ export class EditMixture extends wmk.Widget
 		let comp = modmix.getComponent(parent);
 		if (idx + dir < 0 || idx + dir >= comp.contents.length) return;
 		Vec.swap(comp.contents, idx, idx + dir);
+		this.delayedSelect = Vec.concat(parent, [idx + dir]);
 		this.setMixture(modmix);
 	}
 
@@ -250,6 +254,13 @@ export class EditMixture extends wmk.Widget
 			this.layout = new ArrangeMixture(this.mixture, measure, policy);
 			this.layout.arrange();
 			if (rescale) this.scaleToFit();
+		}
+
+		if (this.delayedSelect)
+		{
+			for (let n = 0; n < this.layout.components.length; n++) 
+				if (Vec.equals(this.delayedSelect, this.layout.components[n].origin)) {this.selectedIndex = n; break;}
+			this.delayedSelect = null;
 		}
 
 		let gfx = new wmk.MetaVector();
