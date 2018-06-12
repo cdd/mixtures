@@ -13,6 +13,8 @@
 const electron = require('electron');
 const {app, BrowserWindow} = electron;
 
+process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
+
 app.on('window-all-closed', function() 
 {
 	if (process.platform != 'darwin') app.quit();

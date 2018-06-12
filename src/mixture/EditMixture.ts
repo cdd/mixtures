@@ -23,9 +23,10 @@
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
 
 ///<reference path='../main/startup.ts'/>
-///<reference path='Mixfile.ts'/>
+///<reference path='../data/Mixfile.ts'/>
 ///<reference path='ArrangeMixture.ts'/>
 ///<reference path='DrawMixture.ts'/>
+///<reference path='EditComponent.ts'/>
 
 namespace Mixtures /* BOF */ {
 
@@ -182,7 +183,19 @@ export class EditMixture extends wmk.Widget
 	// invoke the editor dialog for the current component
 	public editCurrent():void
 	{
-		// TODO
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		let comp = this.mixture.getComponent(origin);
+		let curX = this.content.width(), curY = this.content.height();
+		let dlg = new EditComponent(deepClone(comp), [curX, curY]);
+		dlg.onSave(() =>
+		{
+			console.log('COMPONENT:'+JSON.stringify(dlg.getComponent()));
+			//let modmix = this.mixture.clone();
+			// modmix.setComponent(origin, comp)
+			// this.setMixture(modmix)
+		});
+		dlg.open();
 	}
 
 	// deletes selected component, if any
@@ -321,8 +334,18 @@ export class EditMixture extends wmk.Widget
 	}
 	private mouseDoubleClick(event:JQueryEventObject):void
 	{
-		// (do something...)
 		event.stopImmediatePropagation();
+
+		let [x, y] = eventCoords(event, this.content);
+		let comp = this.pickComponent(x, y);
+		if (comp >= 0)
+		{
+			this.hoverIndex = -1;
+			this.activeIndex = -1;
+			this.selectedIndex = comp;
+			this.delayedRedraw();
+			this.editCurrent();
+		}
 	}
 	private mouseDown(event:JQueryEventObject):void
 	{

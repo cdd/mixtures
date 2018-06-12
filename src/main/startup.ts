@@ -41,13 +41,17 @@ namespace Mixtures /* BOF */ {
 
 let BASE_APP = ''; // base URL location for the app's program files (could be URL or filename)
 
-export function runMixfileEditor(root:JQuery):void
+export function runMixfileEditor(resURL:string, root:JQuery):void
 {
+	wmk.initWebMolKit(resURL);
+
 	// node/electron imports; note these are defined inside the function so as not to perturb normal web-access, which does not
 	// include these libraries
 	const path = require('path');
 	const electron = require('electron');
 	const process = require('process');
+
+	process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;	
 
 	BASE_APP = path.normalize('file:/' + __dirname);
 

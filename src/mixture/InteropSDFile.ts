@@ -19,9 +19,9 @@
 ///<reference path='../../../WebMolKit/src/data/MDLWriter.ts'/>
 
 ///<reference path='../main/startup.ts'/>
-///<reference path='Mixfile.ts'/>
-///<reference path='Mixture.ts'/>
-///<reference path='Units.ts'/>
+///<reference path='../data/Mixfile.ts'/>
+///<reference path='../data/Mixture.ts'/>
+///<reference path='../data/Units.ts'/>
 
 namespace Mixtures /* BOF */ {
 

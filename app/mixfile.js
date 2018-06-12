@@ -1,3 +1,141 @@
+var Mixtures;
+(function (Mixtures) {
+    Mixtures.MIXFILE_VERSION = 0.01;
+})(Mixtures || (Mixtures = {}));
+var Mixtures;
+(function (Mixtures) {
+    class Mixture {
+        constructor(mixfile) {
+            this.mixfile = mixfile;
+            if (!mixfile)
+                this.mixfile = { 'mixfileVersion': Mixtures.MIXFILE_VERSION };
+        }
+        isEmpty() {
+            const BITS = ['name', 'description', 'synonyms', 'formula', 'molfile', 'inchi', 'inchiKey', 'smiles',
+                'ratio', 'quantity', 'units', 'relation', 'identifiers', 'links', 'contents'];
+            for (let bit of BITS)
+                if (this.mixfile[bit] != null)
+                    return false;
+            return true;
+        }
+        clone() {
+            return new Mixture(deepClone(this.mixfile));
+        }
+        static deserialise(data) {
+            let mixfile = JSON.parse(data);
+            return new Mixture(mixfile);
+        }
+        getComponent(origin) {
+            if (origin.length == 0)
+                return this.mixfile;
+            let find = null, look = this.mixfile.contents;
+            for (let o of origin) {
+                find = look[o];
+                look = find.contents;
+            }
+            return find;
+        }
+        static splitOrigin(origin) {
+            if (origin.length == 0)
+                return [null, null];
+            let parent = origin.slice(0);
+            let idx = parent.splice(origin.length - 1, 1)[0];
+            return [parent, idx];
+        }
+    }
+    Mixtures.Mixture = Mixture;
+})(Mixtures || (Mixtures = {}));
+var Mixtures;
+(function (Mixtures) {
+    let StandardUnits;
+    (function (StandardUnits) {
+        StandardUnits["pc"] = "http://purl.obolibrary.org/obo/UO_0000187";
+        StandardUnits["pcWV"] = "http://purl.obolibrary.org/obo/UO_0000164";
+        StandardUnits["pcWW"] = "http://purl.obolibrary.org/obo/UO_0000163";
+        StandardUnits["pcVV"] = "http://purl.obolibrary.org/obo/UO_0000205";
+        StandardUnits["pcMM"] = "http://purl.obolibrary.org/obo/UO_0000076";
+        StandardUnits["ratio"] = "http://purl.obolibrary.org/obo/UO_0000190";
+        StandardUnits["mol_L"] = "http://purl.obolibrary.org/obo/UO_0000062";
+        StandardUnits["mmol_L"] = "http://purl.obolibrary.org/obo/UO_0000063";
+        StandardUnits["umol_L"] = "http://purl.obolibrary.org/obo/UO_0000064";
+        StandardUnits["nmol_L"] = "http://purl.obolibrary.org/obo/UO_0000065";
+        StandardUnits["pmol_L"] = "http://purl.obolibrary.org/obo/UO_0000066";
+        StandardUnits["g_L"] = "http://purl.obolibrary.org/obo/UO_0000175";
+        StandardUnits["mg_L"] = "http://purl.obolibrary.org/obo/UO_0000273";
+        StandardUnits["ug_L"] = "http://purl.obolibrary.org/obo/UO_0000275";
+        StandardUnits["mol_kg"] = "http://purl.obolibrary.org/obo/UO_0000068";
+    })(StandardUnits = Mixtures.StandardUnits || (Mixtures.StandardUnits = {}));
+    const PAIR_UNIT_NAMES = [
+        [StandardUnits.pc, '%'],
+        [StandardUnits.pcWV, 'w/v%'],
+        [StandardUnits.pcWW, 'w/w%'],
+        [StandardUnits.pcVV, 'v/v%'],
+        [StandardUnits.pcMM, 'mol/mol%'],
+        [StandardUnits.ratio, 'ratio'],
+        [StandardUnits.mol_L, 'mol/L'],
+        [StandardUnits.mmol_L, 'mmol/L', 1E-3],
+        [StandardUnits.umol_L, '\u{03BC}mol/L', 1E-6],
+        [StandardUnits.pmol_L, 'pmol/L', 1E-9],
+        [StandardUnits.g_L, 'g/L', 1],
+        [StandardUnits.mg_L, 'mg/L', 1E-3],
+        [StandardUnits.ug_L, '\u{03BC}/L', 1E-6],
+        [StandardUnits.mol_kg, 'mol/kg', 1],
+    ];
+    const PAIR_UNIT_MINCHI = [
+        [StandardUnits.pc, 'pp', 1],
+        [StandardUnits.pcWV, 'wv', 0.01],
+        [StandardUnits.pcWW, 'wf', 0.01],
+        [StandardUnits.pcVV, 'vf', 0.01],
+        [StandardUnits.pcMM, 'mf', 0.01],
+        [StandardUnits.ratio, 'vp', 1],
+        [StandardUnits.mol_L, 'mr', 1],
+        [StandardUnits.mmol_L, 'mr', 1E-3],
+        [StandardUnits.umol_L, 'mr', 1E-6],
+        [StandardUnits.pmol_L, 'mr', 1E-9],
+        [StandardUnits.g_L, 'wf', 1],
+        [StandardUnits.mg_L, 'wf', 1E-3],
+        [StandardUnits.ug_L, 'wf', 1E-6],
+        [StandardUnits.mol_kg, 'mb', 1],
+    ];
+    class Units {
+        static setup() {
+            for (let pair of PAIR_UNIT_NAMES) {
+                let uri = pair[0], name = pair[1];
+                this.COMMON_NAMES.push(name);
+                this.URI_TO_NAME[uri] = name;
+                this.NAME_TO_URI[name] = uri;
+            }
+            for (let pair of PAIR_UNIT_MINCHI) {
+                let uri = pair[0], name = pair[1], scale = pair[2];
+                this.URI_TO_MINCHI[uri] = [name, scale];
+            }
+            this.setup = () => { };
+        }
+        static commonNames() {
+            this.setup();
+            return this.COMMON_NAMES;
+        }
+        static uriToName(uri) {
+            this.setup();
+            return this.URI_TO_NAME[uri];
+        }
+        static nameToURI(name) {
+            this.setup();
+            return this.NAME_TO_URI[name];
+        }
+        static convertToMInChI(uri, values) {
+            let [mnemonic, scale] = this.URI_TO_MINCHI[uri];
+            if (!mnemonic)
+                return [null, null];
+            return [mnemonic, Vec.mul(values, scale)];
+        }
+    }
+    Units.COMMON_NAMES = [];
+    Units.URI_TO_NAME = {};
+    Units.NAME_TO_URI = {};
+    Units.URI_TO_MINCHI = {};
+    Mixtures.Units = Units;
+})(Mixtures || (Mixtures = {}));
 var WebMolKit;
 (function (WebMolKit) {
     class Vec {
@@ -9170,6 +9308,8 @@ var WebMolKit;
         constructor() {
             this.minPortionWidth = 80;
             this.maxPortionWidth = 80;
+            this.maximumWidth = 0;
+            this.maximumHeight = 0;
             this.title = 'Dialog';
             this.callbackClose = null;
             WebMolKit.installInlineCSS('dialog', CSS_DIALOG);
@@ -9191,8 +9331,12 @@ var WebMolKit;
             this.obscureBackground = bg;
             let pb = $('<div class="wmk-dialog"></div>').appendTo(body);
             pb.css('min-width', this.minPortionWidth + '%');
-            if (this.maxPortionWidth != null)
+            if (this.maximumWidth > 0)
+                pb.css('max-width', this.maximumWidth + 'px');
+            else if (this.maxPortionWidth != null)
                 pb.css('max-width', this.maxPortionWidth + '%');
+            if (this.maximumHeight > 0)
+                pb.css('max-height', this.maximumHeight + 'px');
             pb.css('background-color', 'white');
             pb.css('border-radius', '6px');
             pb.css('border', '1px solid black');
@@ -13095,16 +13239,19 @@ var WebMolKit;
     class Sketcher extends WebMolKit.Widget {
         constructor() {
             super();
+            this.useToolBank = true;
+            this.lowerToolBank = false;
+            this.useCommandBank = true;
+            this.lowerCommandBank = false;
+            this.useTemplateBank = true;
+            this.lowerTemplateBank = false;
+            this.debugOutput = undefined;
             this.mol = null;
             this.policy = null;
             this.width = 0;
             this.height = 0;
             this.border = 0x808080;
             this.background = 0xF8F8F8;
-            this.useToolBank = true;
-            this.useCommandBank = true;
-            this.useTemplateBank = true;
-            this.debugOutput = undefined;
             this.beenSetup = false;
             this.undoStack = [];
             this.redoStack = [];
@@ -13246,6 +13393,8 @@ var WebMolKit;
             let reserveHeight = 0;
             if (this.useCommandBank) {
                 this.commandView = new WebMolKit.ButtonView('bottom', 0, 0, this.width, this.height);
+                if (this.lowerCommandBank)
+                    this.commandView.lowerBank();
                 this.commandView.setHasBigButtons(false);
                 this.commandView.pushBank(new WebMolKit.CommandBank(this));
                 this.commandView.render(this.container);
@@ -13253,12 +13402,16 @@ var WebMolKit;
             }
             if (this.useToolBank) {
                 this.toolView = new WebMolKit.ButtonView('left', 0, 0, this.width, this.height - reserveHeight);
+                if (this.lowerToolBank)
+                    this.toolView.lowerBank();
                 this.toolView.setHasBigButtons(false);
                 this.toolView.pushBank(new WebMolKit.ToolBank(this));
                 this.toolView.render(this.container);
             }
             if (this.useTemplateBank) {
                 this.templateView = new WebMolKit.ButtonView('right', 0, 0, this.width, this.height - reserveHeight);
+                if (this.lowerTemplateBank)
+                    this.templateView.lowerBank();
                 this.templateView.setHasBigButtons(true);
                 this.templateView.pushBank(new WebMolKit.TemplateBank(this, null));
                 this.templateView.render(this.container);
@@ -14671,144 +14824,6 @@ var WebMolKit;
     Sketcher.UNDO_SIZE = 20;
     WebMolKit.Sketcher = Sketcher;
 })(WebMolKit || (WebMolKit = {}));
-var Mixtures;
-(function (Mixtures) {
-    Mixtures.MIXFILE_VERSION = 0.01;
-})(Mixtures || (Mixtures = {}));
-var Mixtures;
-(function (Mixtures) {
-    class Mixture {
-        constructor(mixfile) {
-            this.mixfile = mixfile;
-            if (!mixfile)
-                this.mixfile = { 'mixfileVersion': Mixtures.MIXFILE_VERSION };
-        }
-        isEmpty() {
-            const BITS = ['name', 'description', 'synonyms', 'formula', 'molfile', 'inchi', 'inchiKey', 'smiles',
-                'ratio', 'quantity', 'units', 'relation', 'identifiers', 'links', 'contents'];
-            for (let bit of BITS)
-                if (this.mixfile[bit] != null)
-                    return false;
-            return true;
-        }
-        clone() {
-            return new Mixture(deepClone(this.mixfile));
-        }
-        static deserialise(data) {
-            let mixfile = JSON.parse(data);
-            return new Mixture(mixfile);
-        }
-        getComponent(origin) {
-            if (origin.length == 0)
-                return this.mixfile;
-            let find = null, look = this.mixfile.contents;
-            for (let o of origin) {
-                find = look[o];
-                look = find.contents;
-            }
-            return find;
-        }
-        static splitOrigin(origin) {
-            if (origin.length == 0)
-                return [null, null];
-            let parent = origin.slice(0);
-            let idx = parent.splice(origin.length - 1, 1)[0];
-            return [parent, idx];
-        }
-    }
-    Mixtures.Mixture = Mixture;
-})(Mixtures || (Mixtures = {}));
-var Mixtures;
-(function (Mixtures) {
-    let StandardUnits;
-    (function (StandardUnits) {
-        StandardUnits["pc"] = "http://purl.obolibrary.org/obo/UO_0000187";
-        StandardUnits["pcWV"] = "http://purl.obolibrary.org/obo/UO_0000164";
-        StandardUnits["pcWW"] = "http://purl.obolibrary.org/obo/UO_0000163";
-        StandardUnits["pcVV"] = "http://purl.obolibrary.org/obo/UO_0000205";
-        StandardUnits["pcMM"] = "http://purl.obolibrary.org/obo/UO_0000076";
-        StandardUnits["ratio"] = "http://purl.obolibrary.org/obo/UO_0000190";
-        StandardUnits["mol_L"] = "http://purl.obolibrary.org/obo/UO_0000062";
-        StandardUnits["mmol_L"] = "http://purl.obolibrary.org/obo/UO_0000063";
-        StandardUnits["umol_L"] = "http://purl.obolibrary.org/obo/UO_0000064";
-        StandardUnits["nmol_L"] = "http://purl.obolibrary.org/obo/UO_0000065";
-        StandardUnits["pmol_L"] = "http://purl.obolibrary.org/obo/UO_0000066";
-        StandardUnits["g_L"] = "http://purl.obolibrary.org/obo/UO_0000175";
-        StandardUnits["mg_L"] = "http://purl.obolibrary.org/obo/UO_0000273";
-        StandardUnits["ug_L"] = "http://purl.obolibrary.org/obo/UO_0000275";
-        StandardUnits["mol_kg"] = "http://purl.obolibrary.org/obo/UO_0000068";
-    })(StandardUnits = Mixtures.StandardUnits || (Mixtures.StandardUnits = {}));
-    const PAIR_UNIT_NAMES = [
-        [StandardUnits.pc, '%'],
-        [StandardUnits.pcWV, 'w/v%'],
-        [StandardUnits.pcWW, 'w/w%'],
-        [StandardUnits.pcVV, 'v/v%'],
-        [StandardUnits.pcMM, 'mol/mol%'],
-        [StandardUnits.ratio, 'ratio'],
-        [StandardUnits.mol_L, 'mol/L'],
-        [StandardUnits.mmol_L, 'mmol/L', 1E-3],
-        [StandardUnits.umol_L, '\u{03BC}mol/L', 1E-6],
-        [StandardUnits.pmol_L, 'pmol/L', 1E-9],
-        [StandardUnits.g_L, 'g/L', 1],
-        [StandardUnits.mg_L, 'mg/L', 1E-3],
-        [StandardUnits.ug_L, '\u{03BC}/L', 1E-6],
-        [StandardUnits.mol_kg, 'mol/kg', 1],
-    ];
-    const PAIR_UNIT_MINCHI = [
-        [StandardUnits.pc, 'pp', 1],
-        [StandardUnits.pcWV, 'wv', 0.01],
-        [StandardUnits.pcWW, 'wf', 0.01],
-        [StandardUnits.pcVV, 'vf', 0.01],
-        [StandardUnits.pcMM, 'mf', 0.01],
-        [StandardUnits.ratio, 'vp', 1],
-        [StandardUnits.mol_L, 'mr', 1],
-        [StandardUnits.mmol_L, 'mr', 1E-3],
-        [StandardUnits.umol_L, 'mr', 1E-6],
-        [StandardUnits.pmol_L, 'mr', 1E-9],
-        [StandardUnits.g_L, 'wf', 1],
-        [StandardUnits.mg_L, 'wf', 1E-3],
-        [StandardUnits.ug_L, 'wf', 1E-6],
-        [StandardUnits.mol_kg, 'mb', 1],
-    ];
-    class Units {
-        static setup() {
-            for (let pair of PAIR_UNIT_NAMES) {
-                let uri = pair[0], name = pair[1];
-                this.COMMON_NAMES.push(name);
-                this.URI_TO_NAME[uri] = name;
-                this.NAME_TO_URI[name] = uri;
-            }
-            for (let pair of PAIR_UNIT_MINCHI) {
-                let uri = pair[0], name = pair[1], scale = pair[2];
-                this.URI_TO_MINCHI[uri] = [name, scale];
-            }
-            this.setup = () => { };
-        }
-        static commonNames() {
-            this.setup();
-            return this.COMMON_NAMES;
-        }
-        static uriToName(uri) {
-            this.setup();
-            return this.URI_TO_NAME[uri];
-        }
-        static nameToURI(name) {
-            this.setup();
-            return this.NAME_TO_URI[name];
-        }
-        static convertToMInChI(uri, values) {
-            let [mnemonic, scale] = this.URI_TO_MINCHI[uri];
-            if (!mnemonic)
-                return [null, null];
-            return [mnemonic, Vec.mul(values, scale)];
-        }
-    }
-    Units.COMMON_NAMES = [];
-    Units.URI_TO_NAME = {};
-    Units.NAME_TO_URI = {};
-    Units.URI_TO_MINCHI = {};
-    Mixtures.Units = Units;
-})(Mixtures || (Mixtures = {}));
 var WebMolKit;
 (function (WebMolKit) {
     class Aspect {
@@ -16347,10 +16362,12 @@ var newElement = WebMolKit.newElement;
 var Mixtures;
 (function (Mixtures) {
     let BASE_APP = '';
-    function runMixfileEditor(root) {
+    function runMixfileEditor(resURL, root) {
+        wmk.initWebMolKit(resURL);
         const path = require('path');
         const electron = require('electron');
         const process = require('process');
+        process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
         BASE_APP = path.normalize('file:/' + __dirname);
         var url = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
         wmk.RPC.RESOURCE_URL = path.normalize(url + '/res');
@@ -16389,6 +16406,71 @@ var Mixtures;
         bw.loadURL(url);
     }
     Mixtures.openNewWindow = openNewWindow;
+})(Mixtures || (Mixtures = {}));
+var Mixtures;
+(function (Mixtures) {
+    class EditComponent extends wmk.Dialog {
+        constructor(component, parentSize) {
+            super();
+            this.component = component;
+            this.parentSize = parentSize;
+            this.fakeTextArea = null;
+            this.callbackSave = null;
+            this.title = 'Edit Component';
+            this.minPortionWidth = 20;
+            this.maxPortionWidth = 95;
+            this.maximumHeight = parentSize[1];
+        }
+        onSave(callback) {
+            this.callbackSave = callback;
+        }
+        getComponent() { return this.component; }
+        populate() {
+            let buttons = this.buttons(), body = this.body();
+            this.btnClear = $('<button class="wmk-button wmk-button-default">Clear</button>').appendTo(buttons);
+            this.btnClear.click(() => this.sketcher.clearMolecule());
+            buttons.append(' ');
+            this.btnCopy = $('<button class="wmk-button wmk-button-default">Copy</button>').appendTo(buttons);
+            this.btnCopy.click(() => this.copyComponent());
+            buttons.append(' ');
+            buttons.append(this.btnClose);
+            buttons.append(' ');
+            this.btnSave = $('<button class="wmk-button wmk-button-primary">Save</button>').appendTo(buttons);
+            this.btnSave.click(() => { if (this.callbackSave)
+                this.callbackSave(this); });
+            let vertical = $('<div></div>').appendTo(body);
+            vertical.css('overflow-y', 'scroll');
+            vertical.css('height', '100%');
+            vertical.css('max-height', (this.parentSize[1] - 200) + 'px');
+            vertical.css('padding-right', '18px');
+            vertical.css('padding-bottom', '10px');
+            let lineName = $('<p></p>').appendTo(vertical);
+            ;
+            lineName.append('Name: ');
+            let skw = Math.min(1000, Math.max(500, this.parentSize[0] - 100));
+            let skh = Math.min(800, Math.max(450, this.parentSize[1] - 300));
+            console.log('SKH:' + skh);
+            let skdiv = $('<div></div>').appendTo(vertical);
+            skdiv.css('width', skw + 'px');
+            skdiv.css('height', skh + 'px');
+            this.sketcher = new wmk.Sketcher();
+            this.sketcher.lowerCommandBank = true;
+            this.sketcher.lowerTemplateBank = true;
+            this.sketcher.setSize(skw, skh);
+            if (this.component.molfile) {
+                try {
+                    let mol = new wmk.MDLMOLReader(this.component.molfile).parse();
+                    if (mol)
+                        this.sketcher.defineMolecule(mol);
+                }
+                catch (e) { }
+            }
+            this.sketcher.setup(() => this.sketcher.render(skdiv));
+        }
+        copyComponent() {
+        }
+    }
+    Mixtures.EditComponent = EditComponent;
 })(Mixtures || (Mixtures = {}));
 var Mixtures;
 (function (Mixtures) {
@@ -16498,6 +16580,16 @@ var Mixtures;
             this.redraw(true);
         }
         editCurrent() {
+            if (this.selectedIndex < 0)
+                return;
+            let origin = this.layout.components[this.selectedIndex].origin;
+            let comp = this.mixture.getComponent(origin);
+            let curX = this.content.width(), curY = this.content.height();
+            let dlg = new Mixtures.EditComponent(deepClone(comp), [curX, curY]);
+            dlg.onSave(() => {
+                console.log('COMPONENT:' + JSON.stringify(dlg.getComponent()));
+            });
+            dlg.open();
         }
         deleteCurrent() {
             if (this.selectedIndex < 0)
@@ -16609,6 +16701,15 @@ var Mixtures;
         }
         mouseDoubleClick(event) {
             event.stopImmediatePropagation();
+            let [x, y] = eventCoords(event, this.content);
+            let comp = this.pickComponent(x, y);
+            if (comp >= 0) {
+                this.hoverIndex = -1;
+                this.activeIndex = -1;
+                this.selectedIndex = comp;
+                this.delayedRedraw();
+                this.editCurrent();
+            }
         }
         mouseDown(event) {
             event.preventDefault();

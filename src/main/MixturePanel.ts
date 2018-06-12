@@ -21,9 +21,9 @@
 ///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 
-///<reference path='../mixture/Mixfile.ts'/>
-///<reference path='../mixture/Mixture.ts'/>
-///<reference path='../mixture/Units.ts'/>
+///<reference path='../data/Mixfile.ts'/>
+///<reference path='../data/Mixture.ts'/>
+///<reference path='../data/Units.ts'/>
 ///<reference path='../mixture/ArrangeMixture.ts'/>
 ///<reference path='../mixture/DrawMixture.ts'/>
 ///<reference path='../mixture/EditMixture.ts'/>
