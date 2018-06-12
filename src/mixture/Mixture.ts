@@ -64,15 +64,15 @@ export class Mixture
 		return find;
 	}
 
-	// deletes the component with the indicated origin
-	public deleteComponent(origin:number[]):void
+	// takes an origin vector and splits it into {parent origin} and {child index}; returns null on both counts if this is the root node
+	public static splitOrigin(origin:number[]):[number[], number]
 	{
-		if (origin.length == 0) throw 'Cannot delete the root of a mixture.';
+		if (origin.length == 0) return [null, null];
 		let parent = origin.slice(0);
 		let idx = parent.splice(origin.length - 1, 1)[0];
-		this.getComponent(parent).contents.splice(idx, 1);
+		return [parent, idx];
 	}
-	
+
 	// ------------ private methods ------------
 }
 

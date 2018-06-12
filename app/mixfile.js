@@ -14708,12 +14708,12 @@ var Mixtures;
             }
             return find;
         }
-        deleteComponent(origin) {
+        static splitOrigin(origin) {
             if (origin.length == 0)
-                throw 'Cannot delete the root of a mixture.';
+                return [null, null];
             let parent = origin.slice(0);
             let idx = parent.splice(origin.length - 1, 1)[0];
-            this.getComponent(parent).contents.splice(idx, 1);
+            return [parent, idx];
         }
     }
     Mixtures.Mixture = Mixture;
@@ -16441,7 +16441,7 @@ var Mixtures;
         }
         getMixture() { return this.mixture; }
         setMixture(mixture, withAutoScale = false, withStashUndo = true) {
-            console.log('SET:scale=' + withAutoScale + ',' + withStashUndo);
+            withAutoScale = true;
             if (withStashUndo)
                 this.stashUndo();
             this.mixture = mixture;
@@ -16496,12 +16496,42 @@ var Mixtures;
             this.pointScale = DEFAULT_SCALE;
             this.redraw(true);
         }
+        editCurrent() {
+        }
         deleteCurrent() {
             if (this.selectedIndex < 0)
                 return;
-            let modmix = this.mixture.clone();
             let origin = this.layout.components[this.selectedIndex].origin;
-            modmix.deleteComponent(origin);
+            if (origin.length == 0)
+                return;
+            let modmix = this.mixture.clone();
+            let [parent, idx] = Mixtures.Mixture.splitOrigin(origin);
+            modmix.getComponent(parent).contents.splice(idx, 1);
+            this.setMixture(modmix);
+        }
+        appendToCurrent() {
+            if (this.selectedIndex < 0)
+                return;
+            let origin = this.layout.components[this.selectedIndex].origin;
+            let modmix = this.mixture.clone();
+            let comp = modmix.getComponent(origin);
+            if (!comp.contents)
+                comp.contents = [];
+            comp.contents.push({});
+            this.setMixture(modmix);
+        }
+        reorderCurrent(dir) {
+            if (this.selectedIndex < 0)
+                return;
+            let origin = this.layout.components[this.selectedIndex].origin;
+            if (origin.length == 0)
+                return;
+            let modmix = this.mixture.clone();
+            let [parent, idx] = Mixtures.Mixture.splitOrigin(origin);
+            let comp = modmix.getComponent(parent);
+            if (idx + dir < 0 || idx + dir >= comp.contents.length)
+                return;
+            Vec.swap(comp.contents, idx, idx + dir);
             this.setMixture(modmix);
         }
         redraw(rescale = false) {
@@ -16747,8 +16777,16 @@ var Mixtures;
                 this.editor.performUndo();
             else if (cmd == 'redo')
                 this.editor.performRedo();
+            else if (cmd == 'modify')
+                this.editor.editCurrent();
             else if (cmd == 'delete')
                 this.editor.deleteCurrent();
+            else if (cmd == 'append')
+                this.editor.appendToCurrent();
+            else if (cmd == 'moveUp')
+                this.editor.reorderCurrent(-1);
+            else if (cmd == 'moveDown')
+                this.editor.reorderCurrent(1);
             else if (cmd == 'zoomFull')
                 this.editor.zoomFull();
             else if (cmd == 'zoomIn')

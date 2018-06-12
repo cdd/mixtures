@@ -105,6 +105,7 @@ export class EditMixture extends wmk.Widget
 	public setMixture(mixture:Mixture, withAutoScale:boolean = false, withStashUndo:boolean = true):void
 	{
 		// NOTE: the "withAutoScale" parameter is currently not very meaningful since the modified mixture gets a re-layout
+		withAutoScale = true;
 
 		if (withStashUndo) this.stashUndo();
 		this.mixture = mixture;
@@ -177,14 +178,50 @@ export class EditMixture extends wmk.Widget
 		this.redraw(true);
 	}
 
+	// invoke the editor dialog for the current component
+	public editCurrent():void
+	{
+		// TODO
+	}
+
 	// deletes selected component, if any
 	public deleteCurrent():void
 	{
 		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		if (origin.length == 0) return;
 
 		let modmix = this.mixture.clone();
+		let [parent, idx] = Mixture.splitOrigin(origin);
+		modmix.getComponent(parent).contents.splice(idx, 1);
+		this.setMixture(modmix);
+	}
+
+	// append a new sub-item to the end of the current component's list
+	public appendToCurrent():void
+	{
+		if (this.selectedIndex < 0) return;
+
 		let origin = this.layout.components[this.selectedIndex].origin;
-		modmix.deleteComponent(origin);
+		let modmix = this.mixture.clone();
+		let comp = modmix.getComponent(origin);
+		if (!comp.contents) comp.contents = [];
+		comp.contents.push({});
+		this.setMixture(modmix);
+	}
+
+	// move the current component up or down the hierarchy
+	public reorderCurrent(dir:number):void
+	{
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		if (origin.length == 0) return;
+
+		let modmix = this.mixture.clone();
+		let [parent, idx] = Mixture.splitOrigin(origin);
+		let comp = modmix.getComponent(parent);
+		if (idx + dir < 0 || idx + dir >= comp.contents.length) return;
+		Vec.swap(comp.contents, idx, idx + dir);
 		this.setMixture(modmix);
 	}
 

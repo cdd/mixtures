@@ -56,7 +56,6 @@ export interface MixfileComponent
 	contents?:MixfileComponent[];
 }
 
-
 /* orignal example of what the format might look like (1st draft):
 {
 	"mixture": "1.0 M lithium diisopropyl amide in THF/hexanes",

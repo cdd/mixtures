@@ -115,7 +115,11 @@ export class MixturePanel extends MainPanel
 		/*else if (cmd == 'cut') this.actionCopy(true);
 		else if (cmd == 'copy') this.actionCopy(false);
 		else if (cmd == 'paste') this.actionPaste();*/
+		else if (cmd == 'modify') this.editor.editCurrent();
 		else if (cmd == 'delete') this.editor.deleteCurrent();
+		else if (cmd == 'append') this.editor.appendToCurrent();
+		else if (cmd == 'moveUp') this.editor.reorderCurrent(-1);
+		else if (cmd == 'moveDown') this.editor.reorderCurrent(1);
 		else if (cmd == 'zoomFull') this.editor.zoomFull();
 		else if (cmd == 'zoomIn') this.editor.zoom(1.25);
 		else if (cmd == 'zoomOut') this.editor.zoom(0.8);
