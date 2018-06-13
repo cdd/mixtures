@@ -16414,6 +16414,8 @@ var Mixtures;
             super();
             this.component = component;
             this.parentSize = parentSize;
+            this.areaDescr = null;
+            this.areaSyn = null;
             this.fakeTextArea = null;
             this.callbackSave = null;
             this.title = 'Edit Component';
@@ -16438,21 +16440,38 @@ var Mixtures;
             this.btnSave = $('<button class="wmk-button wmk-button-primary">Save</button>').appendTo(buttons);
             this.btnSave.click(() => { if (this.callbackSave)
                 this.callbackSave(this); });
+            body.css('padding', '0 0 0 1em');
             let vertical = $('<div></div>').appendTo(body);
             vertical.css('overflow-y', 'scroll');
             vertical.css('height', '100%');
             vertical.css('max-height', (this.parentSize[1] - 200) + 'px');
             vertical.css('padding-right', '18px');
             vertical.css('padding-bottom', '10px');
-            let lineName = $('<p></p>').appendTo(vertical);
-            ;
-            lineName.append('Name: ');
+            let grid = this.fieldGrid().appendTo(vertical);
+            this.createFieldName(grid, 1, 'Name');
+            this.lineName = this.createValueLine(grid, 1);
+            this.lineName.val(this.component.name);
+            this.createFieldName(grid, 2, 'Quantity');
+            this.createValueLine(grid, 2);
+            let btnMore = $('<button class="wmk-button wmk-button-default">More...</button>').appendTo(vertical);
+            btnMore.click(() => {
+                btnMore.remove();
+                this.createFieldName(grid, 3, 'Description');
+                this.areaDescr = this.createValueMultiline(grid, 3);
+                this.areaDescr.keydown((event) => this.trapEscape(event));
+                this.createFieldName(grid, 4, 'Synonyms');
+                this.areaSyn = this.createValueMultiline(grid, 4);
+                this.areaSyn.keydown((event) => this.trapEscape(event));
+                this.areaDescr.val(this.component.description);
+                if (this.component.synonyms)
+                    this.areaSyn.val(this.component.synonyms.join('\n'));
+            });
             let skw = Math.min(1000, Math.max(500, this.parentSize[0] - 100));
             let skh = Math.min(800, Math.max(450, this.parentSize[1] - 300));
-            console.log('SKH:' + skh);
             let skdiv = $('<div></div>').appendTo(vertical);
             skdiv.css('width', skw + 'px');
             skdiv.css('height', skh + 'px');
+            skdiv.css('margin-top', '1em');
             this.sketcher = new wmk.Sketcher();
             this.sketcher.lowerCommandBank = true;
             this.sketcher.lowerTemplateBank = true;
@@ -16466,8 +16485,82 @@ var Mixtures;
                 catch (e) { }
             }
             this.sketcher.setup(() => this.sketcher.render(skdiv));
+            grid = this.fieldGrid().appendTo(vertical);
+            this.createFieldName(grid, 1, 'Formula');
+            this.lineFormula = this.createValueLine(grid, 1);
+            this.lineFormula.val(this.component.formula);
+            this.createFieldName(grid, 2, 'InChI');
+            this.lineInChI = this.createValueLine(grid, 2);
+            this.lineInChI.val(this.component.inchi);
+            this.createFieldName(grid, 3, 'InChIKey');
+            this.lineInChIKey = this.createValueLine(grid, 3);
+            this.lineInChIKey.val(this.component.inchiKey);
+            this.createFieldName(grid, 4, 'SMILES');
+            this.lineSMILES = this.createValueLine(grid, 4);
+            this.lineSMILES.val(this.component.smiles);
+            this.createFieldName(grid, 5, 'Identifiers');
+            this.areaIdent = this.createValueMultiline(grid, 5);
+            let listID = [];
+            if (this.component.identifiers)
+                for (let key in this.component.identifiers)
+                    listID.push(key + '=' + this.component.identifiers[key]);
+            this.areaIdent.val(listID.join('\n'));
+            this.createFieldName(grid, 6, 'Links');
+            this.areaLinks = this.createValueMultiline(grid, 6);
+            let listLinks = [];
+            if (this.component.links)
+                for (let key in this.component.links)
+                    listLinks.push(key + '=' + this.component.links[key]);
+            this.areaLinks.val(listLinks.join('\n'));
+            this.lineName.focus();
+            body.find('input,textarea').keydown((event) => this.trapEscape(event));
         }
         copyComponent() {
+        }
+        fieldGrid() {
+            let div = $('<div></div>');
+            div.css('display', 'grid');
+            div.css('width', '100%');
+            div.css('margin', '1em 0 1em 0');
+            div.css('align-items', 'center');
+            div.css('justify-content', 'start');
+            div.css('grid-row-gap', '0.5em');
+            div.css('grid-template-columns', '[start field] max-content [value] 1fr [end]');
+            return div;
+        }
+        createFieldName(parent, row, text) {
+            let div = $('<div></div>').appendTo(parent);
+            div.css('grid-column', 'field');
+            div.css('grid-row', row.toString());
+            div.css('padding-right', '0.5em');
+            div.css('font-weight', 'bold');
+            div.text(text);
+            return div;
+        }
+        createValueLine(parent, row) {
+            let div = $('<div></div>').appendTo(parent);
+            div.css('grid-column', 'value');
+            div.css('grid-row', row.toString());
+            let input = $('<input></input>').appendTo(div);
+            input.css('width', '100%');
+            input.css('font', 'inherit');
+            return input;
+        }
+        createValueMultiline(parent, row) {
+            let div = $('<div></div>').appendTo(parent);
+            div.css('grid-column', 'value');
+            div.css('grid-row', row.toString());
+            let area = $('<textarea></textarea>').appendTo(div);
+            area.attr('rows', '5');
+            area.css('width', '100%');
+            area.css('font', 'inherit');
+            return area;
+        }
+        trapEscape(event) {
+            if (event.keyCode == 27) {
+                event.preventDefault();
+                this.close();
+            }
         }
     }
     Mixtures.EditComponent = EditComponent;
