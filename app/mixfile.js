@@ -101,6 +101,7 @@ var Mixtures;
         static setup() {
             for (let pair of PAIR_UNIT_NAMES) {
                 let uri = pair[0], name = pair[1];
+                this.STANDARD_LIST.push(uri);
                 this.COMMON_NAMES.push(name);
                 this.URI_TO_NAME[uri] = name;
                 this.NAME_TO_URI[name] = uri;
@@ -110,6 +111,10 @@ var Mixtures;
                 this.URI_TO_MINCHI[uri] = [name, scale];
             }
             this.setup = () => { };
+        }
+        static standardList() {
+            this.setup();
+            return this.STANDARD_LIST;
         }
         static commonNames() {
             this.setup();
@@ -130,6 +135,7 @@ var Mixtures;
             return [mnemonic, Vec.mul(values, scale)];
         }
     }
+    Units.STANDARD_LIST = [];
     Units.COMMON_NAMES = [];
     Units.URI_TO_NAME = {};
     Units.NAME_TO_URI = {};
@@ -186,6 +192,13 @@ var WebMolKit;
                 return [item];
             arr = arr.slice(0);
             arr.push(item);
+            return arr;
+        }
+        static prepend(arr, item) {
+            if (arr == null || arr.length == 0)
+                return [item];
+            arr = arr.slice(0);
+            arr.unshift(item);
             return arr;
         }
         static concat(arr1, arr2) {
@@ -16407,8 +16420,172 @@ var Mixtures;
     }
     Mixtures.openNewWindow = openNewWindow;
 })(Mixtures || (Mixtures = {}));
+var WebMolKit;
+(function (WebMolKit) {
+    class OptionList extends WebMolKit.Widget {
+        constructor(options, isVertical = false) {
+            super();
+            this.options = options;
+            this.isVertical = isVertical;
+            this.selidx = 0;
+            this.buttonDiv = [];
+            this.auxCell = [];
+            this.padding = 6;
+            this.callbackSelect = null;
+            if (options.length == 0)
+                throw 'molsync.ui.OptionList: must provide a list of option labels.';
+            if (!WebMolKit.hasInlineCSS('option'))
+                WebMolKit.installInlineCSS('option', this.composeCSS());
+        }
+        getSelectedIndex() {
+            return this.selidx;
+        }
+        getSelectedValue() {
+            return this.options[this.selidx];
+        }
+        getAuxiliaryCell(idx) {
+            return this.auxCell[idx];
+        }
+        render(parent) {
+            super.render(parent);
+            this.buttonDiv = [];
+            this.auxCell = [];
+            let table = $('<table class="wmk-option-table"></table>').appendTo(this.content);
+            let tr = this.isVertical ? null : $('<tr></tr>').appendTo(table);
+            for (let n = 0; n < this.options.length; n++) {
+                if (this.isVertical)
+                    tr = $('<tr></tr>').appendTo(table);
+                let td = $('<td class="wmk-option-cell"></td>').appendTo(tr);
+                let div = $('<div class="wmk-option"></div>').appendTo(td);
+                div.css('padding', this.padding + 'px');
+                this.buttonDiv.push(div);
+                if (this.isVertical) {
+                    td = $('<td style="vertical-align: middle;"></td>').appendTo(tr);
+                    this.auxCell.push(td);
+                }
+            }
+            this.updateButtons();
+        }
+        clickButton(idx) {
+            if (idx == this.selidx)
+                return;
+            this.setSelectedIndex(idx);
+            if (this.callbackSelect)
+                this.callbackSelect(idx, this);
+        }
+        setSelectedIndex(idx) {
+            if (this.selidx == idx)
+                return;
+            this.selidx = idx;
+            this.updateButtons();
+        }
+        setSelectedValue(val) {
+            let idx = this.options.indexOf(val);
+            if (idx >= 0)
+                this.setSelectedIndex(idx);
+        }
+        updateButtons() {
+            for (let n = 0; n < this.options.length && n < this.buttonDiv.length; n++) {
+                let div = this.buttonDiv[n];
+                let txt = this.options[n];
+                if (txt.length == 0 && n == this.selidx)
+                    div.text('\u00A0\u2716\u00A0');
+                else if (txt.length == 0)
+                    div.text('\u00A0\u00A0\u00A0');
+                else
+                    div.text(txt);
+                div.off('mouseover');
+                div.off('mouseout');
+                div.off('mousedown');
+                div.off('mouseup');
+                div.off('mouseleave');
+                div.off('mousemove');
+                div.off('click');
+                div.removeClass('wmk-option-hover wmk-option-active wmk-option-unselected wmk-option-selected');
+                if (n != this.selidx) {
+                    div.addClass('wmk-option-unselected');
+                    div.mouseover(() => div.addClass('wmk-option-hover'));
+                    div.mouseout(() => div.removeClass('wmk-option-hover wmk-option-active'));
+                    div.mousedown(() => div.addClass('wmk-option-active'));
+                    div.mouseup(() => div.removeClass('wmk-option-active'));
+                    div.mouseleave(() => div.removeClass('wmk-option-hover wmk-option-active'));
+                    div.mousemove(() => { return false; });
+                    div.click(() => this.clickButton(n));
+                }
+                else
+                    div.addClass('wmk-option-selected');
+            }
+        }
+        composeCSS() {
+            let lowlight = WebMolKit.colourCode(WebMolKit.Theme.lowlight), lowlightEdge1 = WebMolKit.colourCode(WebMolKit.Theme.lowlightEdge1), lowlightEdge2 = WebMolKit.colourCode(WebMolKit.Theme.lowlightEdge2);
+            let highlight = WebMolKit.colourCode(WebMolKit.Theme.highlight), highlightEdge1 = WebMolKit.colourCode(WebMolKit.Theme.highlightEdge1), highlightEdge2 = WebMolKit.colourCode(WebMolKit.Theme.highlightEdge2);
+            return `
+			.wmk-option
+			{
+				margin-bottom: 0;
+				font-family: 'Open Sans', sans-serif;
+				font-size: 14px;
+				font-weight: normal;
+				text-align: center;
+				white-space: nowrap;
+				vertical-align: middle;
+				-ms-touch-action: manipulation; touch-action: manipulation;
+				cursor: pointer;
+				-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+			}
+			.wmk-option-selected
+			{
+				color: white;
+				background-color: #008FD2;
+				background-image: linear-gradient(to right bottom, ${lowlightEdge1}, ${lowlightEdge2});
+			}
+			.wmk-option-unselected
+			{
+				color: #333;
+				background-color: white;
+				background-image: linear-gradient(to right bottom, #FFFFFF, #E0E0E0);
+			}
+			.wmk-option-table
+			{
+				margin: 1px;
+				padding: 0;
+				border-width: 0;
+				border-collapse: collapse;
+			}
+			.wmk-option-cell
+			{
+				margin: 0;
+				padding: 0;
+				border-width: 0;
+				border-width: 1px;
+				border-style: solid;
+				border-color: #808080;
+			}
+			.wmk-option-hover
+			{
+				background-color: #808080;
+				background-image: linear-gradient(to right bottom, #F0F0F0, #D0D0D0);
+			}
+			.wmk-option-active
+			{
+				background-color: #00C000;
+				background-image: linear-gradient(to right bottom, ${highlightEdge1}, ${highlightEdge2});
+			}
+		`;
+        }
+    }
+    WebMolKit.OptionList = OptionList;
+})(WebMolKit || (WebMolKit = {}));
 var Mixtures;
 (function (Mixtures) {
+    let QuantityType;
+    (function (QuantityType) {
+        QuantityType["Value"] = "Value";
+        QuantityType["Range"] = "Range";
+        QuantityType["Ratio"] = "Ratio";
+    })(QuantityType || (QuantityType = {}));
+    const RELATION_VALUES = ['=', '~', '<', '<=', '>', '>='];
+    const RELATION_LABELS = ['=', '~', '&lt;', '&le;', '&gt;', '&ge;'];
     class EditComponent extends wmk.Dialog {
         constructor(component, parentSize) {
             super();
@@ -16432,14 +16609,10 @@ var Mixtures;
             this.btnClear = $('<button class="wmk-button wmk-button-default">Clear</button>').appendTo(buttons);
             this.btnClear.click(() => this.sketcher.clearMolecule());
             buttons.append(' ');
-            this.btnCopy = $('<button class="wmk-button wmk-button-default">Copy</button>').appendTo(buttons);
-            this.btnCopy.click(() => this.copyComponent());
-            buttons.append(' ');
             buttons.append(this.btnClose);
             buttons.append(' ');
             this.btnSave = $('<button class="wmk-button wmk-button-primary">Save</button>').appendTo(buttons);
-            this.btnSave.click(() => { if (this.callbackSave)
-                this.callbackSave(this); });
+            this.btnSave.click(() => this.saveAndClose());
             body.css('padding', '0 0 0 1em');
             let vertical = $('<div></div>').appendTo(body);
             vertical.css('overflow-y', 'scroll');
@@ -16447,20 +16620,22 @@ var Mixtures;
             vertical.css('max-height', (this.parentSize[1] - 200) + 'px');
             vertical.css('padding-right', '18px');
             vertical.css('padding-bottom', '10px');
-            let grid = this.fieldGrid().appendTo(vertical);
-            this.createFieldName(grid, 1, 'Name');
-            this.lineName = this.createValueLine(grid, 1);
+            let grid1 = this.fieldGrid().appendTo(vertical);
+            this.createFieldName(grid1, 1, 'Name');
+            this.lineName = this.createValueLine(grid1, 1);
             this.lineName.val(this.component.name);
-            this.createFieldName(grid, 2, 'Quantity');
-            this.createValueLine(grid, 2);
+            this.createFieldName(grid1, 2, 'Quantity');
+            let divQuant = $('<div></div>').appendTo(grid1);
+            divQuant.css({ 'grid-column': 'value', 'grid-row': '2' });
+            this.createQuantity(divQuant);
             let btnMore = $('<button class="wmk-button wmk-button-default">More...</button>').appendTo(vertical);
             btnMore.click(() => {
                 btnMore.remove();
-                this.createFieldName(grid, 3, 'Description');
-                this.areaDescr = this.createValueMultiline(grid, 3);
+                this.createFieldName(grid1, 3, 'Description');
+                this.areaDescr = this.createValueMultiline(grid1, 3);
                 this.areaDescr.keydown((event) => this.trapEscape(event));
-                this.createFieldName(grid, 4, 'Synonyms');
-                this.areaSyn = this.createValueMultiline(grid, 4);
+                this.createFieldName(grid1, 4, 'Synonyms');
+                this.areaSyn = this.createValueMultiline(grid1, 4);
                 this.areaSyn.keydown((event) => this.trapEscape(event));
                 this.areaDescr.val(this.component.description);
                 if (this.component.synonyms)
@@ -16485,28 +16660,28 @@ var Mixtures;
                 catch (e) { }
             }
             this.sketcher.setup(() => this.sketcher.render(skdiv));
-            grid = this.fieldGrid().appendTo(vertical);
-            this.createFieldName(grid, 1, 'Formula');
-            this.lineFormula = this.createValueLine(grid, 1);
+            let grid2 = this.fieldGrid().appendTo(vertical);
+            this.createFieldName(grid2, 1, 'Formula');
+            this.lineFormula = this.createValueLine(grid2, 1);
             this.lineFormula.val(this.component.formula);
-            this.createFieldName(grid, 2, 'InChI');
-            this.lineInChI = this.createValueLine(grid, 2);
+            this.createFieldName(grid2, 2, 'InChI');
+            this.lineInChI = this.createValueLine(grid2, 2);
             this.lineInChI.val(this.component.inchi);
-            this.createFieldName(grid, 3, 'InChIKey');
-            this.lineInChIKey = this.createValueLine(grid, 3);
+            this.createFieldName(grid2, 3, 'InChIKey');
+            this.lineInChIKey = this.createValueLine(grid2, 3);
             this.lineInChIKey.val(this.component.inchiKey);
-            this.createFieldName(grid, 4, 'SMILES');
-            this.lineSMILES = this.createValueLine(grid, 4);
+            this.createFieldName(grid2, 4, 'SMILES');
+            this.lineSMILES = this.createValueLine(grid2, 4);
             this.lineSMILES.val(this.component.smiles);
-            this.createFieldName(grid, 5, 'Identifiers');
-            this.areaIdent = this.createValueMultiline(grid, 5);
+            this.createFieldName(grid2, 5, 'Identifiers');
+            this.areaIdent = this.createValueMultiline(grid2, 5);
             let listID = [];
             if (this.component.identifiers)
                 for (let key in this.component.identifiers)
                     listID.push(key + '=' + this.component.identifiers[key]);
             this.areaIdent.val(listID.join('\n'));
-            this.createFieldName(grid, 6, 'Links');
-            this.areaLinks = this.createValueMultiline(grid, 6);
+            this.createFieldName(grid2, 6, 'Links');
+            this.areaLinks = this.createValueMultiline(grid2, 6);
             let listLinks = [];
             if (this.component.links)
                 for (let key in this.component.links)
@@ -16515,7 +16690,23 @@ var Mixtures;
             this.lineName.focus();
             body.find('input,textarea').keydown((event) => this.trapEscape(event));
         }
-        copyComponent() {
+        saveAndClose() {
+            let mol = this.sketcher.getMolecule();
+            if (mol.numAtoms > 0)
+                this.component.molfile = new wmk.MDLMOLWriter(mol).write();
+            else
+                this.component.molfile = null;
+            let nullifyBlank = (str) => { return str === '' ? null : str; };
+            this.component.name = nullifyBlank(this.lineName.val());
+            if (this.areaDescr)
+                this.component.description = nullifyBlank(this.areaDescr.val());
+            this.component.formula = nullifyBlank(this.lineFormula.val());
+            this.component.inchi = nullifyBlank(this.lineInChI.val());
+            this.component.inchiKey = nullifyBlank(this.lineInChIKey.val());
+            this.component.smiles = nullifyBlank(this.lineSMILES.val());
+            Object.keys(this.component).forEach((key) => { if (this.component[key] == null)
+                delete this.component[key]; });
+            console.log(JSON.stringify(this.component));
         }
         fieldGrid() {
             let div = $('<div></div>');
@@ -16561,6 +16752,83 @@ var Mixtures;
                 event.preventDefault();
                 this.close();
             }
+        }
+        createQuantity(parent) {
+            let flex = $('<div></div>').appendTo(parent);
+            flex.css('display', 'flex');
+            flex.css('align-items', 'center');
+            let box = () => $('<div style="padding-left: 0.5em;"></div>').appendTo(flex);
+            this.optQuantType = new wmk.OptionList([QuantityType.Value, QuantityType.Range, QuantityType.Ratio]);
+            this.optQuantType.render(flex);
+            this.dropQuantRel = this.makeDropdownGroup(box(), this.component.relation, RELATION_VALUES, RELATION_LABELS, (value, label) => { console.log("R=" + value); this.component.relation = value; });
+            this.lineQuantVal1 = $('<input></input>').appendTo(box());
+            this.lineQuantVal1.attr('size', '10');
+            this.lineQuantVal1.css('font', 'inherit');
+            let spanGap = $('<span></span>').appendTo(flex);
+            spanGap.css('padding', '0 0.5em 0 0.5em');
+            this.lineQuantVal2 = $('<input></input>').appendTo(box());
+            this.lineQuantVal2.attr('size', '10');
+            this.lineQuantVal2.css('font', 'inherit');
+            let unitValues = Vec.prepend(Mixtures.Units.standardList(), ''), unitLabels = Vec.prepend(Mixtures.Units.commonNames(), '');
+            this.dropQuantUnits = this.makeDropdownGroup(box(), this.component.units, unitValues, unitLabels, (value, label) => { console.log("U=" + label); this.component.units = label; });
+            let changeToValue = () => {
+                this.dropQuantRel.css('display', 'block');
+                spanGap.html('&plusmn;');
+                this.dropQuantUnits.css('display', 'block');
+            };
+            let changeToRange = () => {
+                this.dropQuantRel.css('display', 'none');
+                spanGap.html('to');
+                this.dropQuantUnits.css('display', 'block');
+            };
+            let changeToRatio = () => {
+                this.dropQuantRel.css('display', 'none');
+                spanGap.html(':');
+                this.dropQuantUnits.css('display', 'none');
+            };
+            if (this.component.ratio != null) {
+                this.optQuantType.setSelectedValue(QuantityType.Ratio);
+                if (this.component.ratio) {
+                    let [numer, denom] = this.component.ratio;
+                    this.lineQuantVal1.val(numer.toString());
+                    this.lineQuantVal2.val(denom.toString());
+                }
+                changeToRatio();
+            }
+            else if (Array.isArray(this.component.quantity)) {
+                this.optQuantType.setSelectedValue(QuantityType.Range);
+                let [low, high] = this.component.quantity;
+                if (low != null)
+                    this.lineQuantVal1.val(low.toString());
+                if (high != null)
+                    this.lineQuantVal2.val(high.toString());
+                changeToRange();
+            }
+            else {
+                this.optQuantType.setSelectedValue(QuantityType.Value);
+                if (this.component.quantity != null)
+                    this.lineQuantVal1.val(this.component.quantity.toString());
+                changeToValue();
+            }
+            this.optQuantType.callbackSelect = (idx) => { if (idx == 0)
+                changeToValue();
+            else if (idx == 1)
+                changeToRange();
+            else if (idx == 2)
+                changeToRatio(); };
+        }
+        makeDropdownGroup(parent, current, values, labels, changeFunc) {
+            let drop = $('<select></select>').appendTo(parent);
+            drop.css('height', '2.3em');
+            for (let n = 0; n < values.length; n++) {
+                let opt = $('<option></option>').appendTo(drop);
+                opt.attr('value', n.toString());
+                opt.html(labels[n]);
+                if (current == values[n] || current == labels[n])
+                    opt.attr('selected', true);
+            }
+            drop.change(() => { let idx = parseInt(drop.val()); changeFunc(values[idx], labels[idx]); });
+            return drop;
         }
     }
     Mixtures.EditComponent = EditComponent;
@@ -19786,162 +20054,6 @@ var WebMolKit;
         'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     };
     WebMolKit.FormatList = FormatList;
-})(WebMolKit || (WebMolKit = {}));
-var WebMolKit;
-(function (WebMolKit) {
-    class OptionList extends WebMolKit.Widget {
-        constructor(options, isVertical = false) {
-            super();
-            this.options = options;
-            this.isVertical = isVertical;
-            this.selidx = 0;
-            this.buttonDiv = [];
-            this.auxCell = [];
-            this.padding = 6;
-            this.callbackSelect = null;
-            if (options.length == 0)
-                throw 'molsync.ui.OptionList: must provide a list of option labels.';
-            if (!WebMolKit.hasInlineCSS('option'))
-                WebMolKit.installInlineCSS('option', this.composeCSS());
-        }
-        getSelectedIndex() {
-            return this.selidx;
-        }
-        getSelectedValue() {
-            return this.options[this.selidx];
-        }
-        getAuxiliaryCell(idx) {
-            return this.auxCell[idx];
-        }
-        render(parent) {
-            super.render(parent);
-            this.buttonDiv = [];
-            this.auxCell = [];
-            let table = $('<table class="wmk-option-table"></table>').appendTo(this.content);
-            let tr = this.isVertical ? null : $('<tr></tr>').appendTo(table);
-            for (let n = 0; n < this.options.length; n++) {
-                if (this.isVertical)
-                    tr = $('<tr></tr>').appendTo(table);
-                let td = $('<td class="wmk-option-cell"></td>').appendTo(tr);
-                let div = $('<div class="wmk-option"></div>').appendTo(td);
-                div.css('padding', this.padding + 'px');
-                this.buttonDiv.push(div);
-                if (this.isVertical) {
-                    td = $('<td style="vertical-align: middle;"></td>').appendTo(tr);
-                    this.auxCell.push(td);
-                }
-            }
-            this.updateButtons();
-        }
-        clickButton(idx) {
-            if (idx == this.selidx)
-                return;
-            this.setSelectedIndex(idx);
-            if (this.callbackSelect)
-                this.callbackSelect(idx, this);
-        }
-        setSelectedIndex(idx) {
-            if (this.selidx == idx)
-                return;
-            this.selidx = idx;
-            this.updateButtons();
-        }
-        setSelectedValue(val) {
-            let idx = this.options.indexOf(val);
-            if (idx >= 0)
-                this.setSelectedIndex(idx);
-        }
-        updateButtons() {
-            for (let n = 0; n < this.options.length && n < this.buttonDiv.length; n++) {
-                let div = this.buttonDiv[n];
-                let txt = this.options[n];
-                if (txt.length == 0 && n == this.selidx)
-                    div.text('\u00A0\u2716\u00A0');
-                else if (txt.length == 0)
-                    div.text('\u00A0\u00A0\u00A0');
-                else
-                    div.text(txt);
-                div.off('mouseover');
-                div.off('mouseout');
-                div.off('mousedown');
-                div.off('mouseup');
-                div.off('mouseleave');
-                div.off('mousemove');
-                div.off('click');
-                div.removeClass('wmk-option-hover wmk-option-active wmk-option-unselected wmk-option-selected');
-                if (n != this.selidx) {
-                    div.addClass('wmk-option-unselected');
-                    div.mouseover(() => div.addClass('wmk-option-hover'));
-                    div.mouseout(() => div.removeClass('wmk-option-hover wmk-option-active'));
-                    div.mousedown(() => div.addClass('wmk-option-active'));
-                    div.mouseup(() => div.removeClass('wmk-option-active'));
-                    div.mouseleave(() => div.removeClass('wmk-option-hover wmk-option-active'));
-                    div.mousemove(() => { return false; });
-                    div.click(() => this.clickButton(n));
-                }
-                else
-                    div.addClass('wmk-option-selected');
-            }
-        }
-        composeCSS() {
-            let lowlight = WebMolKit.colourCode(WebMolKit.Theme.lowlight), lowlightEdge1 = WebMolKit.colourCode(WebMolKit.Theme.lowlightEdge1), lowlightEdge2 = WebMolKit.colourCode(WebMolKit.Theme.lowlightEdge2);
-            let highlight = WebMolKit.colourCode(WebMolKit.Theme.highlight), highlightEdge1 = WebMolKit.colourCode(WebMolKit.Theme.highlightEdge1), highlightEdge2 = WebMolKit.colourCode(WebMolKit.Theme.highlightEdge2);
-            return `
-			.wmk-option
-			{
-				margin-bottom: 0;
-				font-family: 'Open Sans', sans-serif;
-				font-size: 14px;
-				font-weight: normal;
-				text-align: center;
-				white-space: nowrap;
-				vertical-align: middle;
-				-ms-touch-action: manipulation; touch-action: manipulation;
-				cursor: pointer;
-				-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-			}
-			.wmk-option-selected
-			{
-				color: white;
-				background-color: #008FD2;
-				background-image: linear-gradient(to right bottom, ${lowlightEdge1}, ${lowlightEdge2});
-			}
-			.wmk-option-unselected
-			{
-				color: #333;
-				background-color: white;
-				background-image: linear-gradient(to right bottom, #FFFFFF, #E0E0E0);
-			}
-			.wmk-option-table
-			{
-				margin: 1px;
-				padding: 0;
-				border-width: 0;
-				border-collapse: collapse;
-			}
-			.wmk-option-cell
-			{
-				margin: 0;
-				padding: 0;
-				border-width: 0;
-				border-width: 1px;
-				border-style: solid;
-				border-color: #808080;
-			}
-			.wmk-option-hover
-			{
-				background-color: #808080;
-				background-image: linear-gradient(to right bottom, #F0F0F0, #D0D0D0);
-			}
-			.wmk-option-active
-			{
-				background-color: #00C000;
-				background-image: linear-gradient(to right bottom, ${highlightEdge1}, ${highlightEdge2});
-			}
-		`;
-        }
-    }
-    WebMolKit.OptionList = OptionList;
 })(WebMolKit || (WebMolKit = {}));
 var WebMolKit;
 (function (WebMolKit) {

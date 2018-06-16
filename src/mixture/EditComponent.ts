@@ -19,8 +19,11 @@
 ///<reference path='../../../WebMolKit/src/sketcher/Sketcher.ts'/>
 ///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
 ///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
+///<reference path='../../../WebMolKit/src/data/MDLReader.ts'/>
+///<reference path='../../../WebMolKit/src/data/MDLWriter.ts'/>
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
+///<reference path='../../../WebMolKit/src/ui/OptionList.ts'/>
 
 ///<reference path='../main/startup.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
@@ -30,6 +33,15 @@ namespace Mixtures /* BOF */ {
 /*
 	High level widget for the editing area for a mixture.
 */
+
+enum QuantityType
+{
+	Value = 'Value',
+	Range = 'Range',
+	Ratio = 'Ratio'
+}
+const RELATION_VALUES:string[] = ['=', '~', '<', '<=', '>', '>=']
+const RELATION_LABELS:string[] = ['=', '~', '&lt;', '&le;', '&gt;', '&ge;'];
 	
 export class EditComponent extends wmk.Dialog
 {
@@ -40,7 +52,11 @@ export class EditComponent extends wmk.Dialog
 
 	sketcher:wmk.Sketcher;
 	lineName:JQuery;
-	// ...quant
+	optQuantType:wmk.OptionList;
+	dropQuantRel:JQuery;
+	lineQuantVal1:JQuery;
+	lineQuantVal2:JQuery;
+	dropQuantUnits:JQuery;
 	areaDescr:JQuery = null;
 	areaSyn:JQuery = null;
 	lineFormula:JQuery;
@@ -82,16 +98,16 @@ export class EditComponent extends wmk.Dialog
         this.btnClear = $('<button class="wmk-button wmk-button-default">Clear</button>').appendTo(buttons);
 		this.btnClear.click(() => this.sketcher.clearMolecule());
 
-		buttons.append(' ');
+		/*buttons.append(' ');
         this.btnCopy = $('<button class="wmk-button wmk-button-default">Copy</button>').appendTo(buttons);
-		this.btnCopy.click(() => this.copyComponent());
+		this.btnCopy.click(() => this.copyComponent());*/
 
 		buttons.append(' ');
 		buttons.append(this.btnClose); // easy way to reorder
 		
 		buttons.append(' ');
         this.btnSave = $('<button class="wmk-button wmk-button-primary">Save</button>').appendTo(buttons);
-		this.btnSave.click(() => {if (this.callbackSave) this.callbackSave(this);});
+		this.btnSave.click(() => this.saveAndClose());
 		
 		// main section
 
@@ -105,38 +121,33 @@ export class EditComponent extends wmk.Dialog
 
 		// first batch of fields
 
-		let grid = this.fieldGrid().appendTo(vertical);
+		let grid1 = this.fieldGrid().appendTo(vertical);
 
-		this.createFieldName(grid, 1, 'Name');
-		this.lineName = this.createValueLine(grid, 1);
+		this.createFieldName(grid1, 1, 'Name');
+		this.lineName = this.createValueLine(grid1, 1);
 		this.lineName.val(this.component.name);
 
-		this.createFieldName(grid, 2, 'Quantity');
-		this.createValueLine(grid, 2);
-			// !! subsume: ratio, quantity, units, relation...
+		this.createFieldName(grid1, 2, 'Quantity');
+		let divQuant = $('<div></div>').appendTo(grid1);
+		divQuant.css({'grid-column': 'value', 'grid-row': '2'});
+		this.createQuantity(divQuant);
 
 		let btnMore = $('<button class="wmk-button wmk-button-default">More...</button>').appendTo(vertical);
 		btnMore.click(() => 
 		{
 			btnMore.remove();
 
-			this.createFieldName(grid, 3, 'Description');
-			this.areaDescr = this.createValueMultiline(grid, 3);
+			this.createFieldName(grid1, 3, 'Description');
+			this.areaDescr = this.createValueMultiline(grid1, 3);
 			this.areaDescr.keydown((event:JQueryEventObject) => this.trapEscape(event));
 
-			this.createFieldName(grid, 4, 'Synonyms');
-			this.areaSyn = this.createValueMultiline(grid, 4);
+			this.createFieldName(grid1, 4, 'Synonyms');
+			this.areaSyn = this.createValueMultiline(grid1, 4);
 			this.areaSyn.keydown((event:JQueryEventObject) => this.trapEscape(event));
 
 			this.areaDescr.val(this.component.description);
 			if (this.component.synonyms) this.areaSyn.val(this.component.synonyms.join('\n'));
 		});
-/*
-	ratio?:number[]; // a ratio, specified as [numerator, denominator]
-	quantity?:number | number[]; // a concentration numeric which is associated with the units below (two numbers in case of a range)
-	units?:string; // units for quantity (e.g. %, mol/L, g, etc.)
-	relation?:string; // optional modifier when applied to quantity (e.g. >, <, ~)
-*/
 
 		let skw = Math.min(1000, Math.max(500, this.parentSize[0] - 100));
 		let skh = Math.min(800, Math.max(450, this.parentSize[1] - 300));
@@ -162,32 +173,32 @@ export class EditComponent extends wmk.Dialog
 
 		// second batch of fields
 
-		grid = this.fieldGrid().appendTo(vertical);
+		let grid2 = this.fieldGrid().appendTo(vertical);
 
-		this.createFieldName(grid, 1, 'Formula');
-		this.lineFormula = this.createValueLine(grid, 1);
+		this.createFieldName(grid2, 1, 'Formula');
+		this.lineFormula = this.createValueLine(grid2, 1);
 		this.lineFormula.val(this.component.formula);
 
-		this.createFieldName(grid, 2, 'InChI');
-		this.lineInChI = this.createValueLine(grid, 2);
+		this.createFieldName(grid2, 2, 'InChI');
+		this.lineInChI = this.createValueLine(grid2, 2);
 		this.lineInChI.val(this.component.inchi);
 
-		this.createFieldName(grid, 3, 'InChIKey');
-		this.lineInChIKey = this.createValueLine(grid, 3);
+		this.createFieldName(grid2, 3, 'InChIKey');
+		this.lineInChIKey = this.createValueLine(grid2, 3);
 		this.lineInChIKey.val(this.component.inchiKey);
 
-		this.createFieldName(grid, 4, 'SMILES');
-		this.lineSMILES = this.createValueLine(grid, 4);
+		this.createFieldName(grid2, 4, 'SMILES');
+		this.lineSMILES = this.createValueLine(grid2, 4);
 		this.lineSMILES.val(this.component.smiles);
 
-		this.createFieldName(grid, 5, 'Identifiers');
-		this.areaIdent = this.createValueMultiline(grid, 5);
+		this.createFieldName(grid2, 5, 'Identifiers');
+		this.areaIdent = this.createValueMultiline(grid2, 5);
 		let listID:string[] = [];
 		if (this.component.identifiers) for (let key in this.component.identifiers) listID.push(key + '=' + this.component.identifiers[key]);
 		this.areaIdent.val(listID.join('\n'));
 		
-		this.createFieldName(grid, 6, 'Links');
-		this.areaLinks = this.createValueMultiline(grid, 6);
+		this.createFieldName(grid2, 6, 'Links');
+		this.areaLinks = this.createValueMultiline(grid2, 6);
 		let listLinks:string[] = [];
 		if (this.component.links) for (let key in this.component.links) listLinks.push(key + '=' + this.component.links[key]);
 		this.areaLinks.val(listLinks.join('\n'));
@@ -198,9 +209,44 @@ export class EditComponent extends wmk.Dialog
 		body.find('input,textarea').keydown((event:JQueryEventObject) => this.trapEscape(event));
 	}
 
-	private copyComponent():void
+	// assuming that something is different, refreshes the current component information and closes
+	private saveAndClose():void
 	{
-		// !! this.sketcher.performCopy();
+		let mol = this.sketcher.getMolecule();
+		if (mol.numAtoms > 0)
+			this.component.molfile = new wmk.MDLMOLWriter(mol).write();
+		else 
+			this.component.molfile = null;
+
+		let nullifyBlank = (str:string):string => {return str === '' ? null : str};
+
+		this.component.name = nullifyBlank(this.lineName.val());
+
+		/*
+		optQuantType:wmk.OptionList;
+		dropQuantRel:JQuery;
+		lineQuantVal1:JQuery;
+		lineQuantVal2:JQuery;
+		dropQuantUnits:JQuery;*/
+
+		if (this.areaDescr) this.component.description = nullifyBlank(this.areaDescr.val());
+
+		/*
+		areaSyn:JQuery = null;
+		*/
+
+		this.component.formula = nullifyBlank(this.lineFormula.val());
+		this.component.inchi = nullifyBlank(this.lineInChI.val());
+		this.component.inchiKey = nullifyBlank(this.lineInChIKey.val());
+		this.component.smiles = nullifyBlank(this.lineSMILES.val());
+		
+		/*areaIdent:JQuery;
+		areaLinks:JQuery;*/
+
+		// remove explicit nulls, for clarity
+		Object.keys(this.component).forEach((key:string) => {if ((<any>this.component)[key] == null) delete (<any>this.component)[key];});
+
+	console.log(JSON.stringify(this.component));
 	}
 
 	// creates a 2-column grid for field/value entry
@@ -262,6 +308,99 @@ export class EditComponent extends wmk.Dialog
 			event.preventDefault(); 
 			this.close();
 		}
+	}
+
+	// creates the quantity data entry objects, which are somewhat fiddly and multistate
+	private createQuantity(parent:JQuery):void
+	{
+		let flex = $('<div></div>').appendTo(parent);
+		flex.css('display', 'flex');
+		flex.css('align-items', 'center');
+		let box = () => $('<div style="padding-left: 0.5em;"></div>').appendTo(flex);
+
+		this.optQuantType = new wmk.OptionList([QuantityType.Value, QuantityType.Range, QuantityType.Ratio]);
+		this.optQuantType.render(flex);
+
+		this.dropQuantRel = this.makeDropdownGroup(box(), this.component.relation, RELATION_VALUES, RELATION_LABELS,
+									(value:string, label:string) => {console.log("R="+value);this.component.relation = value;});
+
+		this.lineQuantVal1 = $('<input></input>').appendTo(box());
+		this.lineQuantVal1.attr('size', '10');
+		this.lineQuantVal1.css('font', 'inherit');
+		
+		let spanGap = $('<span></span>').appendTo(flex);
+		spanGap.css('padding', '0 0.5em 0 0.5em');
+
+		this.lineQuantVal2 = $('<input></input>').appendTo(box());
+		this.lineQuantVal2.attr('size', '10');
+		this.lineQuantVal2.css('font', 'inherit');
+
+		let unitValues = Vec.prepend(Units.standardList(), ''), unitLabels = Vec.prepend(Units.commonNames(), '');
+		this.dropQuantUnits = this.makeDropdownGroup(box(), this.component.units, unitValues, unitLabels,
+									(value:string, label:string) => {console.log("U="+label); this.component.units = label;});
+
+		let changeToValue = () =>
+		{
+			this.dropQuantRel.css('display', 'block');
+			spanGap.html('&plusmn;');
+			this.dropQuantUnits.css('display', 'block');
+		};
+		let changeToRange = () =>
+		{
+			this.dropQuantRel.css('display', 'none');
+			spanGap.html('to');
+			this.dropQuantUnits.css('display', 'block');
+		};
+		let changeToRatio = () =>
+		{
+			this.dropQuantRel.css('display', 'none');
+			spanGap.html(':');
+			this.dropQuantUnits.css('display', 'none');
+		};
+
+		if (this.component.ratio != null) 
+		{
+			this.optQuantType.setSelectedValue(QuantityType.Ratio);
+			if (this.component.ratio)
+			{
+				let [numer, denom] = this.component.ratio;
+				this.lineQuantVal1.val(numer.toString());
+				this.lineQuantVal2.val(denom.toString());
+			}
+			changeToRatio();
+		}
+		else if (Array.isArray(this.component.quantity)) 
+		{
+			this.optQuantType.setSelectedValue(QuantityType.Range); 
+			let [low, high] = this.component.quantity;
+			if (low != null) this.lineQuantVal1.val(low.toString());
+			if (high != null) this.lineQuantVal2.val(high.toString());
+			changeToRange();
+		}
+		else 
+		{
+			this.optQuantType.setSelectedValue(QuantityType.Value);
+			if (this.component.quantity != null) this.lineQuantVal1.val(this.component.quantity.toString());
+			changeToValue();
+		}
+
+		this.optQuantType.callbackSelect = (idx:number) => {if (idx == 0) changeToValue(); else if (idx == 1) changeToRange(); else if (idx == 2) changeToRatio();};
+	}
+
+	// creates a dropdown list with a prescribed list of choices; the first one will be selected if current matches nothing
+	private makeDropdownGroup(parent:JQuery, current:string, values:string[], labels:string[], changeFunc:(value:string, label:string) => void):JQuery
+	{
+		let drop = $('<select></select>').appendTo(parent);
+		drop.css('height', '2.3em');
+		for (let n = 0; n < values.length; n++)
+		{
+			let opt = $('<option></option>').appendTo(drop);
+			opt.attr('value', n.toString());
+			opt.html(labels[n]);
+			if (current == values[n] || current == labels[n]) opt.attr('selected', true);
+		}
+		drop.change(() => {let idx = parseInt(drop.val()); changeFunc(values[idx], labels[idx]);});
+		return drop;
 	}
 }
 

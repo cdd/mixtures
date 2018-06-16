@@ -82,6 +82,7 @@ const PAIR_UNIT_MINCHI:any[] =
 
 export class Units
 {
+	private static STANDARD_LIST:string[] = [];
 	private static COMMON_NAMES:string[] = [];
 	private static URI_TO_NAME:{[id:string] : string} = {};
 	private static NAME_TO_URI:{[id:string] : string} = {};
@@ -91,6 +92,7 @@ export class Units
 		for (let pair of PAIR_UNIT_NAMES)
 		{
 			let uri:string = pair[0], name:string = pair[1];
+			this.STANDARD_LIST.push(uri);
 			this.COMMON_NAMES.push(name);
 			this.URI_TO_NAME[uri] = name;
 			this.NAME_TO_URI[name] = uri;
@@ -103,6 +105,11 @@ export class Units
 		this.setup = () => {}; // calling it again is a nop
 	}
 
+	public static standardList():string[]
+	{
+		this.setup();
+		return this.STANDARD_LIST;
+	}
 	public static commonNames():string[]
 	{
 		this.setup();
