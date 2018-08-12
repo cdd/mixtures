@@ -164,7 +164,7 @@ export class EditComponent extends wmk.Dialog
 		{
 			try 
 			{
-				let mol = new wmk.MDLMOLReader(this.component.molfile).parse();
+				let mol = wmk.MoleculeStream.readUnknown(this.component.molfile);
 				if (mol) this.sketcher.defineMolecule(mol);
 			}
 			catch (e) {}

@@ -150,7 +150,7 @@ export class ArrangeMixture
 			let mixcomp = comp.content;
 
 			// handle molecule, if any
-			if (mixcomp.molfile) comp.mol = wmk.MoleculeStream.readMDLMOL(mixcomp.molfile);
+			if (mixcomp.molfile) comp.mol = wmk.MoleculeStream.readUnknown(mixcomp.molfile);
 			if (comp.mol)
 			{
 				comp.molLayout = new wmk.ArrangeMolecule(comp.mol, this.measure, this.policy);

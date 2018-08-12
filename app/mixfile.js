@@ -452,7 +452,7 @@ var WebMolKit;
         }
         static uniqueStable(arr) {
             let set = new Set(arr), ret = [];
-            for (let v in arr)
+            for (let v of arr)
                 if (set.has(v)) {
                     ret.push(v);
                     set.delete(v);
@@ -754,6 +754,12 @@ var WebMolKit;
     WebMolKit.fltEqual = fltEqual;
     function realEqual(v1, v2) { return v1 == v2 || Math.abs(v1 - v2) <= 1E-14 * Math.max(v1, v2); }
     WebMolKit.realEqual = realEqual;
+    function randomInt(size) {
+        if (size <= 1)
+            return 0;
+        return Math.floor(Math.random() * size);
+    }
+    WebMolKit.randomInt = randomInt;
     WebMolKit.TWOPI = 2 * Math.PI;
     WebMolKit.INV_TWOPI = 1.0 / WebMolKit.TWOPI;
     WebMolKit.DEGRAD = Math.PI / 180;
@@ -2103,6 +2109,7 @@ var WebMolKit;
                     return this.KERN_K[n];
             return 0;
         }
+        static measureText(txt, size) { return this.main.measureText(txt, size); }
         measureText(txt, size) {
             let font = FontData.main;
             let scale = size / font.UNITS_PER_EM;
@@ -16188,7 +16195,7 @@ var Mixtures;
             for (let comp of this.components) {
                 let mixcomp = comp.content;
                 if (mixcomp.molfile)
-                    comp.mol = wmk.MoleculeStream.readMDLMOL(mixcomp.molfile);
+                    comp.mol = wmk.MoleculeStream.readUnknown(mixcomp.molfile);
                 if (comp.mol) {
                     comp.molLayout = new wmk.ArrangeMolecule(comp.mol, this.measure, this.policy);
                     comp.molLayout.arrange();
@@ -16403,7 +16410,7 @@ var Mixtures;
                 dw.loadFile(filename);
         }
         else {
-            let constructor = eval(panelClass);
+            let constructor = eval('Mixtures.' + panelClass);
             let dw = new constructor(root);
             if (filename)
                 dw.loadFile(filename);
@@ -16653,7 +16660,7 @@ var Mixtures;
             this.sketcher.setSize(skw, skh);
             if (this.component.molfile) {
                 try {
-                    let mol = new wmk.MDLMOLReader(this.component.molfile).parse();
+                    let mol = wmk.MoleculeStream.readUnknown(this.component.molfile);
                     if (mol)
                         this.sketcher.defineMolecule(mol);
                 }
@@ -23453,5 +23460,97 @@ var WebMolKit;
     SearchReactions.TYPE_SIMILARITY = 'similarity';
     SearchReactions.TYPE_RANDOM = 'random';
     WebMolKit.SearchReactions = SearchReactions;
+})(WebMolKit || (WebMolKit = {}));
+var WebMolKit;
+(function (WebMolKit) {
+    class XML {
+        static nodeText(el) {
+            let text = '';
+            for (let child of el.childNodes) {
+                if (child.nodeType == Node.TEXT_NODE || child.nodeType == Node.CDATA_SECTION_NODE)
+                    text += child.nodeValue;
+            }
+            return text;
+        }
+        static childText(parent, tagName) {
+            if (parent == null)
+                return null;
+            let el = this.findElement(parent, tagName);
+            if (el == null)
+                return null;
+            return WebMolKit.nodeText(el);
+        }
+        static appendElement(parent, name) {
+            let el = parent.ownerDocument.createElement(name);
+            parent.appendChild(el);
+            return el;
+        }
+        static appendElementAfter(presib, name) {
+            let el = presib.ownerDocument.createElement(name);
+            let postsib = presib.nextSibling;
+            if (postsib == null)
+                presib.parentNode.appendChild(el);
+            else
+                presib.parentNode.insertBefore(el, postsib);
+            return el;
+        }
+        static appendText(parent, text, isCDATA) {
+            if (text == null || text.length == 0)
+                return;
+            if (!isCDATA)
+                parent.appendChild(parent.ownerDocument.createTextNode(text));
+            else
+                parent.appendChild(parent.ownerDocument.createCDATASection(text));
+        }
+        static createTextChild(parent, name, text, isCDATA = false) {
+            let el = parent.ownerDocument.createElement(name);
+            parent.appendChild(el);
+            if (!isCDATA)
+                el.textContent = text;
+            else
+                el.appendChild(parent.ownerDocument.createCDATASection(text));
+        }
+        static setText(parent, text, isCDATA = false) {
+            while (parent.firstChild != null)
+                parent.removeChild(parent.firstChild);
+            this.appendText(parent, text, isCDATA);
+        }
+        static findElement(parent, tagName) {
+            if (parent == null)
+                return null;
+            let node = parent.firstChild;
+            while (node != null) {
+                if (node.nodeType == Node.ELEMENT_NODE && node.nodeName == tagName)
+                    return node;
+                node = node.nextSibling;
+            }
+            return null;
+        }
+        static findChildElements(parent, tagName) {
+            if (parent == null)
+                return [];
+            let list = [];
+            let node = parent.firstChild;
+            while (node != null) {
+                if (node.nodeType == Node.ELEMENT_NODE && node.nodeName === tagName)
+                    list.push(node);
+                node = node.nextSibling;
+            }
+            return list;
+        }
+        static childElements(parent) {
+            if (parent == null)
+                return [];
+            let list = [];
+            let node = parent.firstChild;
+            while (node != null) {
+                if (node.nodeType == Node.ELEMENT_NODE)
+                    list.push(node);
+                node = node.nextSibling;
+            }
+            return list;
+        }
+    }
+    WebMolKit.XML = XML;
 })(WebMolKit || (WebMolKit = {}));
 //# sourceMappingURL=mixfile.js.map

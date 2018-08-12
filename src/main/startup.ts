@@ -78,7 +78,7 @@ export function runMixfileEditor(resURL:string, root:JQuery):void
 	}
 	else
 	{
-		let constructor = eval(panelClass);
+		let constructor = eval('Mixtures.' + panelClass);
 		let dw:MainPanel = new constructor(root);
 		if (filename) dw.loadFile(filename);
 	}

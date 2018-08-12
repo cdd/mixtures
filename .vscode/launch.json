@@ -15,7 +15,7 @@
 			"console": "integratedTerminal",
 			"args": 
 			[
-                "play/mixture5.mixfile"
+                "play/mixture7.mixfile"
 			],
 			"protocol": "inspector"
 		},
