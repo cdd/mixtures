@@ -46,6 +46,8 @@ enum DragReason
 
 export class EditMixture extends wmk.Widget
 {
+	public callbackUpdateTitle:() => void = null;
+
 	private mixture = new Mixture();
 	private policy = wmk.RenderPolicy.defaultColourOnWhite();
 	private canvasMixture:HTMLCanvasElement;
@@ -57,7 +59,8 @@ export class EditMixture extends wmk.Widget
 	private offsetX = 0;
 	private offsetY = 0;
 	private pointScale = DEFAULT_SCALE;
-	private filthy = true;
+	private filthy = true; // filthy: screen is out of date, needs to be redrawn
+	private dirty = false; // dirty: data has changed since last save
 	private layout:ArrangeMixture = null;
 	private hoverIndex = -1; // component over which the mouse is hovering
 	private activeIndex = -1; // component that is currently being clicked upon
@@ -121,6 +124,10 @@ export class EditMixture extends wmk.Widget
 		this.activeIndex = -1;
 		this.selectedIndex = -1;
 		this.redraw(withAutoScale);
+
+console.log('PRE:'+this.filthy);//fnord
+		this.dirty = true;
+		this.callbackUpdateTitle();
 	}
 
 	// wipes the undo & redo stacks
@@ -157,6 +164,13 @@ export class EditMixture extends wmk.Widget
 		this.setMixture(this.redoStack.pop(), false, false);
 	}
 
+	// need-save status
+	public isDirty():boolean {return this.dirty;}
+	public setDirty(dirty:boolean):void {this.dirty = dirty;}
+
+	// returns true if the mixture content is empty
+	public isBlank():boolean {return this.mixture.isEmpty();}
+
 	// makes sure the content gets redrawn imminently; calling many times is not a performance issue
 	public delayedRedraw():void
 	{
@@ -191,7 +205,7 @@ export class EditMixture extends wmk.Widget
 		dlg.onSave(() =>
 		{
 			let modmix = this.mixture.clone();
-			if (modmix.setComponent(origin, dlg.getComponent())) this.setMixture(modmix)
+			if (modmix.setComponent(origin, dlg.getComponent())) this.setMixture(modmix);
 			dlg.close();
 		});
 		dlg.open();

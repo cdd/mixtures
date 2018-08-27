@@ -74,9 +74,6 @@ export class Mixture
 			look = find.contents;
 		}
 
-console.log('SET:');
-console.log('from:'+JSON.stringify(find));
-console.log('to:'+JSON.stringify(comp));
 		// copy over the dictionary entries in 'comp', noting if anything changed
 		let modified = false;
 		for (let k in comp)
@@ -84,7 +81,6 @@ console.log('to:'+JSON.stringify(comp));
 			let v = (<any>comp)[k];
 			if (v != (<any>find)[k])
 			{
-console.log('['+k+'] -> ' + JSON.stringify(v));				
 				(<any>find)[k] = v;
 				modified = true;
 			}

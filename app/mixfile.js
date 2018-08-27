@@ -41,14 +41,10 @@ var Mixtures;
                 find = look[o];
                 look = find.contents;
             }
-            console.log('SET:');
-            console.log('from:' + JSON.stringify(find));
-            console.log('to:' + JSON.stringify(comp));
             let modified = false;
             for (let k in comp) {
                 let v = comp[k];
                 if (v != find[k]) {
-                    console.log('[' + k + '] -> ' + JSON.stringify(v));
                     find[k] = v;
                     modified = true;
                 }
@@ -16873,6 +16869,7 @@ var Mixtures;
     class EditMixture extends wmk.Widget {
         constructor() {
             super();
+            this.callbackUpdateTitle = null;
             this.mixture = new Mixtures.Mixture();
             this.policy = wmk.RenderPolicy.defaultColourOnWhite();
             this.undoStack = [];
@@ -16881,6 +16878,7 @@ var Mixtures;
             this.offsetY = 0;
             this.pointScale = DEFAULT_SCALE;
             this.filthy = true;
+            this.dirty = false;
             this.layout = null;
             this.hoverIndex = -1;
             this.activeIndex = -1;
@@ -16925,6 +16923,9 @@ var Mixtures;
             this.activeIndex = -1;
             this.selectedIndex = -1;
             this.redraw(withAutoScale);
+            console.log('PRE:' + this.filthy);
+            this.dirty = true;
+            this.callbackUpdateTitle();
         }
         clearHistory() {
             this.undoStack = [];
@@ -16952,6 +16953,9 @@ var Mixtures;
             this.undoStack.push(this.mixture.clone());
             this.setMixture(this.redoStack.pop(), false, false);
         }
+        isDirty() { return this.dirty; }
+        setDirty(dirty) { this.dirty = dirty; }
+        isBlank() { return this.mixture.isEmpty(); }
         delayedRedraw() {
             this.filthy = true;
             window.setTimeout(() => { if (this.filthy)
@@ -17242,6 +17246,7 @@ var Mixtures;
             super(root);
             this.filename = null;
             this.editor = new Mixtures.EditMixture();
+            this.editor.callbackUpdateTitle = () => this.updateTitle();
             this.editor.render(root);
         }
         loadFile(filename) {
@@ -17260,6 +17265,7 @@ var Mixtures;
                 }
                 this.editor.clearHistory();
                 this.editor.setMixture(mixture, true, false);
+                this.editor.setDirty(false);
                 this.filename = filename;
                 this.updateTitle();
             });
@@ -17378,7 +17384,12 @@ var Mixtures;
                 return;
             }
             let slash = Math.max(this.filename.lastIndexOf('/'), this.filename.lastIndexOf('\\'));
-            document.title = 'Mixtures - ' + this.filename.substring(slash + 1);
+            let title = 'Mixtures - ' + this.filename.substring(slash + 1);
+            ;
+            if (this.editor.isDirty() && !this.editor.isBlank())
+                title += '*';
+            console.log('TITLE:[' + title + '] filthy=' + this.editor.isDirty() + ',blank=' + this.editor.isBlank());
+            document.title = title;
         }
     }
     Mixtures.MixturePanel = MixturePanel;

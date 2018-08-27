@@ -49,6 +49,7 @@ export class MixturePanel extends MainPanel
 
 		//let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
 
+		this.editor.callbackUpdateTitle = () => this.updateTitle();
 		this.editor.render(root);
 	}
 
@@ -70,6 +71,7 @@ export class MixturePanel extends MainPanel
 
 			this.editor.clearHistory();
 			this.editor.setMixture(mixture, true, false);
+			this.editor.setDirty(false);
 			this.filename = filename;
 			this.updateTitle();			
 		});		
@@ -295,7 +297,9 @@ export class MixturePanel extends MainPanel
 		if (this.filename == null) {document.title = 'Mixtures'; return;}
 
 		let slash = Math.max(this.filename.lastIndexOf('/'), this.filename.lastIndexOf('\\'));
-		document.title = 'Mixtures - ' + this.filename.substring(slash + 1);
+		let title = 'Mixtures - ' + this.filename.substring(slash + 1);;
+		if (this.editor.isDirty() && !this.editor.isBlank()) title += '*';
+		document.title = title;
 	}
 }
 
