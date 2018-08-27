@@ -103,6 +103,7 @@ export class EditMixture extends wmk.Widget
 		this.content.keypress((event:JQueryEventObject) => this.keyPressed(event));
 		this.content.keydown((event:JQueryEventObject) => this.keyDown(event));
 		this.content.keyup((event:JQueryEventObject) => this.keyUp(event));
+		this.content.contextmenu((event:JQueryEventObject) => this.contextMenu(event));
 	}
 
 	// access to current state
@@ -125,7 +126,6 @@ export class EditMixture extends wmk.Widget
 		this.selectedIndex = -1;
 		this.redraw(withAutoScale);
 
-console.log('PRE:'+this.filthy);//fnord
 		this.dirty = true;
 		this.callbackUpdateTitle();
 	}
@@ -192,6 +192,15 @@ console.log('PRE:'+this.filthy);//fnord
 		this.layout = null;
 		this.pointScale = DEFAULT_SCALE;
 		this.redraw(true);
+	}
+
+	// select the given component index (programmatically)
+	public selectComponent(comp:number):void
+	{
+		if (this.selectedIndex == comp) return;
+		this.selectedIndex = comp;
+		this.activeIndex = -1;
+		this.delayedRedraw();
 	}
 
 	// invoke the editor dialog for the current component
@@ -377,119 +386,6 @@ console.log('PRE:'+this.filthy);//fnord
 			this.activeIndex = comp;
 			this.delayedRedraw();
 		}
-
-
-		/*this.clearMessage();
-
-		this.dragType = DraggingTool.Press;
-		this.opBudged = false;
-		this.dragGuides = null;
-		
-		let xy = eventCoords(event, this.container);
-		this.mouseX = xy[0];
-		this.mouseY = xy[1];
-		this.clickX = xy[0];
-		this.clickY = xy[1];
-		
-		let clickObj = this.pickObject(xy[0], xy[1]);
-		this.opAtom = clickObj > 0 ? clickObj : 0;
-		this.opBond = clickObj < 0 ? -clickObj : 0;
-		this.opShift = event.shiftKey;
-		this.opCtrl = event.ctrlKey;
-		this.opAlt = event.altKey;
-
-		let tool = 'finger';
-		if (this.toolView != null) tool = this.toolView.selectedButton;
-		
-		if (tool == 'arrow')
-		{
-			// special key modifiers for the arrow tool:
-			//		CTRL: open context menu
-			//		SHIFT: toggle selection of object [see mouseClick]
-			//		ALT: enter pan-mode
-			//		ALT+CTRL: enter zoom mode
-			if (!this.opShift && !this.opCtrl && !this.opAlt)
-			{
-				this.dragType = DraggingTool.Press;
-			}
-			else if (!this.opShift && this.opCtrl && !this.opAlt)
-			{
-				// !! open context...
-			}
-			else if (!this.opShift && !this.opCtrl && this.opAlt)
-			{
-				this.dragType = DraggingTool.Pan;
-			}
-			else if (!this.opShift && this.opCtrl && this.opAlt)
-			{
-				this.dragType = DraggingTool.Zoom;
-			}
-		}
-		else if (tool == 'rotate')
-		{
-			this.dragType = DraggingTool.Rotate;
-			this.toolRotateIncr = this.opShift ? 0 : 15 * DEGRAD;
-		}
-		else if (tool == 'pan')
-		{
-			this.dragType = DraggingTool.Pan;
-		}
-		else if (tool == 'drag')
-		{
-			this.dragType = DraggingTool.Move;
-			if (this.opAtom > 0) this.dragGuides = this.determineMoveGuide();
-			this.delayedRedraw();
-		}
-		else if (tool == 'erasor')
-		{
-			this.dragType = DraggingTool.Erasor;
-			this.lassoX = [xy[0]];
-			this.lassoY = [xy[1]];
-			this.lassoMask = [];
-		}
-		else if (tool == 'ringAliph')
-		{
-			this.dragType = DraggingTool.Ring;
-			this.toolRingArom = false;
-			this.toolRingFreeform = this.opShift;
-		}
-		else if (tool == 'ringArom')
-		{
-			this.dragType = DraggingTool.Ring;
-			this.toolRingArom = true;
-			this.toolRingFreeform = this.opShift;
-		}
-		else if (tool == 'atomPlus')
-		{
-			this.dragType = DraggingTool.Charge;
-			this.toolChargeDelta = 1;
-		}
-		else if (tool == 'atomMinus')
-		{
-			this.dragType = DraggingTool.Charge;
-			this.toolChargeDelta = -1;
-		}
-		else if (tool.startsWith('bond'))
-		{
-			this.dragType = DraggingTool.Bond;
-			this.toolBondOrder = 1;
-			this.toolBondType = Molecule.BONDTYPE_NORMAL;
-			
-			if (tool =='bondOrder0') this.toolBondOrder = 0;
-			else if (tool =='bondOrder2') this.toolBondOrder = 2;
-			else if (tool =='bondOrder3') this.toolBondOrder = 3;
-			else if (tool =='bondUnknown') this.toolBondType = Molecule.BONDTYPE_UNKNOWN;
-			else if (tool =='bondInclined') this.toolBondType = Molecule.BONDTYPE_INCLINED;
-			else if (tool =='bondDeclined') this.toolBondType = Molecule.BONDTYPE_DECLINED;
-			
-			this.dragGuides = this.determineDragGuide(this.toolBondOrder);
-		}
-		else if (tool.startsWith('element'))
-		{
-			this.dragType = DraggingTool.Atom;
-			this.toolAtomSymbol = tool.substring(7);
-			this.dragGuides = this.determineDragGuide(1);
-		}*/
 	}
 	private mouseUp(event:JQueryEventObject):void
 	{
@@ -588,6 +484,48 @@ console.log('PRE:'+this.filthy);//fnord
 		
 		event.stopPropagation = true;
 		*/
+	}
+	private contextMenu(event:JQueryEventObject):void
+	{
+		event.preventDefault();
+
+		let comp = this.pickComponent(event.clientX, event.clientY);
+		
+		let electron = require('electron');
+		let menu = new electron.remote.Menu();
+		if (comp >= 0)
+		{
+			let menuEdit = new electron.remote.MenuItem(
+			{
+				'label': 'Edit',
+				'click': () => {this.selectComponent(comp); this.editCurrent();}
+			});
+			menu.append(menuEdit);
+			let menuDelete = new electron.remote.MenuItem(
+			{
+				'label': 'Delete',
+				'click': () => {this.selectComponent(comp); this.deleteCurrent();}
+			});
+			menu.append(menuDelete);
+			// (move up/down...)
+		}
+		else
+		{
+			let menuZoomIn = new electron.remote.MenuItem(
+			{
+				'label': 'Zoom In',
+				'click': () => this.zoom(1.25)
+			});
+			menu.append(menuZoomIn);
+			let menuZoomOut = new electron.remote.MenuItem(
+			{
+				'label': 'Zoom Out',
+				'click': () => this.zoom(0.8)
+			});
+			menu.append(menuZoomOut);
+		}
+
+		menu.popup(electron.remote.getCurrentWindow());
 	}
 }
 

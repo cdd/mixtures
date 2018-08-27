@@ -16907,6 +16907,7 @@ var Mixtures;
             this.content.keypress((event) => this.keyPressed(event));
             this.content.keydown((event) => this.keyDown(event));
             this.content.keyup((event) => this.keyUp(event));
+            this.content.contextmenu((event) => this.contextMenu(event));
         }
         getMixture() { return this.mixture; }
         setMixture(mixture, withAutoScale = false, withStashUndo = true) {
@@ -16923,7 +16924,6 @@ var Mixtures;
             this.activeIndex = -1;
             this.selectedIndex = -1;
             this.redraw(withAutoScale);
-            console.log('PRE:' + this.filthy);
             this.dirty = true;
             this.callbackUpdateTitle();
         }
@@ -16970,6 +16970,13 @@ var Mixtures;
             this.layout = null;
             this.pointScale = DEFAULT_SCALE;
             this.redraw(true);
+        }
+        selectComponent(comp) {
+            if (this.selectedIndex == comp)
+                return;
+            this.selectedIndex = comp;
+            this.activeIndex = -1;
+            this.delayedRedraw();
         }
         editCurrent() {
             if (this.selectedIndex < 0)
@@ -17158,6 +17165,37 @@ var Mixtures;
         keyUp(event) {
         }
         mouseWheel(event) {
+        }
+        contextMenu(event) {
+            event.preventDefault();
+            let comp = this.pickComponent(event.clientX, event.clientY);
+            let electron = require('electron');
+            let menu = new electron.remote.Menu();
+            if (comp >= 0) {
+                let menuEdit = new electron.remote.MenuItem({
+                    'label': 'Edit',
+                    'click': () => { this.selectComponent(comp); this.editCurrent(); }
+                });
+                menu.append(menuEdit);
+                let menuDelete = new electron.remote.MenuItem({
+                    'label': 'Delete',
+                    'click': () => { this.selectComponent(comp); this.deleteCurrent(); }
+                });
+                menu.append(menuDelete);
+            }
+            else {
+                let menuZoomIn = new electron.remote.MenuItem({
+                    'label': 'Zoom In',
+                    'click': () => this.zoom(1.25)
+                });
+                menu.append(menuZoomIn);
+                let menuZoomOut = new electron.remote.MenuItem({
+                    'label': 'Zoom Out',
+                    'click': () => this.zoom(0.8)
+                });
+                menu.append(menuZoomOut);
+            }
+            menu.popup(electron.remote.getCurrentWindow());
         }
     }
     Mixtures.EditMixture = EditMixture;
@@ -17388,7 +17426,6 @@ var Mixtures;
             ;
             if (this.editor.isDirty() && !this.editor.isBlank())
                 title += '*';
-            console.log('TITLE:[' + title + '] filthy=' + this.editor.isDirty() + ',blank=' + this.editor.isBlank());
             document.title = title;
         }
     }
