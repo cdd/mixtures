@@ -35,6 +35,26 @@ var Mixtures;
             }
             return find;
         }
+        setComponent(origin, comp) {
+            let find = this.mixfile, look = this.mixfile.contents;
+            for (let o of origin) {
+                find = look[o];
+                look = find.contents;
+            }
+            console.log('SET:');
+            console.log('from:' + JSON.stringify(find));
+            console.log('to:' + JSON.stringify(comp));
+            let modified = false;
+            for (let k in comp) {
+                let v = comp[k];
+                if (v != find[k]) {
+                    console.log('[' + k + '] -> ' + JSON.stringify(v));
+                    find[k] = v;
+                    modified = true;
+                }
+            }
+            return modified;
+        }
         static splitOrigin(origin) {
             if (origin.length == 0)
                 return [null, null];
@@ -16713,7 +16733,7 @@ var Mixtures;
             this.component.smiles = nullifyBlank(this.lineSMILES.val());
             Object.keys(this.component).forEach((key) => { if (this.component[key] == null)
                 delete this.component[key]; });
-            console.log(JSON.stringify(this.component));
+            this.callbackSave(this);
         }
         fieldGrid() {
             let div = $('<div></div>');
@@ -16955,7 +16975,10 @@ var Mixtures;
             let curX = this.content.width(), curY = this.content.height();
             let dlg = new Mixtures.EditComponent(deepClone(comp), [curX, curY]);
             dlg.onSave(() => {
-                console.log('COMPONENT:' + JSON.stringify(dlg.getComponent()));
+                let modmix = this.mixture.clone();
+                if (modmix.setComponent(origin, dlg.getComponent()))
+                    this.setMixture(modmix);
+                dlg.close();
             });
             dlg.open();
         }

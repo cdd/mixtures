@@ -55,13 +55,41 @@ export class Mixture
 	public getComponent(origin:number[]):MixfileComponent
 	{
 		if (origin.length == 0) return this.mixfile;
-		let find:MixfileComponent = null, look:MixfileComponent[] = this.mixfile.contents;
+		let find:MixfileComponent = null, look = this.mixfile.contents;
 		for (let o of origin)
 		{
 			find = look[o];
 			look = find.contents;
 		}
 		return find;
+	}
+
+	// replaces a component at a given position; returns true if the new component was different to the old one
+	public setComponent(origin:number[], comp:MixfileComponent):boolean
+	{
+		let find:MixfileComponent = this.mixfile, look = this.mixfile.contents;
+		for (let o of origin)
+		{
+			find = look[o];
+			look = find.contents;
+		}
+
+console.log('SET:');
+console.log('from:'+JSON.stringify(find));
+console.log('to:'+JSON.stringify(comp));
+		// copy over the dictionary entries in 'comp', noting if anything changed
+		let modified = false;
+		for (let k in comp)
+		{
+			let v = (<any>comp)[k];
+			if (v != (<any>find)[k])
+			{
+console.log('['+k+'] -> ' + JSON.stringify(v));				
+				(<any>find)[k] = v;
+				modified = true;
+			}
+		}
+		return modified;
 	}
 
 	// takes an origin vector and splits it into {parent origin} and {child index}; returns null on both counts if this is the root node

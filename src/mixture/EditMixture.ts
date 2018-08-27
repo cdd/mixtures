@@ -190,10 +190,9 @@ export class EditMixture extends wmk.Widget
 		let dlg = new EditComponent(deepClone(comp), [curX, curY]);
 		dlg.onSave(() =>
 		{
-			console.log('COMPONENT:'+JSON.stringify(dlg.getComponent()));
-			//let modmix = this.mixture.clone();
-			// modmix.setComponent(origin, comp)
-			// this.setMixture(modmix)
+			let modmix = this.mixture.clone();
+			if (modmix.setComponent(origin, dlg.getComponent())) this.setMixture(modmix)
+			dlg.close();
 		});
 		dlg.open();
 	}

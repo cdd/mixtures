@@ -45,30 +45,30 @@ const RELATION_LABELS:string[] = ['=', '~', '&lt;', '&le;', '&gt;', '&ge;'];
 	
 export class EditComponent extends wmk.Dialog
 {
-	btnClear:JQuery;
-	btnPaste:JQuery;
-	btnCopy:JQuery;
-	btnSave:JQuery;
+	private btnClear:JQuery;
+	private btnPaste:JQuery;
+	private btnCopy:JQuery;
+	private btnSave:JQuery;
 
-	sketcher:wmk.Sketcher;
-	lineName:JQuery;
-	optQuantType:wmk.OptionList;
-	dropQuantRel:JQuery;
-	lineQuantVal1:JQuery;
-	lineQuantVal2:JQuery;
-	dropQuantUnits:JQuery;
-	areaDescr:JQuery = null;
-	areaSyn:JQuery = null;
-	lineFormula:JQuery;
-	lineInChI:JQuery;
-	lineInChIKey:JQuery;
-	lineSMILES:JQuery;
-	areaIdent:JQuery;
-	areaLinks:JQuery;
+	private sketcher:wmk.Sketcher;
+	private lineName:JQuery;
+	private optQuantType:wmk.OptionList;
+	private dropQuantRel:JQuery;
+	private lineQuantVal1:JQuery;
+	private lineQuantVal2:JQuery;
+	private dropQuantUnits:JQuery;
+	private areaDescr:JQuery = null;
+	private areaSyn:JQuery = null;
+	private lineFormula:JQuery;
+	private lineInChI:JQuery;
+	private lineInChIKey:JQuery;
+	private lineSMILES:JQuery;
+	private areaIdent:JQuery;
+	private areaLinks:JQuery;
 	
-	fakeTextArea:HTMLTextAreaElement = null; // for temporarily bogarting the clipboard
+	private fakeTextArea:HTMLTextAreaElement = null; // for temporarily bogarting the clipboard
 	
-	public callbackSave:(source?:EditComponent) => void = null;
+	private callbackSave:(source?:EditComponent) => void = null;
 		
 	constructor(private component:MixfileComponent, private parentSize:[number, number])
 	{
@@ -246,7 +246,8 @@ export class EditComponent extends wmk.Dialog
 		// remove explicit nulls, for clarity
 		Object.keys(this.component).forEach((key:string) => {if ((<any>this.component)[key] == null) delete (<any>this.component)[key];});
 
-	console.log(JSON.stringify(this.component));
+		//console.log(JSON.stringify(this.component));
+		this.callbackSave(this);
 	}
 
 	// creates a 2-column grid for field/value entry
