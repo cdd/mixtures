@@ -3,4 +3,4 @@ node_modules
 deprecated
 dist
 package-lock.json
-
+app/mixfile.js*

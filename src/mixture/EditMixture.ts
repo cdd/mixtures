@@ -100,6 +100,7 @@ export class EditMixture extends wmk.Widget
 		this.content.mouseover((event:JQueryEventObject) => this.mouseOver(event));
 		this.content.mouseout((event:JQueryEventObject) => this.mouseOut(event));
 		this.content.mousemove((event:JQueryEventObject) => this.mouseMove(event));
+		this.content.on('mousewheel', (event:JQueryEventObject) => this.mouseWheel(event));
 		this.content.keypress((event:JQueryEventObject) => this.keyPressed(event));
 		this.content.keydown((event:JQueryEventObject) => this.keyDown(event));
 		this.content.keyup((event:JQueryEventObject) => this.keyUp(event));
@@ -469,21 +470,21 @@ export class EditMixture extends wmk.Widget
 	}
 	private mouseWheel(event:JQueryEventObject):void
 	{
-		/* !! reinstate
-		let xy = eventCoords(event, this.container);
-		let newScale = this.scale * (1 - event.deltaY * 0.1);
-		newScale = Math.min(10, Math.max(0.1, newScale));
-		let newOX = xy[0] - (newScale / this.scale) * (xy[0] - this.offsetX);
-		let newOY = xy[1] - (newScale / this.scale) * (xy[1] - this.offsetY);
+		let orig = event.originalEvent as WheelEvent;
+		let [x, y] = eventCoords(event, this.content);
+		const FRACT = 0.25 * 0.25;
+		let scale = 1 + Math.abs(orig.wheelDelta) * (FRACT / 120); // one "notch" on a wheel mouse is worth 120 units
+		if (orig.wheelDelta < 0) scale = 1.0 / scale;
 
-		this.scale = newScale;
-		this.offsetX = newOX;
-		this.offsetY = newOY;
+		let newScale = this.pointScale * scale;
+		this.offsetX = x - (newScale / this.pointScale) * (x - this.offsetX);
+		this.offsetY = y - (newScale / this.pointScale) * (y - this.offsetY);
+		//if (this.layout) this.layout.scaleComponents(newScale / this.pointScale);
+		this.pointScale = newScale;
 
+		this.layout = null;
 		this.delayedRedraw();
-		
-		event.stopPropagation = true;
-		*/
+		event.preventDefault();
 	}
 	private contextMenu(event:JQueryEventObject):void
 	{
