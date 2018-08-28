@@ -34,7 +34,6 @@ export class InChI
 	constructor()
 	{
 		this.inchiPath = this.remote.getGlobal('INCHI_EXEC');
-		console.log('** INCHI:'+this.inchiPath);
 
 		if (this.inchiPath)
 		{
@@ -56,13 +55,26 @@ export class InChI
 	}
 
 	// converts a molecule to an InChI string, if possible; should check the availability first, for graceful
-	// rejection; failure results in an exception
-	public static makeInChI(mol:wmk.Molecule):string
+	// rejection; failure results in an exception; note that it is executed synchronously: if the executable takes
+	// a long time to run, this will be a problem for the UI; the return value is [InChI, InChIKey]
+	public static makeInChI(mol:wmk.Molecule):[string, string]
 	{
 		if (!inchi) inchi = new InChI();
 		if (!inchi.available) throw 'InChI executable is not available.';
 
-		return '';
+		const proc = require('child_process'), path = require('path');
+
+		let cmd = inchi.inchiPath.replace(/ /g, '\\\ '); // very crude escaping of spaces
+		let mdlmol = new wmk.MDLMOLWriter(mol).write();
+		let result = proc.spawnSync(cmd, ['-STDIO', '-AuxNone', '-NoLabels', '-Key'], {'input': mdlmol});
+		let raw = result.stdout.toString(), bits = raw.split('\n')
+
+		if (bits.length < 2 || !bits[0].startsWith('InChI='))
+		{
+			console.log('InChI command returned result:\n' + raw);
+			throw 'Invalid.';
+		}
+		return [bits[0], bits[1]];
 	}
 }
 

@@ -434,8 +434,9 @@ export class EditComponent extends wmk.Dialog
 
 		try
 		{
-			let inchi = InChI.makeInChI(mol);
-			console.log('GOT:'+inchi);
+			let [inchi, inchiKey] = InChI.makeInChI(mol);
+			this.lineInChI.val(inchi);
+			this.lineInChIKey.val(inchiKey);
 		}
 		catch (ex) {alert('InChI generation failed: ' + ex);}
 	}
