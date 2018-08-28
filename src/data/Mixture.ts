@@ -50,6 +50,21 @@ export class Mixture
 		return new Mixture(mixfile);
 	}
 
+	// converts the underlying JSON mixfile into a prettyprinted string (as opposed to the condensed version that JSON.stringify would give)
+	public serialise():string
+	{
+		let lines = JSON.stringify(this.mixfile, null, 4).split('\n');
+		let regex = /^(\s*\"\w+\": )([\[\{].*)$/, regpad = /^(\s*)/;
+		for (let n = 0; n < lines.length; n++)
+		{
+			let match = regex.exec(lines[n]);
+			if (!match) continue;
+			let padding = regpad.exec(lines[n]);
+			lines[n] = match[1] + '\n' + padding[1] + match[2];
+		}
+		return lines.join('\n');
+	}
+
 	// uses the "origin vector" to fetch a particular component; this is an array of indices, where [] indicates the root; its first component is [0], 
 	// the second child of its first component is [0,1], etc.
 	public getComponent(origin:number[]):MixfileComponent

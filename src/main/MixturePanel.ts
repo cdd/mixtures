@@ -77,23 +77,18 @@ export class MixturePanel extends MainPanel
 		});		
 	}
 
-	/*
 	public saveFile(filename:string):void
 	{
 		const fs = require('fs');
 
-		let mol = this.sketcher.getMolecule();
-		let content = '';
-		if (filename.endsWith('.mol')) 
-			content = MoleculeStream.writeMDLMOL(mol);
-		else
-			content = MoleculeStream.writeNative(mol);
+		let mixture = this.editor.getMixture();
+		let content = mixture.serialise();
 
 		fs.writeFile(filename, content, (err:any):void =>
 		{
 			if (err) alert('Unable to save: ' + err);
 		});
-	}*/
+	}
 
 	protected onResize()
 	{
@@ -108,8 +103,8 @@ export class MixturePanel extends MainPanel
 	{
 		if (cmd == 'new') openNewWindow('DrawPanel');
 		else if (cmd == 'open') this.actionFileOpen();
-		/*else if (cmd == 'save') this.actionFileSave();
-		else if (cmd == 'saveAs') this.actionFileSaveAs();*/
+		else if (cmd == 'save') this.actionFileSave();
+		else if (cmd == 'saveAs') this.actionFileSaveAs();
 		else if (cmd == 'exportSDF') this.actionExportSDF();
 		else if (cmd == 'exportSVG') this.actionFileExportSVG();
 		else if (cmd == 'undo') this.editor.performUndo();
@@ -158,37 +153,39 @@ export class MixturePanel extends MainPanel
 		});
 	}
 
-	/*private actionFileSave():void
+	private actionFileSave():void
 	{
+		if (this.editor.isBlank()) return;
 		if (!this.filename) {this.actionFileSaveAs(); return;}
 
-		let mol = this.sketcher.getMolecule();
-		if (mol.numAtoms == 0) return;
-
 		this.saveFile(this.filename);
+		this.editor.setDirty(false);
+		this.updateTitle();
 	}
 
 	private actionFileSaveAs():void
 	{
+		if (this.editor.isBlank()) return;
+
 		const electron = require('electron');
 		const dialog = electron.remote.dialog; 
 		let params:any =
 		{
-			'title': 'Save Molecule',
+			'title': 'Save Mixfile',
 			//defaultPath...
 			'filters':
 			[
-				{'name': 'SketchEl Molecule', 'extensions': ['el']},
-				{'name': 'MDL Molfile', 'extensions': ['mol']}
+				{'name': 'Mixfile', 'extensions': ['mixfile']}
 			]
 		};
 		dialog.showSaveDialog({}, (filename:string):void =>
 		{
 			this.saveFile(filename);
 			this.filename = filename;
+			this.editor.setDirty(false);
 			this.updateTitle();
 		});
-	}*/
+	}
 
 	private actionExportSDF():void
 	{
