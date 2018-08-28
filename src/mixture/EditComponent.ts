@@ -26,6 +26,7 @@
 ///<reference path='../../../WebMolKit/src/ui/OptionList.ts'/>
 
 ///<reference path='../main/startup.ts'/>
+///<reference path='../main/InChI.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
 
 namespace Mixtures /* BOF */ {
@@ -174,31 +175,39 @@ export class EditComponent extends wmk.Dialog
 		// second batch of fields
 
 		let grid2 = this.fieldGrid().appendTo(vertical);
+		let line = 0;
 
-		this.createFieldName(grid2, 1, 'Formula');
-		this.lineFormula = this.createValueLine(grid2, 1);
+		this.createFieldName(grid2, ++line, 'Formula');
+		this.lineFormula = this.createValueLine(grid2, line);
 		this.lineFormula.val(this.component.formula);
 
-		this.createFieldName(grid2, 2, 'InChI');
-		this.lineInChI = this.createValueLine(grid2, 2);
+		this.createFieldName(grid2, ++line, 'InChI');
+		this.lineInChI = this.createValueLine(grid2, line);
 		this.lineInChI.val(this.component.inchi);
 
-		this.createFieldName(grid2, 3, 'InChIKey');
-		this.lineInChIKey = this.createValueLine(grid2, 3);
+		this.createFieldName(grid2, ++line, 'InChIKey');
+		this.lineInChIKey = this.createValueLine(grid2, line);
 		this.lineInChIKey.val(this.component.inchiKey);
 
-		this.createFieldName(grid2, 4, 'SMILES');
-		this.lineSMILES = this.createValueLine(grid2, 4);
+		if (InChI.isAvailable())
+		{
+			let div = this.createDiv(grid2, ++line);
+			let btn = $('<button class="wmk-button wmk-button-default">Calculate from Structure</button>').appendTo(div);
+			btn.click(() => this.calculateInChI());
+		}
+
+		this.createFieldName(grid2, ++line, 'SMILES');
+		this.lineSMILES = this.createValueLine(grid2, line);
 		this.lineSMILES.val(this.component.smiles);
 
-		this.createFieldName(grid2, 5, 'Identifiers');
-		this.areaIdent = this.createValueMultiline(grid2, 5);
+		this.createFieldName(grid2, ++line, 'Identifiers');
+		this.areaIdent = this.createValueMultiline(grid2, line);
 		let listID:string[] = [];
 		if (this.component.identifiers) for (let key in this.component.identifiers) listID.push(key + '=' + this.component.identifiers[key]);
 		this.areaIdent.val(listID.join('\n'));
 		
-		this.createFieldName(grid2, 6, 'Links');
-		this.areaLinks = this.createValueMultiline(grid2, 6);
+		this.createFieldName(grid2, ++line, 'Links');
+		this.areaLinks = this.createValueMultiline(grid2, line);
 		let listLinks:string[] = [];
 		if (this.component.links) for (let key in this.component.links) listLinks.push(key + '=' + this.component.links[key]);
 		this.areaLinks.val(listLinks.join('\n'));
@@ -299,6 +308,14 @@ export class EditComponent extends wmk.Dialog
 		area.css('font', 'inherit');
 		//...
 		return area;
+	}
+
+	private createDiv(parent:JQuery, row:number):JQuery
+	{
+		let div = $('<div></div>').appendTo(parent);
+		div.css('grid-column', 'value');
+		div.css('grid-row', row.toString());
+		return div;
 	}
 
 	// make it so that line/text entry boxes trap the escape key to close the dialog box
@@ -402,6 +419,25 @@ export class EditComponent extends wmk.Dialog
 		}
 		drop.change(() => {let idx = parseInt(drop.val()); changeFunc(values[idx], labels[idx]);});
 		return drop;
+	}
+
+	// uses the structure (if any) to calculate the InChI, and fill in the field value
+	private calculateInChI():void
+	{
+		if (!InChI.isAvailable()) return;
+		let mol = this.sketcher.getMolecule();
+		if (wmk.MolUtil.isBlank(mol)) 
+		{
+			alert('Draw a molecule first, then calculate the InChI.');
+			return;
+		}
+
+		try
+		{
+			let inchi = InChI.makeInChI(mol);
+			console.log('GOT:'+inchi);
+		}
+		catch (ex) {alert('InChI generation failed: ' + ex);}
 	}
 }
 

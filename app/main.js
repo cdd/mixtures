@@ -32,7 +32,8 @@ while (argv.length > 0)
 }
 for (let n = 0; n < argv.length; n++)
 {
-	if (argv[n].startsWith('-')) {}
+	if (argv[n] == '--inchi' && n < argv.length - 1) global['INCHI_EXEC'] = argv[++n];
+	else if (argv[n].startsWith('-')) {}
 	else files.push(argv[n]);
 	// (... consider other options...)
 }
