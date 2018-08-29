@@ -109,9 +109,9 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'exportSVG') this.actionFileExportSVG();
 		else if (cmd == 'undo') this.editor.performUndo();
 		else if (cmd == 'redo') this.editor.performRedo();
-		/*else if (cmd == 'cut') this.actionCopy(true);
-		else if (cmd == 'copy') this.actionCopy(false);
-		else if (cmd == 'paste') this.actionPaste();*/
+		else if (cmd == 'cut') this.editor.clipboardCopy(true);
+		else if (cmd == 'copy') this.editor.clipboardCopy(false);
+		else if (cmd == 'paste') this.editor.clipboardPaste();
 		else if (cmd == 'modify') this.editor.editCurrent();
 		else if (cmd == 'delete') this.editor.deleteCurrent();
 		else if (cmd == 'append') this.editor.appendToCurrent();

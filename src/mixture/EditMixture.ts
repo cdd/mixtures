@@ -278,6 +278,52 @@ export class EditMixture extends wmk.Widget
 		this.setMixture(modmix);
 	}
 
+	// copy current to clipboard, and optionally excise it
+	public clipboardCopy(andCut:boolean):void
+	{
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		
+		let comp = deepClone(this.mixture.getComponent(origin));
+		delete (<any>comp).mixfileVersion;
+		comp.contents = [];
+		let str = Mixture.serialiseComponent(comp);
+
+		let clipboard = require('electron').clipboard;
+		clipboard.writeText(str);
+
+		if (origin.length > 0 && andCut) this.deleteCurrent();
+	}
+
+	// paste from clipboard, if possible
+	public clipboardPaste():void
+	{
+		let clipboard = require('electron').clipboard;
+		let json = JSON.parse(clipboard.readText());
+		// TODO: look into other formats, like molecules (anything else?)
+		if (!json) 
+		{
+			alert('Clipboard does not contain a mixture component.');
+			return;
+		}
+		if (!json.name && !json.molfile && !json.quantity)
+		{
+			alert('Clipboard content is either not a component, or has no interesting content.');
+			return;
+		}
+		json.contents = []; // (should we allow whole branches?)
+
+		let origin:number[] = [];
+		if (this.selectedIndex >= 0) origin = this.layout.components[this.selectedIndex].origin;
+
+		let modmix = this.mixture.clone();
+		let comp = modmix.getComponent(origin);
+		if (!comp.contents) comp.contents = [];
+		comp.contents.push(json);
+		this.delayedSelect = Vec.concat(origin, [comp.contents.length - 1]);
+		this.setMixture(modmix);
+	}
+
 	// ------------ private methods ------------
 	
 	private redraw(rescale = false):void
@@ -522,6 +568,11 @@ export class EditMixture extends wmk.Widget
 				if (origin[origin.length - 1] < Vec.arrayLength(this.mixture.getParentComponent(origin).contents) - 1)
 					menu.append(new electron.remote.MenuItem({'label': 'Move Down', 'click': () => {this.selectComponent(comp); this.reorderCurrent(1);}}));
 			}
+
+			menu.append(new electron.remote.MenuItem({'label': 'Copy', 'click': () => {this.selectComponent(comp); this.clipboardCopy(false);}}));
+			if (origin.length > 0)
+				menu.append(new electron.remote.MenuItem({'label': 'Cut', 'click': () => {this.selectComponent(comp); this.clipboardCopy(true);}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Paste', 'click': () => {this.selectComponent(comp); this.clipboardPaste();}}));
 		}
 		else
 		{
