@@ -229,9 +229,11 @@ export class EditMixture extends wmk.Widget
 		if (origin.length == 0) return;
 
 		let modmix = this.mixture.clone();
-		let [parent, idx] = Mixture.splitOrigin(origin);
-		modmix.getComponent(parent).contents.splice(idx, 1);
-		this.delayedSelect = parent;
+		//let [parent, idx] = Mixture.splitOrigin(origin);
+		//modmix.getComponent(parent).contents.splice(idx, 1);
+		modmix.deleteComponent(origin);
+		this.delayedSelect = null;
+		//this.delayedSelect = parent;
 		this.setMixture(modmix);
 	}
 
@@ -246,6 +248,17 @@ export class EditMixture extends wmk.Widget
 		if (!comp.contents) comp.contents = [];
 		comp.contents.push({});
 		this.delayedSelect = Vec.concat(origin, [comp.contents.length - 1]);
+		this.setMixture(modmix);
+	}
+
+	// inserts an empty component before the current one
+	public prependBeforeCurrent():void
+	{
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		let modmix = this.mixture.clone();
+		modmix.prependBefore(origin, {});
+		this.delayedSelect = origin;
 		this.setMixture(modmix);
 	}
 
@@ -496,34 +509,24 @@ export class EditMixture extends wmk.Widget
 		let menu = new electron.remote.Menu();
 		if (comp >= 0)
 		{
-			let menuEdit = new electron.remote.MenuItem(
+			let origin = this.layout.components[comp].origin;
+			menu.append(new electron.remote.MenuItem({'label': 'Edit', 'click': () => {this.selectComponent(comp); this.editCurrent();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Append', 'click': () => {this.selectComponent(comp); this.appendToCurrent();}}));
+			if (origin.length > 0)
 			{
-				'label': 'Edit',
-				'click': () => {this.selectComponent(comp); this.editCurrent();}
-			});
-			menu.append(menuEdit);
-			let menuDelete = new electron.remote.MenuItem(
-			{
-				'label': 'Delete',
-				'click': () => {this.selectComponent(comp); this.deleteCurrent();}
-			});
-			menu.append(menuDelete);
-			// (move up/down...)
+				menu.append(new electron.remote.MenuItem({'label': 'Prepend', 'click': () => {this.selectComponent(comp); this.prependBeforeCurrent();}}));
+				menu.append(new electron.remote.MenuItem({'label': 'Delete', 'click': () => {this.selectComponent(comp); this.deleteCurrent();}}));
+
+				if (origin[origin.length - 1] > 0)
+					menu.append(new electron.remote.MenuItem({'label': 'Move Up', 'click': () => {this.selectComponent(comp); this.reorderCurrent(-1);}}));
+				if (origin[origin.length - 1] < Vec.arrayLength(this.mixture.getParentComponent(origin).contents) - 1)
+					menu.append(new electron.remote.MenuItem({'label': 'Move Down', 'click': () => {this.selectComponent(comp); this.reorderCurrent(1);}}));
+			}
 		}
 		else
 		{
-			let menuZoomIn = new electron.remote.MenuItem(
-			{
-				'label': 'Zoom In',
-				'click': () => this.zoom(1.25)
-			});
-			menu.append(menuZoomIn);
-			let menuZoomOut = new electron.remote.MenuItem(
-			{
-				'label': 'Zoom Out',
-				'click': () => this.zoom(0.8)
-			});
-			menu.append(menuZoomOut);
+			menu.append(new electron.remote.MenuItem({'label': 'Zoom In', 'click': () => this.zoom(1.25)}));
+			menu.append(new electron.remote.MenuItem({'label': 'Zoom Out', 'click': () => this.zoom(0.8)}));
 		}
 
 		menu.popup(electron.remote.getCurrentWindow());

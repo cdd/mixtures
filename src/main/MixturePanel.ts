@@ -115,6 +115,7 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'modify') this.editor.editCurrent();
 		else if (cmd == 'delete') this.editor.deleteCurrent();
 		else if (cmd == 'append') this.editor.appendToCurrent();
+		else if (cmd == 'prepend') this.editor.prependBeforeCurrent();
 		else if (cmd == 'moveUp') this.editor.reorderCurrent(-1);
 		else if (cmd == 'moveDown') this.editor.reorderCurrent(1);
 		else if (cmd == 'zoomFull') this.editor.zoomFull();

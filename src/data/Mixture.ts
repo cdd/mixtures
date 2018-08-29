@@ -75,6 +75,13 @@ export class Mixture
 		}
 		return find;
 	}
+	public getParentComponent(origin:number[]):MixfileComponent
+	{
+		if (origin.length == 0) return null;
+		origin = origin.slice();
+		origin.pop();
+		return this.getComponent(origin);
+	}
 
 	// replaces a component at a given position; returns true if the new component was different to the old one
 	public setComponent(origin:number[], comp:MixfileComponent):boolean
@@ -98,6 +105,41 @@ export class Mixture
 			}
 		}
 		return modified;
+	}
+
+	// deletes the indicated component, and collapses any child nodes into its own position (as opposed to just deleting
+	// them too)
+	public deleteComponent(origin:number[]):void
+	{
+		if (origin.length == 0) return; // can't delete the whole thing
+
+		let find:MixfileComponent = this.mixfile, look = this.mixfile.contents, parent = look;
+		for (let o of origin)
+		{
+			parent = look;
+			find = look[o];
+			look = find.contents;
+		}
+		let idx = origin[origin.length - 1];
+		parent.splice(idx, 1);
+		if (look) for (let c of look) parent.splice(idx++, 0, c);
+	}
+
+	// insert a new component "above" the existing one, and handle the reparenting
+	public prependBefore(origin:number[], comp:MixfileComponent):void
+	{
+		if (origin.length == 0) return;
+
+		let find:MixfileComponent = this.mixfile, look = this.mixfile.contents, parent = look;
+		for (let o of origin)
+		{
+			parent = look;
+			find = look[o];
+			look = find.contents;
+		}
+		let idx = origin[origin.length - 1];
+		parent[idx] = comp;
+		comp.contents = [find];
 	}
 
 	// takes an origin vector and splits it into {parent origin} and {child index}; returns null on both counts if this is the root node
