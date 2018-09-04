@@ -26,6 +26,15 @@
 
 namespace Mixtures /* BOF */ {
 
+// work-in-progress placeholder for the recursive MInChI assembler
+interface MInChIBuilder
+{
+	molecules:string;
+	hierarchy:string;
+	units:string;
+	count:number;
+}
+
 /*
 	Formulates a MInChI string out of the given mixture.
 */
@@ -66,6 +75,18 @@ export class ExportMInChI
 	// assembles the MInChI string: once this has completed, the result is available
 	public formulate():void
 	{
+		let sortmix = deepClone(this.mixfile);
+		this.sortContents(sortmix.contents);
+
+		let builder:MInChIBuilder = {'molecules': '', 'hierarchy': '', 'units': '', 'count': 0};
+		if (sortmix.inchi || sortmix.name /* ?? */) this.assembleContents(builder, [sortmix])
+		else if (Vec.arrayLength(sortmix.contents) > 0) this.assembleContents(builder, sortmix.contents);
+		else {} // do nothing: it's completely empty
+		
+		// NOTE: haven't quite decided how to do names yet; if the root node has a name but no structure, is that
+		// cause for making an "empty" hierarchy element? if not, then the overall name of the mixture gets lost...
+
+		this.minchi = 'MInChI=0.00.1S/' + builder.molecules + '/n{' + builder.hierarchy + '}/g{' + builder.units + '}';
 	}
 
     // returns the MInChI string formulated as above
@@ -76,11 +97,55 @@ export class ExportMInChI
 
 	// ------------ private methods ------------
 
-/*
+	// for the given mixfile components, sorts them by InChI, and does likewise with their contents
+	private sortContents(contents:MixfileComponent[]):void
+	{
+		if (!contents || contents.length <= 1) return;
+		contents.sort((c1:MixfileComponent, c2:MixfileComponent):number =>
+		{
+			let s1 = (c1.inchi ? c1.inchi : '?') + '\t' + (c1.name ? c1.name : '');
+			let s2 = (c2.inchi ? c2.inchi : '?') + '\t' + (c2.name ? c2.name : '');
+			return s1.localeCompare(s2);
+		});
+		for (let comp of contents) this.sortContents(comp.contents);
+	}
+
+	// recursively scans down the content array (previously sorted) and collects the components into a list, which
+	// is expressed by the interim builder object
+	private assembleContents(builder:MInChIBuilder, contents:MixfileComponent[])
+	{
+		//if (!contents || contents.length == 0) return;
+
+		for (let n = 0; n < contents.length; n++)
+		{
+			let notFirst = builder.count > 0;
+
+			let comp = contents[n];
+			if (notFirst) builder.molecules += '&';
+			if (comp.inchi) builder.molecules += comp.inchi;
+
+			if (n > 0) builder.hierarchy += '&';
+			builder.hierarchy += (++builder.count).toString();
+
+			if (notFirst) builder.units += '&';
+			builder.units += this.formatConcentration(comp);
+
+			// add sub-components (recursively)
+			if (comp.contents && comp.contents.length > 0)
+			{
+				builder.hierarchy += '&'; // need to precede the '{...}' that will be subsequently appended
+				builder.hierarchy += '{';
+				this.assembleContents(builder, comp.contents);
+				builder.hierarchy += '}';
+			}
+		}
+	}
+
     // turns a concentration into a suitable precursor string, or null otherwise
     private formatConcentration(comp:MixfileComponent):string
     {
         // TODO: need special deal for ratio without denominator - can sometimes add them up to form an implicit denominator
+		// TODO: this is currently the same as ExportSDFile; make a common reference... probably Units.ts
 
         if (comp.ratio && comp.ratio.length >= 2)
         {
@@ -112,7 +177,7 @@ export class ExportMInChI
         bits.push(mnemonic);
 
         return bits.join(' ');
-    }*/
+    }
 }
 
 /* EOF */ }
