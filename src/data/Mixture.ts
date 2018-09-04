@@ -83,6 +83,20 @@ export class Mixture
 		return this.getComponent(origin);
 	}
 
+	// returns a flat list of all components, i.e. without any hierarchy; these are all pointers to the originals, so
+	// modifications can be made directly
+	public getComponents():MixfileComponent[]
+	{
+		let list:MixfileComponent[] = [], stack:MixfileComponent[] = [this.mixfile];
+		while (stack.length > 0)
+		{
+			let comp = stack.shift();
+			list.push(comp);
+			if (comp.contents) for (let sub of comp.contents) stack.push(sub);
+		}
+		return list;
+	}
+
 	// replaces a component at a given position; returns true if the new component was different to the old one
 	public setComponent(origin:number[], comp:MixfileComponent):boolean
 	{
