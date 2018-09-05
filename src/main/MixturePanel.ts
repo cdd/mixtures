@@ -27,7 +27,7 @@
 ///<reference path='../mixture/ArrangeMixture.ts'/>
 ///<reference path='../mixture/DrawMixture.ts'/>
 ///<reference path='../mixture/EditMixture.ts'/>
-///<reference path='../mixture/InteropSDFile.ts'/>
+///<reference path='../mixture/ExportSDFile.ts'/>
 ///<reference path='MainPanel.ts'/>
 
 namespace Mixtures /* BOF */ {
