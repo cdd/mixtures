@@ -28,6 +28,14 @@ export class Mixture
 		if (!mixfile) this.mixfile = {'mixfileVersion': MIXFILE_VERSION};
 	}
 
+	// instantiates a new mixture object by casting a component into a root mixfile
+	public static fromComponent(comp:MixfileComponent)
+	{
+		let mixfile = <Mixfile>deepClone(comp);
+		mixfile.mixfileVersion = MIXFILE_VERSION;
+		return new Mixture(mixfile);
+	}
+
 	// returns true if the mixture is blank
 	public isEmpty():boolean
 	{
