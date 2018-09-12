@@ -53,6 +53,13 @@ export class MixturePanel extends MainPanel
 		this.editor.render(root);
 	}
 
+	public setMixture(mixture:Mixture):void
+	{
+		this.editor.clearHistory();
+		this.editor.setMixture(mixture, true, false);
+		this.editor.setDirty(false);
+	}
+
 	public loadFile(filename:string):void
 	{
 		const fs = require('fs');
