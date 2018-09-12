@@ -51,6 +51,13 @@ export class Mixture
 		return new Mixture(deepClone(this.mixfile));
 	}
 
+	// returns true if the two mixtures are identical at all parts of their branch structure
+	public equals(other:Mixture):boolean
+	{
+		if (other == null) return false;
+		return this.recursiveEqual(this.mixfile, other.mixfile);
+	}
+
 	// unpacks a string into a mixture; throws an exception if anything went wrong
 	public static deserialise(data:string):Mixture
 	{
@@ -188,6 +195,26 @@ export class Mixture
 			lines[n] = match[1] + '\n' + padding[1] + match[2];
 		}
 		return lines.join('\n');
+	}
+
+	// returns true if this component, and all sub-components, are equal
+	private recursiveEqual(comp1:MixfileComponent, comp2:MixfileComponent):boolean
+	{
+		let dict1:any = comp1, dict2:any = comp2;
+		let keys1 = Object.keys(dict1), keys2 = Object.keys(dict2);
+		let i:number;
+		if ((i = keys1.indexOf('contents')) >= 0) keys1.splice(i, 1);
+		if ((i = keys2.indexOf('contents')) >= 0) keys2.splice(i, 1);
+		keys1.sort();
+		keys2.sort();
+		if (!Vec.equals(keys1, keys2)) return false; // different keys (less contents) is a dealbreaker
+		for (let k of keys1) if (dict1[k] != dict2[k]) return false; // all scalar-esque fields must be the same
+
+		let len = Vec.arrayLength(comp1.contents);
+		if (len != Vec.arrayLength(comp2.contents)) return false;
+		for (let n = 0; n < len; n++) if (!this.recursiveEqual(comp1.contents[n], comp2.contents[n])) return false;
+		
+		return true;
 	}
 }
 
