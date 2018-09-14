@@ -28,6 +28,7 @@
 ///<reference path='../mixture/DrawMixture.ts'/>
 ///<reference path='../mixture/EditMixture.ts'/>
 ///<reference path='../mixture/ExportSDFile.ts'/>
+///<reference path='../mixture/ExportMInChI.ts'/>
 ///<reference path='MainPanel.ts'/>
 
 namespace Mixtures /* BOF */ {
@@ -114,6 +115,7 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'saveAs') this.actionFileSaveAs();
 		else if (cmd == 'exportSDF') this.actionExportSDF();
 		else if (cmd == 'exportSVG') this.actionFileExportSVG();
+		else if (cmd == 'createMInChI') this.actionFileCreateMInChI();
 		else if (cmd == 'undo') this.editor.performUndo();
 		else if (cmd == 'redo') this.editor.performRedo();
 		else if (cmd == 'cut') this.editor.clipboardCopy(true);
@@ -258,6 +260,20 @@ export class MixturePanel extends MainPanel
 				if (err) alert('Unable to save: ' + err);
 			});		
 		});
+	}
+
+	private actionFileCreateMInChI():void
+	{
+		if (!InChI.isAvailable()) 
+		{
+			alert('InChI executable has not been configured. Specify with --inchi parameter.');
+			return;
+		}
+
+		let creator = new ExportMInChI(this.editor.getMixture().mixfile);
+		creator.fillInChI();
+		creator.formulate();
+		alert('Generated MInChI identifier:\n' + creator.getResult());
 	}
 
 /*

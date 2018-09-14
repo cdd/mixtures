@@ -122,13 +122,18 @@ export class ExportMInChI
 
 			let comp = contents[n];
 			if (notFirst) builder.molecules += '&';
-			if (comp.inchi) builder.molecules += comp.inchi;
+			if (comp.inchi) 
+			{
+				const PFX = 'InChI=1S/'; // if it doesn't start with this, we don't consider it a valid InChI
+				if (comp.inchi.startsWith(PFX)) builder.molecules += comp.inchi.substring(PFX.length);
+			}
 
 			if (n > 0) builder.hierarchy += '&';
 			builder.hierarchy += (++builder.count).toString();
 
 			if (notFirst) builder.units += '&';
-			builder.units += this.formatConcentration(comp);
+			let fmtconc = this.formatConcentration(comp);
+			if (fmtconc) builder.units += fmtconc;
 
 			// add sub-components (recursively)
 			if (comp.contents && comp.contents.length > 0)
@@ -151,7 +156,7 @@ export class ExportMInChI
         {
             let numer = comp.ratio[0], denom = comp.ratio[1];
             if (!(denom > 0)) return null;
-            return (100 * numer / denom) + ' pp';
+            return (100 * numer / denom) + 'pp';
         }
 
         if (comp.quantity == null || comp.units == null) return null;
@@ -176,7 +181,7 @@ export class ExportMInChI
         if (scaled.length > 1) {bits.push('..'); bits.push(scaled[1].toString());}
         bits.push(mnemonic);
 
-        return bits.join(' ');
+        return bits.join('');
     }
 }
 

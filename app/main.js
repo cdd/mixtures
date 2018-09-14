@@ -93,6 +93,7 @@ function setupMenu()
 				{'label': 'Save As...', 'accelerator': 'CmdOrCtrl+Shift+S', 'click': () => sendCommand('saveAs')},
 				{'label': 'Export SDF...', 'accelerator': 'CmdOrCtrl+E', 'click': () => sendCommand('exportSDF')},
 				{'label': 'Export as SVG', 'accelerator': 'CmdOrCtrl+Shift+G', 'click': () => sendCommand('exportSVG')},
+				{'label': 'Create MInChI', 'accelerator': 'CmdOrCtrl+Shift+M', 'click': () => sendCommand('createMInChI')},
 				{'role': 'close'}
 			]
 		},
