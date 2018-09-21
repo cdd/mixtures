@@ -102,6 +102,7 @@ function setupMenu()
 			'submenu': 
 			[
 				{'label': 'Modify', 'accelerator': 'Enter', 'click': () => sendCommand('modify')},
+				{'label': 'Lookup Name', 'accelerator': 'CmdOrCtrl+L', 'click': () => sendCommand('lookup')},
 				{'label': 'Delete', 'accelerator': 'Delete', 'click': () => sendCommand('delete')},
 				{'label': 'Append', 'accelerator': '/', 'click': () => sendCommand('append')},
 				{'label': 'Prepend', 'accelerator': '\\', 'click': () => sendCommand('prepend')},

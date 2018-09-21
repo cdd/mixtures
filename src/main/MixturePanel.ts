@@ -10,9 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../decl/node.d.ts'/>
-///<reference path='../decl/electron.d.ts'/>
-
 ///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
 ///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
@@ -21,6 +18,8 @@
 ///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 
+///<reference path='../decl/node.d.ts'/>
+///<reference path='../decl/electron.d.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
 ///<reference path='../data/Mixture.ts'/>
 ///<reference path='../data/Units.ts'/>
@@ -122,6 +121,7 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'copy') this.editor.clipboardCopy(false);
 		else if (cmd == 'paste') this.editor.clipboardPaste();
 		else if (cmd == 'modify') this.editor.editCurrent();
+		else if (cmd == 'lookup') this.editor.lookupCurrent();
 		else if (cmd == 'delete') this.editor.deleteCurrent();
 		else if (cmd == 'append') this.editor.appendToCurrent();
 		else if (cmd == 'prepend') this.editor.prependBeforeCurrent();

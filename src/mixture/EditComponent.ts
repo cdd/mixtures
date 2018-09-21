@@ -10,9 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../decl/node.d.ts'/>
-///<reference path='../decl/electron.d.ts'/>
-
 ///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
 ///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
@@ -24,7 +21,10 @@
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/OptionList.ts'/>
+///<reference path='../../../WebMolKit/src/dialog/Dialog.ts'/>
 
+///<reference path='../decl/node.d.ts'/>
+///<reference path='../decl/electron.d.ts'/>
 ///<reference path='../main/startup.ts'/>
 ///<reference path='../main/InChI.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
@@ -71,6 +71,8 @@ export class EditComponent extends wmk.Dialog
 	
 	private callbackSave:(source?:EditComponent) => void = null;
 		
+	// ------------ public methods ------------
+
 	constructor(private component:MixfileComponent, private parentSize:[number, number])
 	{
 		super();
@@ -217,6 +219,8 @@ export class EditComponent extends wmk.Dialog
 		// trap the escape key, for easy closing
 		body.find('input,textarea').keydown((event:JQueryEventObject) => this.trapEscape(event));
 	}
+
+	// ------------ private methods ------------
 
 	// assuming that something is different, refreshes the current component information and closes
 	private saveAndClose():void

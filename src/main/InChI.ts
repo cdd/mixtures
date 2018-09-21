@@ -13,7 +13,6 @@
 ///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
 ///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
-
 ///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
 
 namespace Mixtures /* BOF */ {

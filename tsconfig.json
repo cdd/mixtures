@@ -11,10 +11,10 @@
     },
     "include": 
     [
-        "src/**/*.ts",
-        
         // imported from WebMolKit
-        "../WebMolKit/src/**/*.ts"
+        "../WebMolKit/src/**/*.ts",
+
+        "src/**/*.ts"
     ],
     "exclude":
     [

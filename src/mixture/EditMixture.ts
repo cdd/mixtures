@@ -10,9 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../decl/node.d.ts'/>
-///<reference path='../decl/electron.d.ts'/>
-
 ///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
 ///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
@@ -22,8 +19,11 @@
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
 
+///<reference path='../decl/node.d.ts'/>
+///<reference path='../decl/electron.d.ts'/>
 ///<reference path='../main/startup.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
+///<reference path='../lookup/LookupCompoundDialog.ts'/>
 ///<reference path='ArrangeMixture.ts'/>
 ///<reference path='DrawMixture.ts'/>
 ///<reference path='EditComponent.ts'/>
@@ -216,6 +216,24 @@ export class EditMixture extends wmk.Widget
 		{
 			let modmix = this.mixture.clone();
 			if (modmix.setComponent(origin, dlg.getComponent())) this.setMixture(modmix);
+			dlg.close();
+		});
+		dlg.open();
+	}
+
+	// lookup: searches for compound information based on name, prespecified or otherwise
+	public lookupCurrent():void
+	{
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		let comp = this.mixture.getComponent(origin);
+		let curX = this.content.width(), curY = this.content.height();
+		let dlg = new LookupCompoundDialog(comp.name, [curX, curY]);
+		dlg.onSelect(() =>
+		{
+			let modmix = this.mixture.clone();
+			console.log('FNORD!');
+			//if (modmix.setComponent(origin, dlg.getComponent())) this.setMixture(modmix);
 			dlg.close();
 		});
 		dlg.open();
@@ -557,6 +575,7 @@ export class EditMixture extends wmk.Widget
 		{
 			let origin = this.layout.components[comp].origin;
 			menu.append(new electron.remote.MenuItem({'label': 'Edit', 'click': () => {this.selectComponent(comp); this.editCurrent();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Lookup Name', 'click': () => {this.selectComponent(comp); this.lookupCurrent();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Append', 'click': () => {this.selectComponent(comp); this.appendToCurrent();}}));
 			if (origin.length > 0)
 			{
