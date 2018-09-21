@@ -56,6 +56,13 @@ export interface MixfileComponent
 	contents?:MixfileComponent[];
 }
 
+// useful for cleaning up external JSON content
+export const MIXFILE_COMPONENT_FIELDS =
+[
+	'name', 'description', 'synonyms', 'formula', 'molfile', 'inchi', 'inchiKey', 'smiles',
+	'ratio', 'quantity', 'units', 'relation', 'identifiers', 'links', 'contents'
+];
+
 /* orignal example of what the format might look like (1st draft):
 {
 	"mixture": "1.0 M lithium diisopropyl amide in THF/hexanes",

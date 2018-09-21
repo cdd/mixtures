@@ -201,10 +201,13 @@ export class Mixture
 	private recursiveEqual(comp1:MixfileComponent, comp2:MixfileComponent):boolean
 	{
 		let dict1:any = comp1, dict2:any = comp2;
-		let keys1 = Object.keys(dict1), keys2 = Object.keys(dict2);
+		/*let keys1 = Object.keys(dict1), keys2 = Object.keys(dict2);	
 		let i:number;
 		if ((i = keys1.indexOf('contents')) >= 0) keys1.splice(i, 1);
-		if ((i = keys2.indexOf('contents')) >= 0) keys2.splice(i, 1);
+		if ((i = keys2.indexOf('contents')) >= 0) keys2.splice(i, 1);*/
+		let keys1:string[] = [], keys2:string[] = [];
+		for (let k in dict1) if (k != 'contents' && dict1[k] != null) keys1.push(k);
+		for (let k in dict2) if (k != 'contents' && dict2[k] != null) keys2.push(k);
 		keys1.sort();
 		keys2.sort();
 		if (!Vec.equals(keys1, keys2)) return false; // different keys (less contents) is a dealbreaker
