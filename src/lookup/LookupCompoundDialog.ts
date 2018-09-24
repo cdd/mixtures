@@ -36,17 +36,25 @@ namespace Mixtures /* BOF */ {
 	Dialog for finding a compound by name using remote webservices.
 */
 
+
 export class LookupCompoundDialog extends wmk.Dialog
 {
 	private spanStatus:JQuery;
 	private btnSearch:JQuery;
+	private btnApply:JQuery;
 	private vertical:JQuery;
 	private searchInput:JQuery;
 	private resultArea:JQuery;
 
 	private pubchem:PubChemSearch = null;
 	private resultList:PubChemSearchResult[] = [];
-	//private resultDOM:JQuery[] = [];
+
+	private nameSelected = -1;
+	private nameList:string[] = [];
+	private nameDOM:JQuery[] = [];
+	private molSelected = -1;
+	private molList:wmk.Molecule[] = [];
+	private molDOM:JQuery[] = [];
 
 	private callbackSelect:(source?:LookupCompoundDialog) => void = null;
 
@@ -56,6 +64,8 @@ export class LookupCompoundDialog extends wmk.Dialog
 	{
 		super();
 		
+		if (!wmk.hasInlineCSS('mixtures-lookupcompound')) wmk.installInlineCSS('mixtures-lookupcompound', this.composeCSS());
+
 		this.title = 'Lookup Compound';
 		this.minPortionWidth = 95;
 		this.maxPortionWidth = 95;
@@ -67,8 +77,6 @@ export class LookupCompoundDialog extends wmk.Dialog
 		this.callbackSelect = callback;
 	}
 
-	//public getComponent():MixfileComponent {return this.component;}
-
 	// builds the dialog content
 	protected populate():void
 	{
@@ -79,14 +87,19 @@ export class LookupCompoundDialog extends wmk.Dialog
 		this.spanStatus = $('<span></span>').appendTo(buttons);
 		buttons.append(' ');
 
+		buttons.append(this.btnClose);
+
+		buttons.append(' ');
+
         this.btnSearch = $('<button class="wmk-button wmk-button-primary">Search</button>').appendTo(buttons);
 		this.btnSearch.click(() => this.runSearch());
 		
 		buttons.append(' ');
 
-		buttons.append(' ');
-		buttons.append(this.btnClose);
-		
+        this.btnApply = $('<button class="wmk-button wmk-button-default">Apply</button>').appendTo(buttons);
+		this.btnApply.click(() => this.applyResult());
+		this.btnApply.prop('disabled', true);
+
 		// main section
 
 		body.css('padding', '0 0 0 0.5em');
@@ -106,6 +119,16 @@ export class LookupCompoundDialog extends wmk.Dialog
 	{
 		if (this.pubchem) this.pubchem.stop();
 		super.close();
+	}
+
+	// access to selected results: null = nothing selected
+	public getName():string
+	{
+		return this.nameSelected < 0 ? null : this.nameList[this.nameSelected];
+	}
+	public getMolecule():wmk.Molecule
+	{
+		return this.molSelected < 0 ? null : this.molList[this.molSelected];
 	}
 
 	// ------------ private methods ------------
@@ -144,7 +167,6 @@ export class LookupCompoundDialog extends wmk.Dialog
 		if (this.pubchem) this.pubchem.stop();
 		this.resultArea.empty();
 		this.resultList = [];
-		//this.resultDOM = [];
 
 		this.spanStatus.text('Searching...');
 
@@ -154,6 +176,12 @@ export class LookupCompoundDialog extends wmk.Dialog
 			(result:PubChemSearchResult):void => this.gotResult(result), 
 			(err:string):void => this.finishedSearch(err));
 		this.pubchem.start();
+	}
+
+	private applyResult():void
+	{
+		this.callbackSelect(this);
+		this.close();
 	}
 
 	private gotResult(result:PubChemSearchResult):void
@@ -187,7 +215,13 @@ export class LookupCompoundDialog extends wmk.Dialog
 
 			let svg = $(gfx.createSVG()).appendTo(divMol);
 			svg.css('display', 'inline-block');
-			// !! CLICK RESPONSE... and border...
+			svg.addClass('mixtures-lookupcompound-unselected');
+
+			const idx = this.molList.length;
+			svg.click(() => this.selectMolecule(idx));
+
+			this.molList.push(result.mol);
+			this.molDOM.push(svg);
 		}
 		else divMol.text('(no structure)');
 
@@ -200,40 +234,28 @@ export class LookupCompoundDialog extends wmk.Dialog
 		else for (let name of result.names)
 		{
 			let div = $('<div></div>').appendTo(divName);
-			div.text(name);
-			// !! CLICK RESPONSE...
+			let span = $('<span></span>').appendTo(div);
+			span.addClass('mixtures-lookupcompound-unselected');
+			span.text(name);
+
+			const idx = this.nameList.length;
+			div.click(() => this.selectName(idx));
+
+			this.nameList.push(name);
+			this.nameDOM.push(span);
 		}
-
-/*		
-
-		let divLabel = $('<div></div>').appendTo(grid);
-		divLabel.css('grid-column', 'start');
-		divLabel.css('grid-row', '1');
-		divLabel.css('padding-right', '0.5em');
-		divLabel.text('Name:');
-
-		let divInput = $('<div></div>').appendTo(grid);
-		divInput.css('grid-column', 'value');
-		divInput.css('grid-row', '1');
-		this.searchInput = $('<input></input>').appendTo(divInput);
-		this.searchInput.css('width', '100%');
-		this.searchInput.css('font', 'inherit');
-		this.searchInput.val(this.searchText);
-		this.searchInput.keydown((event:JQueryEventObject) => this.trapKeys(event));*/		
-
-
-
-		//console.log('GOT:'+JSON.stringify(result));
 	}
 
 	private finishedSearch(err:string):void
 	{
 		this.spanStatus.text('');
 
-		//console.log('FINISHED');
-		// TODO: update a visual cue somewhere
-
 		if (err) alert('Search failed: ' + err);
+		else if (this.resultList.length == 0)
+		{
+			this.resultArea.empty();
+			this.resultArea.text('Nothing found.');
+		}
 	}
 
 	private trapKeys(event:JQueryEventObject):void
@@ -250,6 +272,50 @@ export class LookupCompoundDialog extends wmk.Dialog
 		}
 	}
 
+	private selectName(idx:number):void
+	{
+		let prev = this.nameSelected;
+		if (prev == idx) idx = -1;
+		
+		if (prev >= 0) this.nameDOM[prev].removeClass('mixtures-lookupcompound-selected');
+		if (idx >= 0) this.nameDOM[idx].addClass('mixtures-lookupcompound-selected');
+		this.nameSelected = idx;
+
+		this.btnApply.prop('disabled', this.nameSelected < 0 && this.molSelected < 0);
+	}
+
+	private selectMolecule(idx:number):void
+	{
+		let prev = this.molSelected;
+		if (prev == idx) idx = -1;
+		
+		if (prev >= 0) this.molDOM[prev].removeClass('mixtures-lookupcompound-selected');
+		if (idx >= 0) this.molDOM[idx].addClass('mixtures-lookupcompound-selected');
+		this.molSelected = idx;
+
+		this.btnApply.prop('disabled', this.nameSelected < 0 && this.molSelected < 0);
+	}
+
+	// one-time instantiation of necessary styles
+	private composeCSS():string
+	{
+		return `
+			.mixtures-lookupcompound-unselected
+			{
+				cursor: pointer;
+				background-color: transparent;
+				border: 1px solid transparent;
+				padding: 3px;
+				border-radius: 4px;
+			}
+			.mixtures-lookupcompound-selected
+			{
+				cursor: default;
+				background-color: #E0E0E0;
+				border: 1px solid #808080;
+			}
+		`;
+	}
 }
 
 /* EOF */ }

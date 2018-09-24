@@ -87,6 +87,13 @@ export class PubChemSearch
 			this.callbackFinished('Unparseable result from name query: ' + ex.toString());
 		}
 
+		if (!obj.IdentifierList)
+		{
+			// found nothing
+			this.callbackFinished();
+			return;
+		}
+
 		this.cidList = obj.IdentifierList.CID;
 		this.fetchNext();
 	}
@@ -144,7 +151,7 @@ export class PubChemSearch
 		for (let colName of NAMECOLS)
 		{
 			let names = ds.getString(row, colName);
-			if (!names) continue;
+			if (!names || typeof names != 'string') continue;
 			for (let name of names.split('\n')) if (name && result.names.indexOf(name) < 0) result.names.push(name);
 		}
 

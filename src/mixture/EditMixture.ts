@@ -232,8 +232,11 @@ export class EditMixture extends wmk.Widget
 		dlg.onSelect(() =>
 		{
 			let modmix = this.mixture.clone();
-			console.log('FNORD!');
-			//if (modmix.setComponent(origin, dlg.getComponent())) this.setMixture(modmix);
+			comp = deepClone(modmix.getComponent(origin));
+			let name = dlg.getName(), mol = dlg.getMolecule();
+			if (name != null) comp.name = name;
+			if (mol != null) comp.molfile = new wmk.MDLMOLWriter(mol).write();
+			if (modmix.setComponent(origin, comp)) this.setMixture(modmix);
 			dlg.close();
 		});
 		dlg.open();
