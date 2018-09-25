@@ -300,14 +300,14 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// copy current to clipboard, and optionally excise it
-	public clipboardCopy(andCut:boolean):void
+	public clipboardCopy(andCut:boolean, wholeBranch:boolean = false):void
 	{
 		if (this.selectedIndex < 0) return;
 		let origin = this.layout.components[this.selectedIndex].origin;
 		
 		let comp = deepClone(this.mixture.getComponent(origin));
 		delete (<any>comp).mixfileVersion;
-		comp.contents = [];
+		if (!wholeBranch) comp.contents = [];
 		let str = Mixture.serialiseComponent(comp);
 
 		let clipboard = require('electron').clipboard;
@@ -327,12 +327,12 @@ export class EditMixture extends wmk.Widget
 			alert('Clipboard does not contain a mixture component.');
 			return;
 		}
-		if (!json.name && !json.molfile && !json.quantity)
+		if (!json.name && !json.molfile && !json.quantity && Vec.isBlank(json.contents))
 		{
 			alert('Clipboard content is either not a component, or has no interesting content.');
 			return;
 		}
-		json.contents = []; // (should we allow whole branches?)
+		//json.contents = []; // (should we allow whole branches? -- yes!)
 
 		let origin:number[] = [];
 		if (this.selectedIndex >= 0) origin = this.layout.components[this.selectedIndex].origin;
@@ -576,7 +576,7 @@ export class EditMixture extends wmk.Widget
 		let menu = new electron.remote.Menu();
 		if (comp >= 0)
 		{
-			let origin = this.layout.components[comp].origin;
+			let compObj = this.layout.components[comp].content, origin = this.layout.components[comp].origin;
 			menu.append(new electron.remote.MenuItem({'label': 'Edit', 'click': () => {this.selectComponent(comp); this.editCurrent();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Lookup Name', 'click': () => {this.selectComponent(comp); this.lookupCurrent();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Append', 'click': () => {this.selectComponent(comp); this.appendToCurrent();}}));
@@ -592,6 +592,8 @@ export class EditMixture extends wmk.Widget
 			}
 
 			menu.append(new electron.remote.MenuItem({'label': 'Copy', 'click': () => {this.selectComponent(comp); this.clipboardCopy(false);}}));
+			if (Vec.arrayLength(compObj.contents) > 0)
+				menu.append(new electron.remote.MenuItem({'label': 'Copy Branch', 'click': () => {this.selectComponent(comp); this.clipboardCopy(false, true);}}));
 			if (origin.length > 0)
 				menu.append(new electron.remote.MenuItem({'label': 'Cut', 'click': () => {this.selectComponent(comp); this.clipboardCopy(true);}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Paste', 'click': () => {this.selectComponent(comp); this.clipboardPaste();}}));

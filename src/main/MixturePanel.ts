@@ -119,6 +119,7 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'redo') this.editor.performRedo();
 		else if (cmd == 'cut') this.editor.clipboardCopy(true);
 		else if (cmd == 'copy') this.editor.clipboardCopy(false);
+		else if (cmd == 'copyBranch') this.editor.clipboardCopy(false, true);
 		else if (cmd == 'paste') this.editor.clipboardPaste();
 		else if (cmd == 'modify') this.editor.editCurrent();
 		else if (cmd == 'lookup') this.editor.lookupCurrent();

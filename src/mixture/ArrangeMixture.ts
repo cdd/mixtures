@@ -261,9 +261,26 @@ export class ArrangeMixture
 	// turn quantity info into a readable string
 	private formatQuantity(mixcomp:MixfileComponent):string
 	{
+		let prec = (val:number):string => 
+		{
+			if (val > 10000) return Math.round(val).toString();
+			let str = val.toPrecision(4);
+			if (str.indexOf('e') >= 0 || str.indexOf('.') < 0) return str;
+			while (true)
+			{
+				if (str.endsWith('0')) str = str.substring(0, str.length - 1);
+				else if (str.endsWith('.')) {str = str.substring(0, str.length - 1); break;}
+				else break;
+			}
+			return str;
+			/*const REGEX = /^(\d+\.\d*?)0+$/;
+			let m = str.match(REGEX);
+			return m ? m[1] : str;*/
+		}
+
 		if (mixcomp.ratio)
 		{
-			if (mixcomp.ratio.length == 2) return mixcomp.ratio[0] + '/' + mixcomp.ratio[1];
+			if (mixcomp.ratio.length == 2) return prec(mixcomp.ratio[0]) + '/' + prec(mixcomp.ratio[1]);
 			return null; // invalid ratio
 		}
 
@@ -274,10 +291,10 @@ export class ArrangeMixture
 		if (mixcomp.quantity instanceof Array)
 		{
 			if (mixcomp.quantity.length == 0) return;
-			str += mixcomp.quantity[0];
-			if (mixcomp.quantity.length >= 2) str += ' - ' + mixcomp.quantity[1];
+			str += prec(mixcomp.quantity[0]);
+			if (mixcomp.quantity.length >= 2) str += ' - ' + prec(mixcomp.quantity[1]);
 		}
-		else str += mixcomp.quantity; // is presumed to be scalar
+		else str += prec(mixcomp.quantity); // is presumed to be scalar
 
 		if (mixcomp.units) str += ' ' + mixcomp.units;
 
