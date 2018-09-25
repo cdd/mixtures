@@ -211,7 +211,18 @@ export class Mixture
 		keys1.sort();
 		keys2.sort();
 		if (!Vec.equals(keys1, keys2)) return false; // different keys (less contents) is a dealbreaker
-		for (let k of keys1) if (dict1[k] != dict2[k]) return false; // all scalar-esque fields must be the same
+		for (let k of keys1) 
+		{
+			let v1 = dict1[k], v2 = dict2[k];
+			if (Array.isArray(v1) && Array.isArray(v2))
+			{
+				if (!Vec.equals(v1, v2)) return false;
+			}
+			else // assume scalar
+			{
+				if (v1 != v2) return false;
+			}
+		}
 
 		let len = Vec.arrayLength(comp1.contents);
 		if (len != Vec.arrayLength(comp2.contents)) return false;
