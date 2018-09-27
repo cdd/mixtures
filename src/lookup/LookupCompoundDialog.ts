@@ -113,6 +113,8 @@ export class LookupCompoundDialog extends wmk.Dialog
 		this.populateSearchEntry();
 
 		this.resultArea = $('<div></div>').appendTo(this.vertical);
+
+		if (this.searchText) this.runSearch(); // auto-start
 	}
 
     public close():void

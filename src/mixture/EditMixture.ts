@@ -320,11 +320,29 @@ export class EditMixture extends wmk.Widget
 	public clipboardPaste():void
 	{
 		let clipboard = require('electron').clipboard;
-		let json = JSON.parse(clipboard.readText());
-		// TODO: look into other formats, like molecules (anything else?)
+
+		let str = clipboard.readText();
+		let json:any = null;
+		try {json = JSON.parse(str);}
+		catch (e) {} // silent failure
+
+		let origin:number[] = [];
+		if (this.selectedIndex >= 0) origin = this.layout.components[this.selectedIndex].origin;
+
 		if (!json) 
 		{
-			alert('Clipboard does not contain a mixture component.');
+			let mol = wmk.MoleculeStream.readUnknown(str);
+			if (wmk.MolUtil.notBlank(mol))
+			{
+				let modmix = this.mixture.clone();
+				let comp = modmix.getComponent(origin);
+				if (comp)
+				{
+					comp.molfile = new wmk.MDLMOLWriter(mol).write();
+					this.setMixture(modmix);
+				}
+			}
+			else alert('Clipboard does not contain a mixture component.');
 			return;
 		}
 		if (!json.name && !json.molfile && !json.quantity && Vec.isBlank(json.contents))
@@ -334,8 +352,6 @@ export class EditMixture extends wmk.Widget
 		}
 		//json.contents = []; // (should we allow whole branches? -- yes!)
 
-		let origin:number[] = [];
-		if (this.selectedIndex >= 0) origin = this.layout.components[this.selectedIndex].origin;
 
 		let modmix = this.mixture.clone();
 		let comp = modmix.getComponent(origin);
