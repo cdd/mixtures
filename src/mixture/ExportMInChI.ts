@@ -79,7 +79,7 @@ export class ExportMInChI
 		this.sortContents(sortmix.contents);
 
 		let builder:MInChIBuilder = {'molecules': '', 'hierarchy': '', 'units': '', 'count': 0};
-		if (sortmix.inchi || sortmix.name /* ?? */) this.assembleContents(builder, [sortmix])
+		if (sortmix.inchi /* || sortmix.name ?? */) this.assembleContents(builder, [sortmix])
 		else if (Vec.arrayLength(sortmix.contents) > 0) this.assembleContents(builder, sortmix.contents);
 		else {} // do nothing: it's completely empty
 		
@@ -97,17 +97,38 @@ export class ExportMInChI
 
 	// ------------ private methods ------------
 
-	// for the given mixfile components, sorts them by InChI, and does likewise with their contents
+	// for the given mixfile components, sorts them by InChI, and does likewise with their contents; note that the sorting has to be
+	// done in leaf-first order, because the ordering of the sub-branches can be a tie-breaker
 	private sortContents(contents:MixfileComponent[]):void
 	{
 		if (!contents || contents.length <= 1) return;
+
+		for (let comp of contents) this.sortContents(comp.contents);
+
+		let subTree = (contents:MixfileComponent[]):string =>
+		{
+			if (Vec.isBlank(contents)) return '';
+			let lines:string[] = [];
+			for (let comp of contents)
+			{
+				let line = (comp.inchi ? comp.inchi : '?') + '\t' + (comp.name ? comp.name : '');
+				line += '<<' + subTree(comp.contents) + '>>';
+				lines.push(line);
+			}
+			return lines.join('||');
+		};
+
 		contents.sort((c1:MixfileComponent, c2:MixfileComponent):number =>
 		{
 			let s1 = (c1.inchi ? c1.inchi : '?') + '\t' + (c1.name ? c1.name : '');
 			let s2 = (c2.inchi ? c2.inchi : '?') + '\t' + (c2.name ? c2.name : '');
+			let cmp = s1.localeCompare(s2);
+			if (cmp != 0) return cmp;
+
+			s1 = subTree(c1.contents);
+			s2 = subTree(c2.contents);
 			return s1.localeCompare(s2);
 		});
-		for (let comp of contents) this.sortContents(comp.contents);
 	}
 
 	// recursively scans down the content array (previously sorted) and collects the components into a list, which
