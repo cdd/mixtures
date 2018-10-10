@@ -105,6 +105,8 @@ export class EditMixture extends wmk.Widget
 		this.content.keydown((event:JQueryEventObject) => this.keyDown(event));
 		this.content.keyup((event:JQueryEventObject) => this.keyUp(event));
 		this.content.contextmenu((event:JQueryEventObject) => this.contextMenu(event));
+
+		this.redraw(true);
 	}
 
 	// access to current state
