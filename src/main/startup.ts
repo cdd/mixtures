@@ -68,7 +68,7 @@ export function runMixfileEditor(resURL:string, root:JQuery):void
 		let eq = p.indexOf('=');
 		if (eq < 0) continue;
 		let key = p.substring(0, eq), val = decodeURIComponent(p.substring(eq + 1));
-		if (key == 'panel') panelClass= val;
+		if (key == 'panel') panelClass = val;
 		else if (key == 'fn') filename = val;
 	}	
 
@@ -89,7 +89,7 @@ export function runMixfileEditor(resURL:string, root:JQuery):void
 export function openNewWindow(panelClass:string, filename?:string):void
 {
 	const electron = require('electron');
-	let bw = new electron.remote.BrowserWindow({'width':800, 'height':700, 'icon': 'app/img/icon.png'});
+	let bw = new electron.remote.BrowserWindow({'width': 800, 'height': 700, 'icon': 'app/img/icon.png'});
 	let url = BASE_APP + '/index.html?panel=' + panelClass;
 	if (filename) url += '&fn=' + encodeURIComponent(filename);
 	bw.loadURL(url);

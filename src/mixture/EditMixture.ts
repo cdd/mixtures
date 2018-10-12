@@ -108,6 +108,7 @@ export class EditMixture extends wmk.Widget
 
 		this.content.attr('tabindex', '0');
 		this.content.focus();
+		this.redraw(true);
 	}
 
 	// access to current state
