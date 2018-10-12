@@ -105,6 +105,9 @@ export class EditMixture extends wmk.Widget
 		this.content.keydown((event:JQueryEventObject) => this.keyDown(event));
 		this.content.keyup((event:JQueryEventObject) => this.keyUp(event));
 		this.content.contextmenu((event:JQueryEventObject) => this.contextMenu(event));
+
+		this.content.attr('tabindex', '0');
+		this.content.focus();
 	}
 
 	// access to current state
@@ -446,6 +449,42 @@ export class EditMixture extends wmk.Widget
 		return -1;
 	}
 
+	// cursor key wandering
+	private navigateDirection(dir:string):void
+	{
+		let newIndex = -1;
+		if (this.selectedIndex < 0) newIndex = 0;
+		else
+		{
+			let origin = this.layout.components[this.selectedIndex].origin.slice(0);
+			if (dir == 'left')
+			{
+				if (origin.length == 0) return;
+				origin.pop();
+				newIndex = this.layout.findComponent(origin);
+			}
+			else if (dir == 'right')
+			{
+				origin.push(0);
+				newIndex = this.layout.findComponent(origin);
+			}
+			else if (dir == 'up')
+			{
+				if (origin.length == 0 || origin[origin.length - 1] == 0) return;
+				origin[origin.length - 1]--;
+				newIndex = this.layout.findComponent(origin);
+			}
+			else if (dir == 'down')
+			{
+				if (origin.length == 0) return;
+				origin[origin.length - 1]++;
+				newIndex = this.layout.findComponent(origin);
+			}
+		}
+
+		if (newIndex >= 0 && newIndex < this.layout.components.length) this.selectComponent(newIndex);
+	}
+
 	// interactivity
 	private mouseClick(event:JQueryEventObject):void
 	{
@@ -532,33 +571,14 @@ export class EditMixture extends wmk.Widget
 	}
 	private keyDown(event:JQueryEventObject):void
 	{
-		/*let key = event.keyCode;
+		let key = event.keyCode;
 		//console.log('DOWN: key='+key);
 
-		// special deal for the escape key: if any bank needs to be popped, consume it 
-		if (key == 27)
-		{
-			for (let view of [this.templateView, this.commandView, this.toolView]) if (view != null && view.stackSize > 1)
-			{
-				view.popBank(); 
-				event.preventDefault(); 
-				return;
-			}
-		}
-
-		// non-modifier keys that don't generate a 'pressed' event		
-		if (key == 37) {} // left
-		else if (key == 39) {} // right
-		else if (key == 38) {} // up
-		else if (key == 40) {} // down
-		else if ([27, 8, 46].indexOf(key) >= 0)
-		{
-			if (this.toolView != null && this.toolView.topBank.claimKey(event)) {event.preventDefault(); return;}
-			if (this.commandView != null && this.commandView.topBank.claimKey(event)) {event.preventDefault(); return;}
-			if (this.templateView != null && this.templateView.topBank.claimKey(event)) {event.preventDefault(); return;}
-		} */
-		
-		// !! do something interesting when modifier keys are held down?
+		if (key == 27) {} // escape	
+		if (key == 37) this.navigateDirection('left');
+		else if (key == 39) this.navigateDirection('right');
+		else if (key == 38) this.navigateDirection('up');
+		else if (key == 40) this.navigateDirection('down');
 	}
 	private keyUp(event:JQueryEventObject):void
 	{

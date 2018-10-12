@@ -122,6 +122,13 @@ export class ArrangeMixture
 			comp.fontSize *= modScale;
 		}
 	}
+
+	// returns the index of the indicated origin vector, or -1 if not present
+	public findComponent(origin:number[]):number
+	{
+		for (let n = 0; n < this.components.length; n++) if (Vec.equals(this.components[n].origin, origin)) return n;
+		return -1;
+	}
 		
 	// --------------------- private methods ---------------------
 
