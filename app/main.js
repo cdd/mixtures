@@ -39,7 +39,7 @@ for (let n = 0; n < argv.length; n++)
 }
 if (files.length == 0) files.push(null);
 
-const BROWSER_PARAMS = {'width': 800, 'height': 700, 'icon': 'app/img/icon.png'};
+const BROWSER_PARAMS = {'width': 900, 'height': 800, 'icon': 'app/img/icon.png'};
 const INIT_URL = 'file://' + __dirname + '/index.html';
 
 let mainWindows = [];
@@ -101,7 +101,8 @@ function setupMenu()
 			'label': 'Edit',
 			'submenu': 
 			[
-				{'label': 'Modify', 'accelerator': 'Enter', 'click': () => sendCommand('modify')},
+				{'label': 'Edit Details', 'accelerator': 'Enter', 'click': () => sendCommand('editDetails')},
+				{'label': 'Edit Structure', 'accelerator': 'Shift+Enter', 'click': () => sendCommand('editStructure')},
 				{'label': 'Lookup Name', 'accelerator': 'CmdOrCtrl+L', 'click': () => sendCommand('lookup')},
 				{'label': 'Delete', 'accelerator': 'Delete', 'click': () => sendCommand('delete')},
 				{'label': 'Append', 'accelerator': '/', 'click': () => sendCommand('append')},

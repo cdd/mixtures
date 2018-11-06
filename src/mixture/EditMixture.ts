@@ -18,6 +18,7 @@
 ///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
+///<reference path='../../../WebMolKit/src/dialog/EditCompound.ts'/>
 
 ///<reference path='../decl/node.d.ts'/>
 ///<reference path='../decl/electron.d.ts'/>
@@ -208,8 +209,35 @@ export class EditMixture extends wmk.Widget
 		this.delayedRedraw();
 	}
 
-	// invoke the editor dialog for the current component
-	public editCurrent():void
+	// bring up the structure-editing panel, which uses the generic sketching dialog
+	public editStructure():void
+	{
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		let comp = this.mixture.getComponent(origin);
+
+		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
+
+		let dlg = new wmk.EditCompound(mol ? mol : new wmk.Molecule());
+		// ?? this.isSketching = true;
+		dlg.onSave(() => 
+		{
+			let molfile = wmk.MoleculeStream.writeMDLMOL(dlg.getMolecule());
+			if (!molfile) molfile = null;
+
+			comp = deepClone(comp);
+			comp.molfile = molfile;
+			let modmix = this.mixture.clone();
+			if (modmix.setComponent(origin, comp)) this.setMixture(modmix);
+			
+			dlg.close();
+		});
+		dlg.onClose(() => {} /*this.isSketching = false*/);
+		dlg.open();
+	}
+
+	// invoke the editor dialog for the current component - basically everything except the structure
+	public editDetails():void
 	{
 		if (this.selectedIndex < 0) return;
 		let origin = this.layout.components[this.selectedIndex].origin;
@@ -221,6 +249,12 @@ export class EditMixture extends wmk.Widget
 			let modmix = this.mixture.clone();
 			if (modmix.setComponent(origin, dlg.getComponent())) this.setMixture(modmix);
 			dlg.close();
+		});
+		dlg.onSketch(() =>
+		{
+			for (let n = 0; n < this.layout.components.length; n++)
+				if (Vec.equals(origin, this.layout.components[n].origin)) {this.selectedIndex = n; break;}
+			this.editStructure();
 		});
 		dlg.open();
 	}
@@ -503,7 +537,7 @@ export class EditMixture extends wmk.Widget
 			this.activeIndex = -1;
 			this.selectedIndex = comp;
 			this.delayedRedraw();
-			this.editCurrent();
+			this.editDetails();
 		}
 	}
 	private mouseDown(event:JQueryEventObject):void
@@ -614,7 +648,8 @@ export class EditMixture extends wmk.Widget
 		if (comp >= 0)
 		{
 			let compObj = this.layout.components[comp].content, origin = this.layout.components[comp].origin;
-			menu.append(new electron.remote.MenuItem({'label': 'Edit', 'click': () => {this.selectComponent(comp); this.editCurrent();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Edit Structure', 'click': () => {this.selectComponent(comp); this.editStructure();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Edit Details', 'click': () => {this.selectComponent(comp); this.editDetails();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Lookup Name', 'click': () => {this.selectComponent(comp); this.lookupCurrent();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Append', 'click': () => {this.selectComponent(comp); this.appendToCurrent();}}));
 			if (origin.length > 0)

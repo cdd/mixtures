@@ -46,12 +46,13 @@ const RELATION_LABELS:string[] = ['=', '~', '&lt;', '&le;', '&gt;', '&ge;'];
 	
 export class EditComponent extends wmk.Dialog
 {
-	private btnClear:JQuery;
+	//private btnClear:JQuery;
+	private btnSketch:JQuery;
 	private btnPaste:JQuery;
 	private btnCopy:JQuery;
 	private btnSave:JQuery;
 
-	private sketcher:wmk.Sketcher;
+	//private sketcher:wmk.Sketcher;
 	private lineName:JQuery;
 	private optQuantType:wmk.OptionList;
 	private dropQuantRel:JQuery;
@@ -70,6 +71,7 @@ export class EditComponent extends wmk.Dialog
 	private fakeTextArea:HTMLTextAreaElement = null; // for temporarily bogarting the clipboard
 	
 	private callbackSave:(source?:EditComponent) => void = null;
+	private callbackSketch:(source?:EditComponent) => void = null;
 		
 	// ------------ public methods ------------
 
@@ -88,6 +90,10 @@ export class EditComponent extends wmk.Dialog
 	{
 		this.callbackSave = callback;
 	}
+	public onSketch(callback:(source?:EditComponent) => void)
+	{
+		this.callbackSketch = callback;
+	}
 
 	public getComponent():MixfileComponent {return this.component;}
 
@@ -98,8 +104,13 @@ export class EditComponent extends wmk.Dialog
 	
 		// top section
 
-        this.btnClear = $('<button class="wmk-button wmk-button-default">Clear</button>').appendTo(buttons);
-		this.btnClear.click(() => this.sketcher.clearMolecule());
+        //this.btnClear = $('<button class="wmk-button wmk-button-default">Clear</button>').appendTo(buttons);
+		//this.btnClear.click(() => this.sketcher.clearMolecule());
+		if (this.callbackSketch)
+		{
+			this.btnSketch = $('<button class="wmk-button wmk-button-default">Sketch</button>').appendTo(buttons);
+			this.btnSketch.click(() => this.invokeSketcher());
+		}
 
 		/*buttons.append(' ');
         this.btnCopy = $('<button class="wmk-button wmk-button-default">Copy</button>').appendTo(buttons);
@@ -159,7 +170,7 @@ export class EditComponent extends wmk.Dialog
 		skdiv.css('height', skh + 'px');
 		skdiv.css('margin-top', '1em');
 
-		this.sketcher = new wmk.Sketcher();
+		/*this.sketcher = new wmk.Sketcher();
 		this.sketcher.lowerCommandBank = true;
 		this.sketcher.lowerTemplateBank = true;
 		this.sketcher.setSize(skw, skh);
@@ -172,7 +183,7 @@ export class EditComponent extends wmk.Dialog
 			}
 			catch (e) {}
 		}
-		this.sketcher.setup(() => this.sketcher.render(skdiv));
+		this.sketcher.setup(() => this.sketcher.render(skdiv));*/
 
 		// second batch of fields
 
@@ -191,7 +202,7 @@ export class EditComponent extends wmk.Dialog
 		this.lineInChIKey = this.createValueLine(grid2, line);
 		this.lineInChIKey.val(this.component.inchiKey);
 
-		if (InChI.isAvailable())
+		if (InChI.isAvailable() && this.component.molfile)
 		{
 			let div = this.createDiv(grid2, ++line);
 			let btn = $('<button class="wmk-button wmk-button-default">Calculate from Structure</button>').appendTo(div);
@@ -225,11 +236,11 @@ export class EditComponent extends wmk.Dialog
 	// assuming that something is different, refreshes the current component information and closes
 	private saveAndClose():void
 	{
-		let mol = this.sketcher.getMolecule();
+		/*let mol = this.sketcher.getMolecule();
 		if (mol.numAtoms > 0)
 			this.component.molfile = new wmk.MDLMOLWriter(mol).write();
 		else 
-			this.component.molfile = null;
+			this.component.molfile = null;*/
 
 		let nullifyBlank = (str:string):string => {return str === '' ? null : str};
 
@@ -261,6 +272,13 @@ export class EditComponent extends wmk.Dialog
 
 		//console.log(JSON.stringify(this.component));
 		this.callbackSave(this);
+	}
+
+	// change to sketch mode: close this dialog, save everything, then tell the parent to sketch instead
+	private invokeSketcher():void
+	{
+		this.saveAndClose();
+		this.callbackSketch(this);
 	}
 
 	// creates a 2-column grid for field/value entry
@@ -429,10 +447,11 @@ export class EditComponent extends wmk.Dialog
 	private calculateInChI():void
 	{
 		if (!InChI.isAvailable()) return;
-		let mol = this.sketcher.getMolecule();
+		//let mol = this.sketcher.getMolecule();
+		let mol = wmk.MoleculeStream.readUnknown(this.component.molfile);
 		if (wmk.MolUtil.isBlank(mol)) 
 		{
-			alert('Draw a molecule first, then calculate the InChI.');
+			//alert('Draw a molecule first, then calculate the InChI.');
 			return;
 		}
 

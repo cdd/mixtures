@@ -64,14 +64,18 @@ export class InChI
 		const proc = require('child_process'), path = require('path');
 
 		let cmd = inchi.inchiPath.replace(/ /g, '\\\ '); // very crude escaping of spaces
-		let mdlmol = new wmk.MDLMOLWriter(mol).write();
+		let writer = new wmk.MDLMOLWriter(mol);
+		//writer.enhancedFields = false; (InChI generator will ignore the enhanced fields, so this is OK)
+		let mdlmol = writer.write();
 		let result = proc.spawnSync(cmd, ['-STDIO', '-AuxNone', '-NoLabels', '-Key'], {'input': mdlmol});
 		let raw = result.stdout.toString(), bits = raw.split('\n')
 
 		if (bits.length < 2 || !bits[0].startsWith('InChI='))
 		{
 			console.log('InChI command returned result:\n' + raw);
-			throw 'Invalid.';
+			console.log('Molecule:\n' + mol);
+			console.log('MDL Molfile:\n' + mdlmol);
+			throw 'Invalid returned by InChI generator';
 		}
 		return [bits[0], bits[1]];
 	}

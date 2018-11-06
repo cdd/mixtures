@@ -121,7 +121,8 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'copy') this.editor.clipboardCopy(false);
 		else if (cmd == 'copyBranch') this.editor.clipboardCopy(false, true);
 		else if (cmd == 'paste') this.editor.clipboardPaste();
-		else if (cmd == 'modify') this.editor.editCurrent();
+		else if (cmd == 'editStructure') this.editor.editStructure();
+		else if (cmd == 'editDetails') this.editor.editDetails();
 		else if (cmd == 'lookup') this.editor.lookupCurrent();
 		else if (cmd == 'delete') this.editor.deleteCurrent();
 		else if (cmd == 'append') this.editor.appendToCurrent();
