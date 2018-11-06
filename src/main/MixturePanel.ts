@@ -108,6 +108,8 @@ export class MixturePanel extends MainPanel
 
 	public menuAction(cmd:string):void
 	{
+		if (!this.editor.isReceivingCommands()) return;
+
 		if (cmd == 'new') openNewWindow('MixturePanel');
 		else if (cmd == 'open') this.actionFileOpen();
 		else if (cmd == 'save') this.actionFileSave();

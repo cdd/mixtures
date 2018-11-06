@@ -101,12 +101,12 @@ function setupMenu()
 			'label': 'Edit',
 			'submenu': 
 			[
-				{'label': 'Edit Details', 'accelerator': 'Enter', 'click': () => sendCommand('editDetails')},
+				{'label': 'Edit Details', 'accelerator': 'CmdOrCtrl+Enter', 'click': () => sendCommand('editDetails')},
 				{'label': 'Edit Structure', 'accelerator': 'Shift+Enter', 'click': () => sendCommand('editStructure')},
 				{'label': 'Lookup Name', 'accelerator': 'CmdOrCtrl+L', 'click': () => sendCommand('lookup')},
-				{'label': 'Delete', 'accelerator': 'Delete', 'click': () => sendCommand('delete')},
-				{'label': 'Append', 'accelerator': '/', 'click': () => sendCommand('append')},
-				{'label': 'Prepend', 'accelerator': '\\', 'click': () => sendCommand('prepend')},
+				{'label': 'Delete', 'accelerator': 'CmdOrCtrl+Delete', 'click': () => sendCommand('delete')},
+				{'label': 'Append', 'accelerator': 'CmdOrCtrl+/', 'click': () => sendCommand('append')},
+				{'label': 'Prepend', 'accelerator': 'CmdOrCtrl+\\', 'click': () => sendCommand('prepend')},
 				{'label': 'Move Up', 'accelerator': 'CmdOrCtrl+Up', 'click': () => sendCommand('moveUp')},
 				{'label': 'Move Down', 'accelerator': 'CmdOrCtrl+Down', 'click': () => sendCommand('moveDown')},
 				{'type': 'separator'},

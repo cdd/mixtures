@@ -146,31 +146,25 @@ export class EditComponent extends wmk.Dialog
 		divQuant.css({'grid-column': 'value', 'grid-row': '2'});
 		this.createQuantity(divQuant);
 
-		let btnMore = $('<button class="wmk-button wmk-button-default">More...</button>').appendTo(vertical);
-		btnMore.click(() => 
-		{
-			btnMore.remove();
+		this.createFieldName(grid1, 3, 'Description');
+		this.areaDescr = this.createValueMultiline(grid1, 3);
+		this.areaDescr.keydown((event:JQueryEventObject) => this.trapEscape(event));
 
-			this.createFieldName(grid1, 3, 'Description');
-			this.areaDescr = this.createValueMultiline(grid1, 3);
-			this.areaDescr.keydown((event:JQueryEventObject) => this.trapEscape(event));
+		this.createFieldName(grid1, 4, 'Synonyms');
+		this.areaSyn = this.createValueMultiline(grid1, 4);
+		this.areaSyn.keydown((event:JQueryEventObject) => this.trapEscape(event));
 
-			this.createFieldName(grid1, 4, 'Synonyms');
-			this.areaSyn = this.createValueMultiline(grid1, 4);
-			this.areaSyn.keydown((event:JQueryEventObject) => this.trapEscape(event));
+		this.areaDescr.val(this.component.description);
+		if (this.component.synonyms) this.areaSyn.val(this.component.synonyms.join('\n'));
 
-			this.areaDescr.val(this.component.description);
-			if (this.component.synonyms) this.areaSyn.val(this.component.synonyms.join('\n'));
-		});
-
-		let skw = Math.min(1000, Math.max(500, this.parentSize[0] - 100));
+		/*let skw = Math.min(1000, Math.max(500, this.parentSize[0] - 100));
 		let skh = Math.min(800, Math.max(450, this.parentSize[1] - 300));
 		let skdiv = $('<div></div>').appendTo(vertical);
 		skdiv.css('width', skw + 'px');
 		skdiv.css('height', skh + 'px');
 		skdiv.css('margin-top', '1em');
 
-		/*this.sketcher = new wmk.Sketcher();
+		this.sketcher = new wmk.Sketcher();
 		this.sketcher.lowerCommandBank = true;
 		this.sketcher.lowerTemplateBank = true;
 		this.sketcher.setSize(skw, skh);

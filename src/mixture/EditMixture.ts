@@ -72,6 +72,7 @@ export class EditMixture extends wmk.Widget
 	private dragIndex = -1;
 	private dragX = 0;
 	private dragY = 0;
+	private isEditing = false;
 
 	// ------------ public methods ------------
 
@@ -111,6 +112,9 @@ export class EditMixture extends wmk.Widget
 		this.content.focus();
 		this.redraw(true);
 	}
+
+	// whether or not menu commands are being received; no means that it's in dialog/editing mode
+	public isReceivingCommands() {return !this.isEditing;}
 
 	// access to current state
 	public getMixture():Mixture {return this.mixture;}
@@ -219,7 +223,6 @@ export class EditMixture extends wmk.Widget
 		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
 
 		let dlg = new wmk.EditCompound(mol ? mol : new wmk.Molecule());
-		// ?? this.isSketching = true;
 		dlg.onSave(() => 
 		{
 			let molfile = wmk.MoleculeStream.writeMDLMOL(dlg.getMolecule());
@@ -232,7 +235,8 @@ export class EditMixture extends wmk.Widget
 			
 			dlg.close();
 		});
-		dlg.onClose(() => {} /*this.isSketching = false*/);
+		dlg.onClose(() => this.isEditing = false);
+		this.isEditing = true;
 		dlg.open();
 	}
 
@@ -256,6 +260,8 @@ export class EditMixture extends wmk.Widget
 				if (Vec.equals(origin, this.layout.components[n].origin)) {this.selectedIndex = n; break;}
 			this.editStructure();
 		});
+		dlg.onClose(() => this.isEditing = false);
+		this.isEditing = true;
 		dlg.open();
 	}
 
