@@ -18,6 +18,7 @@
 ///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
+///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 ///<reference path='../../../WebMolKit/src/dialog/EditCompound.ts'/>
 
 ///<reference path='../decl/node.d.ts'/>
@@ -73,6 +74,7 @@ export class EditMixture extends wmk.Widget
 	private dragX = 0;
 	private dragY = 0;
 	private isEditing = false;
+	private dlgCompound:wmk.EditCompound = null;
 
 	// ------------ public methods ------------
 
@@ -114,7 +116,8 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// whether or not menu commands are being received; no means that it's in dialog/editing mode
-	public isReceivingCommands() {return !this.isEditing;}
+	public isReceivingCommands():boolean {return !this.isEditing;}
+	public compoundEditor():wmk.EditCompound {return this.dlgCompound;}
 
 	// access to current state
 	public getMixture():Mixture {return this.mixture;}
@@ -222,10 +225,16 @@ export class EditMixture extends wmk.Widget
 
 		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
 
-		let dlg = new wmk.EditCompound(mol ? mol : new wmk.Molecule());
-		dlg.onSave(() => 
+		const {clipboard} = require('electron');
+		let proxy = new wmk.ClipboardProxy();
+		proxy.getString = ():string => clipboard.readText();
+		proxy.setString = (str:string):void => clipboard.writeText(str);
+		proxy.canAlwaysGet = ():boolean => true;
+
+		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule());
+		this.dlgCompound.onSave(() => 
 		{
-			let molfile = wmk.MoleculeStream.writeMDLMOL(dlg.getMolecule());
+			let molfile = wmk.MoleculeStream.writeMDLMOL(this.dlgCompound.getMolecule());
 			if (!molfile) molfile = null;
 
 			comp = deepClone(comp);
@@ -233,11 +242,16 @@ export class EditMixture extends wmk.Widget
 			let modmix = this.mixture.clone();
 			if (modmix.setComponent(origin, comp)) this.setMixture(modmix);
 			
-			dlg.close();
+			this.dlgCompound.close();
 		});
-		dlg.onClose(() => this.isEditing = false);
+		this.dlgCompound.onClose(() => 
+		{
+			this.isEditing = false;
+			this.dlgCompound = null;
+		});
+		this.dlgCompound.defineClipboard(proxy);
 		this.isEditing = true;
-		dlg.open();
+		this.dlgCompound.open();
 	}
 
 	// invoke the editor dialog for the current component - basically everything except the structure

@@ -108,7 +108,22 @@ export class MixturePanel extends MainPanel
 
 	public menuAction(cmd:string):void
 	{
-		if (!this.editor.isReceivingCommands()) return;
+		let dlg = this.editor.compoundEditor();
+		if (dlg)
+		{
+			if (cmd == 'cut') dlg.actionCut();
+			else if (cmd == 'copy') dlg.actionCopy();
+			else if (cmd == 'paste') dlg.actionPaste();
+			else if (cmd == 'undo') dlg.actionUndo();
+			else if (cmd == 'redo') dlg.actionRedo();
+			return;
+		}
+		if (!this.editor.isReceivingCommands()) 
+		{
+			// certain common menu/shortcut commands are passed through to standard behaviour, the rest are stopped
+			if (['cut', 'copy', 'paste', 'undo', 'redo'].indexOf(cmd) >= 0) document.execCommand(cmd);
+			return;
+		}
 
 		if (cmd == 'new') openNewWindow('MixturePanel');
 		else if (cmd == 'open') this.actionFileOpen();
