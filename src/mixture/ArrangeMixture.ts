@@ -162,8 +162,8 @@ export class ArrangeMixture
 			{
 				comp.molLayout = new wmk.ArrangeMolecule(comp.mol, this.measure, this.policy);
 				comp.molLayout.arrange();
-				let bounds = comp.molLayout.determineBoundary();
-				// !! check limiting size
+				comp.molLayout.squeezeInto(0, 0, this.limitStructW, this.limitStructH);
+				let bounds = comp.molLayout.determineBoundary();				
 				comp.molBox = new wmk.Box(padding, padding, Math.ceil(bounds[2] - bounds[0]), Math.ceil(bounds[3] - bounds[1]));
 			}
 			else comp.molBox = wmk.Box.zero();

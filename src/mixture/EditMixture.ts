@@ -410,12 +410,30 @@ export class EditMixture extends wmk.Widget
 		}
 		//json.contents = []; // (should we allow whole branches? -- yes!)
 
+		// special deal when pasting into nothing: just replace it
+		if (this.selectedIndex < 0 && this.mixture.isEmpty())
+		{
+			let modmix = new Mixture(json);
+			this.delayedSelect = [];
+			this.setMixture(modmix);
+			return;
+		}
 
+		// append to or replace some piece, preferably selected
 		let modmix = this.mixture.clone();
 		let comp = modmix.getComponent(origin);
-		if (!comp.contents) comp.contents = [];
-		comp.contents.push(json);
-		this.delayedSelect = Vec.concat(origin, [comp.contents.length - 1]);
+		if (Mixture.isComponentEmpty(comp))
+		{
+			Object.keys(comp).forEach((key:string) => delete (<any>comp)[key]);
+			Object.keys(json).forEach((key:string) => (<any>comp)[key] = json[key]);
+			this.delayedSelect = origin;
+		}
+		else // append
+		{
+			if (!comp.contents) comp.contents = [];
+			comp.contents.push(json);
+			this.delayedSelect = Vec.concat(origin, [comp.contents.length - 1]);
+		}
 		this.setMixture(modmix);
 	}
 

@@ -39,9 +39,14 @@ export class Mixture
 	// returns true if the mixture is blank
 	public isEmpty():boolean
 	{
+		return Mixture.isComponentEmpty(this.mixfile);
+	}
+	public static isComponentEmpty(comp:MixfileComponent):boolean
+	{
 		const BITS = ['name', 'description', 'synonyms', 'formula', 'molfile', 'inchi', 'inchiKey', 'smiles', 
-					  'ratio', 'quantity', 'units', 'relation', 'identifiers', 'links', 'contents'];
-		for (let bit of BITS) if ((this.mixfile as any)[bit] != null) return false;
+					  'ratio', 'quantity', 'units', 'relation', 'identifiers', 'links'];
+		for (let bit of BITS) if ((comp as any)[bit] != null) return false;
+		if (Vec.arrayLength(comp.contents) > 0) return false;
 		return true;
 	}
 
