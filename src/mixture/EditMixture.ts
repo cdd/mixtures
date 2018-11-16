@@ -647,11 +647,14 @@ export class EditMixture extends wmk.Widget
 		let key = event.keyCode;
 		//console.log('DOWN: key='+key);
 
-		if (key == 27) {} // escape	
-		if (key == 37) this.navigateDirection('left');
-		else if (key == 39) this.navigateDirection('right');
-		else if (key == 38) this.navigateDirection('up');
-		else if (key == 40) this.navigateDirection('down');
+		if (!event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey)
+		{
+			if (key == 27) {} // escape	
+			if (key == 37) this.navigateDirection('left');
+			else if (key == 39) this.navigateDirection('right');
+			else if (key == 38) this.navigateDirection('up');
+			else if (key == 40) this.navigateDirection('down');
+		}
 	}
 	private keyUp(event:JQueryEventObject):void
 	{
