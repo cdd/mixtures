@@ -230,36 +230,63 @@ export class EditComponent extends wmk.Dialog
 	// assuming that something is different, refreshes the current component information and closes
 	private saveAndClose():void
 	{
-		/*let mol = this.sketcher.getMolecule();
-		if (mol.numAtoms > 0)
-			this.component.molfile = new wmk.MDLMOLWriter(mol).write();
-		else 
-			this.component.molfile = null;*/
-
 		let nullifyBlank = (str:string):string => {return str === '' ? null : str};
+		let splitLines = (str:string):string[] =>
+		{
+			let lines = str.split('\n').filter((line) => line.length > 0);
+			return lines.length > 0 ? lines : null;
+		}
+		let splitKeys = (str:string):{[id:string] : any} =>
+		{
+			let dict:{[id:string] : any} = null;
+			for (let line of str.split('\n'))
+			{
+				let eq = line.indexOf('=');
+				if (eq < 0) continue;
+				if (dict == null) dict = {};
+				dict[line.substring(0, eq)] = line.substring(eq + 1);
+			}
+			return dict;
+		}
 
 		this.component.name = nullifyBlank(this.lineName.val());
 
-		/*
-		optQuantType:wmk.OptionList;
-		dropQuantRel:JQuery;
-		lineQuantVal1:JQuery;
-		lineQuantVal2:JQuery;
-		dropQuantUnits:JQuery;*/
+		let qtype = this.optQuantType.getSelectedValue();
+		[this.component.ratio, this.component.quantity] = [null, null];
+		let strQuant1 = this.lineQuantVal1.val().trim(), strQuant2 = this.lineQuantVal2.val().trim();
+		if (qtype == QuantityType.Value)
+		{
+			if (strQuant2) 
+			{
+				this.component.relation = null;
+				let avg = parseFloat(strQuant1), err = parseFloat(strQuant2);
+				this.component.quantity = [avg - err, avg + err];
+			}
+			else if (strQuant1) this.component.quantity = parseFloat(strQuant1);
+		}
+		else if (qtype == QuantityType.Range)
+		{
+			this.component.quantity = [parseFloat(strQuant1), parseFloat(strQuant2)];
+			this.component.relation = null;
+		}
+		else if (qtype == QuantityType.Ratio)
+		{
+			this.component.ratio = [parseFloat(strQuant1), parseFloat(strQuant2)];
+			this.component.relation = null;
+			this.component.units = null;
+		}
 
 		if (this.areaDescr) this.component.description = nullifyBlank(this.areaDescr.val());
 
-		/*
-		areaSyn:JQuery = null;
-		*/
+		this.component.synonyms = splitLines(this.areaSyn.val());
 
 		this.component.formula = nullifyBlank(this.lineFormula.val());
 		this.component.inchi = nullifyBlank(this.lineInChI.val());
 		this.component.inchiKey = nullifyBlank(this.lineInChIKey.val());
 		this.component.smiles = nullifyBlank(this.lineSMILES.val());
 		
-		/*areaIdent:JQuery;
-		areaLinks:JQuery;*/
+		this.component.identifiers = splitKeys(this.areaIdent.val());
+		this.component.links = splitKeys(this.areaLinks.val());
 
 		// remove explicit nulls, for clarity
 		Object.keys(this.component).forEach((key:string) => {if ((<any>this.component)[key] == null) delete (<any>this.component)[key];});
@@ -356,7 +383,7 @@ export class EditComponent extends wmk.Dialog
 		this.optQuantType.render(flex);
 
 		this.dropQuantRel = this.makeDropdownGroup(box(), this.component.relation, RELATION_VALUES, RELATION_LABELS,
-									(value:string, label:string) => {console.log("R="+value);this.component.relation = value;});
+									(value:string, label:string) => {this.component.relation = value;});
 
 		this.lineQuantVal1 = $('<input></input>').appendTo(box());
 		this.lineQuantVal1.attr('size', '10');
@@ -371,7 +398,7 @@ export class EditComponent extends wmk.Dialog
 
 		let unitValues = Vec.prepend(Units.standardList(), ''), unitLabels = Vec.prepend(Units.commonNames(), '');
 		this.dropQuantUnits = this.makeDropdownGroup(box(), this.component.units, unitValues, unitLabels,
-									(value:string, label:string) => {console.log("U="+label); this.component.units = label;});
+									(value:string, label:string) => {this.component.units = label;});
 
 		let changeToValue = () =>
 		{
@@ -388,7 +415,7 @@ export class EditComponent extends wmk.Dialog
 		let changeToRatio = () =>
 		{
 			this.dropQuantRel.css('display', 'none');
-			spanGap.html(':');
+			spanGap.html('/');
 			this.dropQuantUnits.css('display', 'none');
 		};
 
