@@ -289,7 +289,7 @@ export class EditComponent extends wmk.Dialog
 		this.component.links = splitKeys(this.areaLinks.val());
 
 		// remove explicit nulls, for clarity
-		Object.keys(this.component).forEach((key:string) => {if ((<any>this.component)[key] == null) delete (<any>this.component)[key];});
+		//Object.keys(this.component).forEach((key:string) => {if ((<any>this.component)[key] == null) delete (<any>this.component)[key];});
 
 		//console.log(JSON.stringify(this.component));
 		this.callbackSave(this);

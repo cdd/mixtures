@@ -138,6 +138,10 @@ export class Mixture
 				modified = true;
 			}
 		}
+
+		// cleanup by removing explicit nulls
+		Object.keys(find).forEach((key:string) => {if ((<any>find)[key] == null) delete (<any>find)[key];});
+
 		return modified;
 	}
 

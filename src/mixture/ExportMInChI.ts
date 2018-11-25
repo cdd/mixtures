@@ -29,10 +29,15 @@ namespace Mixtures /* BOF */ {
 // work-in-progress placeholder for the recursive MInChI assembler
 interface MInChIBuilder
 {
-	molecules:string;
-	hierarchy:string;
-	units:string;
-	count:number;
+	layerN:string; // N-layer is the hierarchical form
+	layerG:string; // G-layer has the concentrations
+}
+
+// augmented version of a component used to stash some MInChI-specific derived content
+interface MInChIComponent extends MixfileComponent
+{
+	inchiFrag:string;
+	placeName:string;
 }
 
 /*
@@ -75,18 +80,42 @@ export class ExportMInChI
 	// assembles the MInChI string: once this has completed, the result is available
 	public formulate():void
 	{
-		let sortmix = deepClone(this.mixfile);
-		this.sortContents(sortmix.contents);
+		let modmix = this.mixture.clone();
+		//this.sortContents(sortmix.contents);
 
-		let builder:MInChIBuilder = {'molecules': '', 'hierarchy': '', 'units': '', 'count': 0};
-		if (sortmix.inchi /* || sortmix.name ?? */) this.assembleContents(builder, [sortmix])
-		else if (Vec.arrayLength(sortmix.contents) > 0) this.assembleContents(builder, sortmix.contents);
-		else {} // do nothing: it's completely empty
-		
-		// NOTE: haven't quite decided how to do names yet; if the root node has a name but no structure, is that
-		// cause for making an "empty" hierarchy element? if not, then the overall name of the mixture gets lost...
+		// assemble the InChI fragments - which is sorted and unique and devoid of blanks; same for "placenames", which are
+		// terminal components that have name and concentration information, but no InChI
+		let inchiList:string[] = [], placeList:string[] = [];
+		const PFX = 'InChI=1S/'; // if it doesn't start with this, we don't consider it a valid InChI
+		for (let comp of modmix.getComponents())
+		{
+			const mcomp = comp as MInChIComponent;
+			if (comp.inchi && mcomp.inchi.startsWith(PFX))
+			{
+				mcomp.inchiFrag = mcomp.inchi.substring(PFX.length);
+				if (inchiList.indexOf(mcomp.inchiFrag) < 0) inchiList.push(mcomp.inchiFrag);
+			}
+			else if (mcomp.name && /*this.hasConcentration(mcomp) &&*/ Vec.arrayLength(mcomp.contents) == 0)
+			{
+				mcomp.placeName = '[';
+				for (let n = 0; n < mcomp.name.length; n++)
+				{
+					let ch = mcomp.name.charAt(n);
+					if (!((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9'))) ch = '_';
+					mcomp.placeName += ch;
+				}
+				mcomp.placeName += ']';
+				if (placeList.indexOf(mcomp.placeName) < 0) placeList.push(mcomp.placeName);
+			}
+		}
+		inchiList.sort();
+		placeList.sort();
+		let componentList = Vec.concat(inchiList, placeList);
 
-		this.minchi = 'MInChI=0.00.1S/' + builder.molecules + '/n{' + builder.hierarchy + '}/g{' + builder.units + '}';
+		let root = <any>modmix.mixfile as MInChIComponent;
+		let builder = this.assembleContents(root, componentList);
+
+		this.minchi = 'MInChI=0.00.1S/' + componentList.join('&') + '/n' + builder.layerN + '/g' + builder.layerG;
 	}
 
     // returns the MInChI string formulated as above
@@ -97,74 +126,57 @@ export class ExportMInChI
 
 	// ------------ private methods ------------
 
-	// for the given mixfile components, sorts them by InChI, and does likewise with their contents; note that the sorting has to be
-	// done in leaf-first order, because the ordering of the sub-branches can be a tie-breaker
-	private sortContents(contents:MixfileComponent[]):void
+	private assembleContents(mcomp:MInChIComponent, componentList:string[]):MInChIBuilder
 	{
-		if (!contents || contents.length <= 1) return;
+		let tree:MInChIBuilder = {'layerN': '', 'layerG': ''};
+		let builder:MInChIBuilder = {'layerN': '', 'layerG': ''};
 
-		for (let comp of contents) this.sortContents(comp.contents);
-
-		let subTree = (contents:MixfileComponent[]):string =>
+		// emit sub-contents recursively if applicable
+		if (mcomp.contents != null) for (let subComp of mcomp.contents)
 		{
-			if (Vec.isBlank(contents)) return '';
-			let lines:string[] = [];
-			for (let comp of contents)
+			let subTree = this.assembleContents(subComp as MInChIComponent, componentList);
+			if (!subTree.layerN && !subTree.layerG) continue;
+			if (tree.layerN.length > 0 || tree.layerG.length > 0)
 			{
-				let line = (comp.inchi ? comp.inchi : '?') + '\t' + (comp.name ? comp.name : '');
-				line += '<<' + subTree(comp.contents) + '>>';
-				lines.push(line);
+				tree.layerN += '&';
+				tree.layerG += '&';
 			}
-			return lines.join('||');
-		};
+			tree.layerN += subTree.layerN;
+			tree.layerG += subTree.layerG;
+		}
 
-		contents.sort((c1:MixfileComponent, c2:MixfileComponent):number =>
+		// append the current information
+		let idx = mcomp.inchiFrag ? componentList.indexOf(mcomp.inchiFrag) + 1 :
+				  mcomp.placeName ? componentList.indexOf(mcomp.placeName) + 1 : 0;
+		if (idx > 0) builder.layerN += idx.toString();
+
+		let conc = this.formatConcentration(mcomp);
+		if (conc) builder.layerG += conc;
+
+		if (tree.layerN.length > 0 || tree.layerG.length > 0)
 		{
-			let s1 = (c1.inchi ? c1.inchi : '?') + '\t' + (c1.name ? c1.name : '');
-			let s2 = (c2.inchi ? c2.inchi : '?') + '\t' + (c2.name ? c2.name : '');
-			let cmp = s1.localeCompare(s2);
-			if (cmp != 0) return cmp;
-
-			s1 = subTree(c1.contents);
-			s2 = subTree(c2.contents);
-			return s1.localeCompare(s2);
-		});
+			builder.layerN = '{' + tree.layerN + '}' + builder.layerN;
+			builder.layerG = '{' + tree.layerG + '}' + builder.layerG;
+			this.shaveBeard(builder);				   
+		}
+		return builder;
 	}
 
-	// recursively scans down the content array (previously sorted) and collects the components into a list, which
-	// is expressed by the interim builder object
-	private assembleContents(builder:MInChIBuilder, contents:MixfileComponent[])
+	// removes unnecessary nesting stubble
+	private shaveBeard(builder:MInChIBuilder):void
 	{
-		//if (!contents || contents.length == 0) return;
-
-		for (let n = 0; n < contents.length; n++)
+		while (builder.layerN.startsWith('{{') && builder.layerN.endsWith('}}') &&
+			   builder.layerG.startsWith('{{') && builder.layerG.endsWith('}}'))
 		{
-			let notFirst = builder.count > 0;
-
-			let comp = contents[n];
-			if (notFirst) builder.molecules += '&';
-			if (comp.inchi) 
-			{
-				const PFX = 'InChI=1S/'; // if it doesn't start with this, we don't consider it a valid InChI
-				if (comp.inchi.startsWith(PFX)) builder.molecules += comp.inchi.substring(PFX.length);
-			}
-
-			if (n > 0) builder.hierarchy += '&';
-			builder.hierarchy += (++builder.count).toString();
-
-			if (notFirst) builder.units += '&';
-			let fmtconc = this.formatConcentration(comp);
-			if (fmtconc) builder.units += fmtconc;
-
-			// add sub-components (recursively)
-			if (comp.contents && comp.contents.length > 0)
-			{
-				builder.hierarchy += '&'; // need to precede the '{...}' that will be subsequently appended
-				builder.hierarchy += '{';
-				this.assembleContents(builder, comp.contents);
-				builder.hierarchy += '}';
-			}
+			builder.layerN = builder.layerN.substring(1, builder.layerN.length - 1);
+			builder.layerG = builder.layerG.substring(1, builder.layerG.length - 1);
 		}
+	}
+
+	// returns true if there's any concentration information for the given component
+	private hasConcentration(comp:MixfileComponent):boolean
+	{
+		return comp.ratio != null || comp.quantity != null || comp.units != null || comp.relation != null;
 	}
 
     // turns a concentration into a suitable precursor string, or null otherwise
@@ -173,11 +185,14 @@ export class ExportMInChI
         // TODO: need special deal for ratio without denominator - can sometimes add them up to form an implicit denominator
 		// TODO: this is currently the same as ExportSDFile; make a common reference... probably Units.ts
 
+		let mantissa = (value:number, exp:number):string => Math.round(value * Math.pow(10, -exp)).toString();
+
         if (comp.ratio && comp.ratio.length >= 2)
         {
             let numer = comp.ratio[0], denom = comp.ratio[1];
             if (!(denom > 0)) return null;
-            return (100 * numer / denom) + 'pp';
+			let value = 100 * numer / denom, exp = this.determineExponent([value], 4);
+			return mantissa(value, exp) + 'pp' + exp;
         }
 
         if (comp.quantity == null || comp.units == null) return null;
@@ -198,12 +213,44 @@ export class ExportMInChI
 
         let [mnemonic, scaled] = Units.convertToMInChI(unitURI, values);
         if (!mnemonic) return;
-        bits.push(scaled[0].toString());
-        if (scaled.length > 1) {bits.push('..'); bits.push(scaled[1].toString());}
+
+		let exp = this.determineExponent(scaled, 4);
+
+        bits.push(mantissa(scaled[0], exp));
+        if (scaled.length > 1) {bits.push(':'); bits.push(mantissa(scaled[1], exp));}
         bits.push(mnemonic);
+		bits.push(exp.toString());
 
         return bits.join('');
     }
+
+	// given a positive number, gives out an appropriate exponent to scale it to, such that the mantissa can be an integer that accommodates
+	// the required number of significant figures
+	private determineExponent(values:number[], sigfig:number):number
+	{
+		let minval = Number.POSITIVE_INFINITY;
+		for (let v of values) minval = Math.min(minval, Math.abs(v));
+
+		if (!Number.isFinite(minval) || Number.isNaN(minval) || minval <= 0) return 0;
+
+		let exp = Math.round(Math.log10(minval)) - sigfig;
+		//let man = Math.round(minval * Math.pow(10, -exp));
+
+		let str:string[] = [];
+		for (let v of values) str.push(Math.round(v * Math.pow(10, -exp)).toString());
+
+		outer: while (true)
+		{
+			for (let n = 0; n < str.length; n++) 
+			{
+				if (!str[n].endsWith('0')) break outer;
+				str[n] = str[n].substring(0, str[n].length - 1);
+			}
+			exp++;
+		}
+
+		return exp;
+	}
 }
 
 /* EOF */ }

@@ -80,6 +80,19 @@ const PAIR_UNIT_MINCHI:any[] =
 	[StandardUnits.mol_kg, 'mb', 1],
 ];
 
+/*Notation code	Concentration type	Units
+mb	Molality	mol/kg
+wv	Weight per Volume	mg/L
+wf	Mass Fraction*	wt./total wt.
+vf	Volume Fraction*	vol./total vol.
+vp	Volume Proportion	v:v:v
+mf	Mole Fraction	mol/total mol
+pH	pH	pH
+pp	Raw percent	Not specified
+rt	Ratio (generic)	#:#:#
+pt	Percent (generic)	%
+*/
+
 export class Units
 {
 	private static STANDARD_LIST:string[] = [];
