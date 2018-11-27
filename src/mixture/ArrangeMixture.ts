@@ -294,14 +294,27 @@ export class ArrangeMixture
 		if (mixcomp.quantity == null) return null;
 
 		let str = '';
-		if (mixcomp.relation) str += mixcomp.relation + ' ';
+		if (mixcomp.relation) 
+		{
+			let rel = mixcomp.relation;
+			if (rel == '>=') rel = '\u{2265}'; else if (rel == '<=') rel = '\u{2264}';
+			str += rel + ' ';
+		}
 		if (mixcomp.quantity instanceof Array)
 		{
 			if (mixcomp.quantity.length == 0) return;
 			str += prec(mixcomp.quantity[0]);
 			if (mixcomp.quantity.length >= 2) str += ' - ' + prec(mixcomp.quantity[1]);
 		}
-		else str += prec(mixcomp.quantity); // is presumed to be scalar
+		else 
+		{
+			str += prec(mixcomp.quantity); // is presumed to be scalar
+			if (mixcomp.error)
+			{
+				// TODO: match the significant figures more carefully
+				str += ' \u{00B1} ' + prec(mixcomp.error);
+			}
+		}
 
 		if (mixcomp.units) str += ' ' + mixcomp.units;
 

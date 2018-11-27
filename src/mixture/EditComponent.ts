@@ -252,17 +252,12 @@ export class EditComponent extends wmk.Dialog
 		this.component.name = nullifyBlank(this.lineName.val());
 
 		let qtype = this.optQuantType.getSelectedValue();
-		[this.component.ratio, this.component.quantity] = [null, null];
+		[this.component.ratio, this.component.quantity, this.component.error] = [null, null, null];
 		let strQuant1 = this.lineQuantVal1.val().trim(), strQuant2 = this.lineQuantVal2.val().trim();
 		if (qtype == QuantityType.Value)
 		{
-			if (strQuant2) 
-			{
-				this.component.relation = null;
-				let avg = parseFloat(strQuant1), err = parseFloat(strQuant2);
-				this.component.quantity = [avg - err, avg + err];
-			}
-			else if (strQuant1) this.component.quantity = parseFloat(strQuant1);
+			if (strQuant1) this.component.quantity = parseFloat(strQuant1);
+			if (strQuant2) this.component.error = parseFloat(strQuant2);
 		}
 		else if (qtype == QuantityType.Range)
 		{
@@ -442,6 +437,7 @@ export class EditComponent extends wmk.Dialog
 		{
 			this.optQuantType.setSelectedValue(QuantityType.Value);
 			if (this.component.quantity != null) this.lineQuantVal1.val(this.component.quantity.toString());
+			if (this.component.error != null) this.lineQuantVal2.val(this.component.error.toString());
 			changeToValue();
 		}
 

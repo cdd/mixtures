@@ -40,8 +40,9 @@ export interface MixfileComponent
 
 	// if the concentration is known, then these fields should be filled out as appropriate; if the concentration is a ratio,
 	// it is relative to all of the components within the same branch
-	ratio?:number[]; // a ratio, specified as [numerator, denominator]
 	quantity?:number | number[]; // a concentration numeric which is associated with the units below (two numbers in case of a range)
+	error?:number; // optional standard error (applies to quantity when it's a scalar)
+	ratio?:number[]; // a ratio, specified as [numerator, denominator]
 	units?:string; // units for quantity (e.g. %, mol/L, g, etc.)
 	relation?:string; // optional modifier when applied to quantity (e.g. >, <, ~)
 

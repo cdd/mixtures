@@ -228,13 +228,13 @@ export class Mixture
 				if (!Vec.equals(v1, v2)) return false;
 			}
 			else // assume scalar
-			{
+			{	
 				if (v1 != v2) return false;
 			}
 		}
 
 		let len = Vec.arrayLength(comp1.contents);
-		if (len != Vec.arrayLength(comp2.contents)) return false;
+		if (len != Vec.arrayLength(comp2.contents)) return false;		
 		for (let n = 0; n < len; n++) if (!this.recursiveEqual(comp1.contents[n], comp2.contents[n])) return false;
 		
 		return true;
