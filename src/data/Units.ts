@@ -71,12 +71,13 @@ const PAIR_UNIT_MINCHI:any[] =
 	[StandardUnits.mol_L, 'mr', 1],
 	[StandardUnits.mmol_L, 'mr', 1E-3],
 	[StandardUnits.umol_L, 'mr', 1E-6],
-	[StandardUnits.pmol_L, 'mr', 1E-9],
+	[StandardUnits.nmol_L, 'mr', 1E-9],
+	[StandardUnits.pmol_L, 'mr', 1E-12],
 	/*[StandardUnits.logM, '', ],
 	[StandardUnits.perM, '', ],*/
-	[StandardUnits.g_L, 'wf', 1],
-	[StandardUnits.mg_L, 'wf', 1E-3],
-	[StandardUnits.ug_L, 'wf', 1E-6],
+	[StandardUnits.g_L, 'wv', 1E-3],
+	[StandardUnits.mg_L, 'wv', 1E-6],
+	[StandardUnits.ug_L, 'wv', 1E-9],
 	[StandardUnits.mol_kg, 'mb', 1],
 ];
 

@@ -53,7 +53,7 @@ export class ExportMInChI
 
     constructor(private mixfile:Mixfile)
     {
-		this.mixture = new Mixture(mixfile);
+		this.mixture = new Mixture(deepClone(mixfile));
     }
 
 	// this should generally be called first: any component that has a structure but not an InChI string gets one calculated,
@@ -83,6 +83,22 @@ export class ExportMInChI
 		let modmix = this.mixture.clone();
 		//this.sortContents(sortmix.contents);
 
+		// special deal: any component with >2 mixtures that has a consistent ratio definition needs to be marked
+		// at the parent-component level
+		skip: for (let comp of modmix.getComponents()) if (Vec.arrayLength(comp.contents) >= 2)
+		{
+			if (Vec.arrayLength(comp.contents[0].ratio) != 2) continue;
+			let [numer, denom] = comp.contents[0].ratio;
+			for (let n = 1; n < comp.contents.length; n++)
+			{
+				let ratio = comp.contents[n].ratio;
+				if (Vec.arrayLength(ratio) != 2 || ratio[1] != denom) continue skip;
+				numer += ratio[0];
+			}
+			if (numer != denom) continue;
+			for (let sub of comp.contents) (sub as any).useRatio = sub.ratio[0];
+		}
+
 		// assemble the InChI fragments - which is sorted and unique and devoid of blanks; same for "placenames", which are
 		// terminal components that have name and concentration information, but no InChI
 		let inchiList:string[] = [], placeList:string[] = [];
@@ -95,7 +111,9 @@ export class ExportMInChI
 				mcomp.inchiFrag = mcomp.inchi.substring(PFX.length);
 				if (inchiList.indexOf(mcomp.inchiFrag) < 0) inchiList.push(mcomp.inchiFrag);
 			}
-			else if (mcomp.name && /*this.hasConcentration(mcomp) &&*/ Vec.arrayLength(mcomp.contents) == 0)
+			/* NOTE: name placeholders disabled for now; could be reinstated later if the MInChI spec supports
+					 something like this
+			else if (mcomp.name && this.hasConcentration(mcomp)(?) && Vec.arrayLength(mcomp.contents) == 0)
 			{
 				mcomp.placeName = '[';
 				for (let n = 0; n < mcomp.name.length; n++)
@@ -106,7 +124,7 @@ export class ExportMInChI
 				}
 				mcomp.placeName += ']';
 				if (placeList.indexOf(mcomp.placeName) < 0) placeList.push(mcomp.placeName);
-			}
+			}*/
 		}
 		inchiList.sort();
 		placeList.sort();
@@ -182,10 +200,17 @@ export class ExportMInChI
     // turns a concentration into a suitable precursor string, or null otherwise
     private formatConcentration(comp:MixfileComponent):string
     {
-        // TODO: need special deal for ratio without denominator - can sometimes add them up to form an implicit denominator
-		// TODO: this is currently the same as ExportSDFile; make a common reference... probably Units.ts
-
 		let mantissa = (value:number, exp:number):string => Math.round(value * Math.pow(10, -exp)).toString();
+
+		// check for special deal: the "useRatio" property is defined if everything in this peer group has a ratio with
+		// the same denominator and they add up correctly; when this isn't the case, it will fall through and convert to
+		// a percentage
+		let useRatio:number = (comp as any).useRatio;
+		if (useRatio != null)
+		{
+			let exp = this.determineExponent([useRatio], 4);
+			return mantissa(useRatio, exp) + 'vp' + exp;
+		}
 
         if (comp.ratio && comp.ratio.length >= 2)
         {
