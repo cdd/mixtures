@@ -50,31 +50,31 @@ export class EditMixture extends wmk.Widget
 {
 	public callbackUpdateTitle:() => void = null;
 
-	private mixture = new Mixture();
-	private policy = wmk.RenderPolicy.defaultColourOnWhite();
-	private canvasMixture:HTMLCanvasElement;
-	private canvasOver:HTMLCanvasElement;
+	protected mixture = new Mixture();
+	protected policy = wmk.RenderPolicy.defaultColourOnWhite();
+	protected canvasMixture:HTMLCanvasElement;
+	protected canvasOver:HTMLCanvasElement;
 
-	private undoStack:Mixture[] = [];
-	private redoStack:Mixture[] = [];
+	protected undoStack:Mixture[] = [];
+	protected redoStack:Mixture[] = [];
 
-	private offsetX = 0;
-	private offsetY = 0;
-	private pointScale = DEFAULT_SCALE;
-	private filthy = true; // filthy: screen is out of date, needs to be redrawn
-	private dirty = false; // dirty: data has changed since last save
-	private layout:ArrangeMixture = null;
-	private hoverIndex = -1; // component over which the mouse is hovering
-	private activeIndex = -1; // component that is currently being clicked upon
-	private selectedIndex = -1; // selected component (having been previously clicked)
-	private delayedSelect:number[] = null; // if set to an origin vector, will be used to rederive selectedIndex next time the layout is evaluated
+	protected offsetX = 0;
+	protected offsetY = 0;
+	protected pointScale = DEFAULT_SCALE;
+	protected filthy = true; // filthy: screen is out of date, needs to be redrawn
+	protected dirty = false; // dirty: data has changed since last save
+	protected layout:ArrangeMixture = null;
+	protected hoverIndex = -1; // component over which the mouse is hovering
+	protected activeIndex = -1; // component that is currently being clicked upon
+	protected selectedIndex = -1; // selected component (having been previously clicked)
+	protected delayedSelect:number[] = null; // if set to an origin vector, will be used to rederive selectedIndex next time the layout is evaluated
 
-	private dragReason = DragReason.None;
-	private dragIndex = -1;
-	private dragX = 0;
-	private dragY = 0;
-	private isEditing = false;
-	private dlgCompound:wmk.EditCompound = null;
+	protected dragReason = DragReason.None;
+	protected dragIndex = -1;
+	protected dragX = 0;
+	protected dragY = 0;
+	protected isEditing = false;
+	protected dlgCompound:wmk.EditCompound = null;
 
 	// ------------ public methods ------------
 
@@ -89,6 +89,8 @@ export class EditMixture extends wmk.Widget
 
 		this.content.css({'width': '100%', 'height': '100%'});
 		this.content.css('background-color', '#F0F0F0');
+		this.content.css('position', 'relative');
+		this.content.css('outline-width', '0');
 
 		let canvasStyle = 'position: absolute; left: 0; top: 0; pointer-events: none;';
 		this.canvasMixture = <HTMLCanvasElement>newElement(this.content, 'canvas', {'style': canvasStyle});
@@ -439,7 +441,7 @@ export class EditMixture extends wmk.Widget
 
 	// ------------ private methods ------------
 	
-	private redraw(rescale = false):void
+	protected redraw(rescale = false):void
 	{
 		this.filthy = false;
 
@@ -485,7 +487,7 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// assuming that layout is already defined, modifies the offset/scale so that 
-	private scaleToFit():void
+	protected scaleToFit():void
 	{
 		let width = this.content.width(), height = this.content.height(), pad = 4;
 		if (this.layout.width > width - pad || this.layout.height > height - pad)
@@ -499,7 +501,7 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// mouse has moved: see if we need to update the hover
-	private updateHoverCursor(event:JQueryEventObject):void
+	protected updateHoverCursor(event:JQueryEventObject):void
 	{
 		let [x, y] = eventCoords(event, this.content);
 		let comp = this.activeIndex >= 0 ? -1 : this.pickComponent(x, y);
@@ -511,7 +513,7 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// finds the index of a component at a given position, or -1 if none
-	private pickComponent(x:number, y:number):number
+	protected pickComponent(x:number, y:number):number
 	{
 		if (!this.layout) return -1;
 		for (let n = 0; n < this.layout.components.length; n++)
@@ -523,7 +525,7 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// cursor key wandering
-	private navigateDirection(dir:string):void
+	protected navigateDirection(dir:string):void
 	{
 		let newIndex = -1;
 		if (this.selectedIndex < 0) newIndex = 0;
@@ -559,11 +561,11 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// interactivity
-	private mouseClick(event:JQueryEventObject):void
+	protected mouseClick(event:JQueryEventObject):void
 	{
 		this.content.focus(); // just in case it wasn't already
 	}
-	private mouseDoubleClick(event:JQueryEventObject):void
+	protected mouseDoubleClick(event:JQueryEventObject):void
 	{
 		event.stopImmediatePropagation();
 
@@ -578,7 +580,7 @@ export class EditMixture extends wmk.Widget
 			this.editDetails();
 		}
 	}
-	private mouseDown(event:JQueryEventObject):void
+	protected mouseDown(event:JQueryEventObject):void
 	{
 		event.preventDefault();
 
@@ -596,7 +598,7 @@ export class EditMixture extends wmk.Widget
 			this.delayedRedraw();
 		}
 	}
-	private mouseUp(event:JQueryEventObject):void
+	protected mouseUp(event:JQueryEventObject):void
 	{
 		let [x, y] = eventCoords(event, this.content);
 		let comp = this.pickComponent(x, y);
@@ -606,16 +608,16 @@ export class EditMixture extends wmk.Widget
 
 		this.dragReason = DragReason.None;
 	}
-	private mouseOver(event:JQueryEventObject):void
+	protected mouseOver(event:JQueryEventObject):void
 	{
 		this.updateHoverCursor(event);
 	}
-	private mouseOut(event:JQueryEventObject):void
+	protected mouseOut(event:JQueryEventObject):void
 	{
 		this.updateHoverCursor(event);
 		this.dragReason = DragReason.None;
 	}
-	private mouseMove(event:JQueryEventObject):void
+	protected mouseMove(event:JQueryEventObject):void
 	{
 		this.updateHoverCursor(event);
 
@@ -637,12 +639,12 @@ export class EditMixture extends wmk.Widget
 			}
 		}
 	}
-	private keyPressed(event:JQueryEventObject):void
+	protected keyPressed(event:JQueryEventObject):void
 	{
 		//let ch = String.fromCharCode(event.keyCode || event.charCode);
 		//console.log('PRESSED['+ch+'] key='+event.keyCode+' chcode='+event.charCode);
 	}
-	private keyDown(event:JQueryEventObject):void
+	protected keyDown(event:JQueryEventObject):void
 	{
 		let key = event.keyCode;
 		//console.log('DOWN: key='+key);
@@ -656,17 +658,17 @@ export class EditMixture extends wmk.Widget
 			else if (key == 40) this.navigateDirection('down');
 		}
 	}
-	private keyUp(event:JQueryEventObject):void
+	protected keyUp(event:JQueryEventObject):void
 	{
 		// !!
 	}
-	private mouseWheel(event:JQueryEventObject):void
+	protected mouseWheel(event:JQueryEventObject):void
 	{
 		let orig = event.originalEvent as WheelEvent;
 		let [x, y] = eventCoords(event, this.content);
-		const FRACT = 0.25 * 0.25;
-		let scale = 1 + Math.abs(orig.wheelDelta) * (FRACT / 120); // one "notch" on a wheel mouse is worth 120 units
-		if (orig.wheelDelta < 0) scale = 1.0 / scale;
+		let delta = Math.abs(orig.deltaX) > Math.abs(orig.deltaY) ? orig.deltaX : orig.deltaY;
+		let scale = 1 + Math.abs(delta) * 0.05;
+		if (delta < 0) scale = 1.0 / scale;
 
 		let newScale = this.pointScale * scale;
 		this.offsetX = x - (newScale / this.pointScale) * (x - this.offsetX);
@@ -678,7 +680,7 @@ export class EditMixture extends wmk.Widget
 		this.delayedRedraw();
 		event.preventDefault();
 	}
-	private contextMenu(event:JQueryEventObject):void
+	protected contextMenu(event:JQueryEventObject):void
 	{
 		event.preventDefault();
 

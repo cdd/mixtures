@@ -28,10 +28,13 @@ export class InChI
 {
 	private available = false;
 	private inchiPath = '';
-	private remote = require('electron').remote;
+	private remote:Electron.Remote = null;
 
 	constructor()
 	{
+		if (!ON_DESKTOP) return;
+
+		this.remote = require('electron').remote;
 		this.inchiPath = this.remote.getGlobal('INCHI_EXEC');
 
 		if (this.inchiPath)

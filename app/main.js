@@ -117,7 +117,6 @@ function setupMenu()
 				{'label': 'Copy', 'accelerator': 'CmdOrCtrl+C', 'click': () => sendCommand('copy')},
 				{'label': 'Copy Branch', 'accelerator': 'CmdOrCtrl+Shift+C', 'click': () => sendCommand('copyBranch')},
 				{'label': 'Paste', 'accelerator': 'CmdOrCtrl+V', 'click': () => sendCommand('paste')},
-				{'label': 'Delete', 'accelerator': 'CmdOrCtrl+Delete', 'click': () => sendCommand('delete')},
 				//{'label': 'Select All', 'accelerator': 'CmdOrCtrl+A', 'click': () => sendCommand('selectAll')},
 			]
 		},

@@ -36,6 +36,8 @@ import newElement = WebMolKit.newElement;
 
 namespace Mixtures /* BOF */ {
 
+export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally executed window version
+
 /*
 	Startup: gets the ball rolling, and provide some high level window handling.
 */
@@ -44,6 +46,7 @@ let BASE_APP = ''; // base URL location for the app's program files (could be UR
 
 export function runMixfileEditor(resURL:string, root:JQuery):void
 {
+	ON_DESKTOP = true;
 	wmk.initWebMolKit(resURL);
 
 	// node/electron imports; note these are defined inside the function so as not to perturb normal web-access, which does not
@@ -95,5 +98,6 @@ export function openNewWindow(panelClass:string, filename?:string):void
 	bw.loadURL(url);
 	/*bw.on('closed', function() {bw = null;});*/
 }
+
 
 /* EOF */ }
