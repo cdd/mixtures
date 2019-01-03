@@ -72,8 +72,8 @@ version of *TypeScript* (`tsc`) from Microsoft. If you plan on viewing or editin
 
 The Mixture Editor has one major dependency: *WebMolKit*, which needs to be installed in a parallel directory, with that name. So:
 
-* `${GIT}/Mixtures` --> [GitHub](https://github.com/cdd/mixtures)
-* `${GIT}/WebMolKit` --> [GitHub](https://github.com/aclarkxyz/web_molkit)
+* `${GIT}/Mixtures` ⟵ [GitHub](https://github.com/cdd/mixtures)
+* `${GIT}/WebMolKit` ⟵ [GitHub](https://github.com/aclarkxyz/web_molkit)
 
 Compiling at the command line can be done simply with:
 
