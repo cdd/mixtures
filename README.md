@@ -2,6 +2,12 @@
 
 Defines a file format for chemical mixtures (`Mixfile`) and an editor, based on the Electron framework.
 
+## License
+
+See the `LICENSE` file in the original repository. The contents of the GitHub repository ([here](https://github.com/cdd/mixtures))
+is &copy; 2018-2019 Collaborative Drug Discovery, Inc., and made available to everyone else via the
+[Gnu Public License v3](https://www.gnu.org/licenses/gpl-3.0.en.html).
+
 ## Mixfile
 
 The *Mixfile* format is a simple JSON-based container that holds a hierarchy of chemical compounds, each of which is represented
@@ -47,7 +53,7 @@ An example of a very simple *Mixfile* is thus:
 
 The code in this project allows *Mixfiles* to be used to generate *MInChI* notation. A *Mixfile* is intended to be a descriptive format that
 errs on the side of capturing more information than is necessary (e.g. aesthetic sketches of the molecules, names and synonyms, database identifiers,
-etc.). *MInChI* on the other hand is derive from the *InChI* algorithm, which is a canonical line identifer for a molecule. Turning a sketch into an identifier destroys a lot of information, but for many applications this is a good thing (e.g. easy comparison for equality, indexing in databases). The *MInChI* notation is the mixture derivative, which is handy for many of the same kinds of reasons.
+etc.). *MInChI* on the other hand is derived from the *InChI* algorithm, which is a canonical line identifer for a molecule. Turning a sketch into an identifier destroys a lot of information, but for many applications this is a good thing (e.g. easy comparison for equality, indexing in databases). The *MInChI* notation is the mixture derivative, which is handy for many of the same kinds of reasons.
 
 ## Codebase
 
@@ -66,9 +72,8 @@ version of *TypeScript* (`tsc`) from Microsoft. If you plan on viewing or editin
 
 The Mixture Editor has one major dependency: *WebMolKit*, which needs to be installed in a parallel directory, with that name. So:
 
-* `${GIT}`
- * `Mixtures` --> [GitHub](https://github.com/cdd/mixtures)
- * `WebMolKit` --> [GitHub](https://github.com/aclarkxyz/web_molkit)
+* `${GIT}/Mixtures` --> [GitHub](https://github.com/cdd/mixtures)
+* `${GIT}/WebMolKit` --> [GitHub](https://github.com/aclarkxyz/web_molkit)
 
 Compiling at the command line can be done simply with:
 
@@ -97,3 +102,34 @@ The Mixture Editor can be used on a regular web page, with a slightly different 
 of how to do this. It demonstrates an embedded mixture editor, which lacks certain functionality that is desktop specific (e.g. lookup of molecules,
 running the InChI executable, saving to disk, etc.). It is also straightforward to invoke specific functions like loading and rendering of
 mixtures for dynamic display on a page.
+
+## Reference Data
+
+Several examples of handcrafted *Mixfiles* are `play` directory (e.g. `mixture1.mixfile`, etc.). To view these, run the app and use File|Open.
+
+In the `reference` directory is a file named `gathering.zip`, which contains a lot of mixtures:
+
+```
+Archive:  reference/gathering.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+     3346  10-18-2018 21:47   training000001.mixfile
+     3838  10-18-2018 21:47   training000002.mixfile
+     3021  10-18-2018 21:47   training000003.mixfile
+     3222  10-18-2018 21:47   training000004.mixfile
+     9088  10-18-2018 21:47   training000005.mixfile
+     9069  10-18-2018 21:47   training000006.mixfile
+     3986  10-18-2018 21:47   training000007.mixfile
+     4526  10-18-2018 21:47   training000008.mixfile
+     4960  10-18-2018 21:47   training000009.mixfile
+     5281  10-18-2018 21:47   training000010.mixfile
+...
+      951  10-18-2018 21:49   training005613.mixfile
+     1036  10-18-2018 21:49   training005614.mixfile
+      987  10-18-2018 21:49   training005615.mixfile
+---------                     -------
+ 10671859                     5615 files
+```
+
+These originate from a text extraction project, which is itself not open source. This particular output data, though, is part of the
+open source package, and may be used for various purposes.
