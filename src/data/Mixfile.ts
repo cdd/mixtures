@@ -17,7 +17,7 @@ namespace Mixtures /* BOF */ {
 	that holds the serialised content. For keeping an operable mixture instance, see the Mixture class.
 */
 
-export const MIXFILE_VERSION = 0.01; // version number to use for newly created instances
+export const MIXFILE_VERSION = 1.00; // version number to use for newly created instances
 
 export interface Mixfile extends MixfileComponent
 {
