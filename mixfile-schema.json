@@ -41,17 +41,17 @@
 				},
 				"inchi":
 				{
-					"description": "InChi representation of component",
+					"description": "InChI representation of component",
 					"type": "string"
 				},
 				"inchiKey":
 				{
-					"description": "InChi key of component",
+					"description": "InChI key of component",
 					"type": "string"
 				},
 				"smiles":
 				{
-					"description": "SMILES reprsentation of component",
+					"description": "SMILES representation of component",
 					"type": "string"
 				},
 				"quantity":
