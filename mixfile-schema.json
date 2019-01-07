@@ -1,0 +1,176 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"description": "Definition of Mixture file format",
+	"definitions":
+	{
+		"name":
+		{
+			"description": "Name of component",
+			"type": "string"
+		},
+		"component":
+		{
+			"description": "Description of individual component",
+			"type": "object",
+			"properties":
+			{
+				"name":
+				{
+					"$ref": "#/definitions/name"
+				},
+				"synonyms":
+				{
+					"description": "Synonyms for component",
+					"type": "array",
+					"minItems": 1,
+					"uniqueItems": true,
+					"items":
+					{
+						"$ref": "#/definitions/name"
+					}
+				},
+				"molfile":
+				{
+					"description": "Structure description in molfile CTAB format",
+					"type": "string"
+				},
+				"formula":
+				{
+					"description": "Chemical formula of component",
+					"type": "string"
+				},
+				"inchi":
+				{
+					"description": "InChi representation of component",
+					"type": "string"
+				},
+				"inchiKey":
+				{
+					"description": "InChi key of component",
+					"type": "string"
+				},
+				"smiles":
+				{
+					"description": "SMILES reprsentation of component",
+					"type": "string"
+				},
+				"quantity":
+				{
+					"oneOf":
+					[
+						{
+							"description": "Quantity of component",
+							"type": "number"
+						},
+						{
+							"description": "Quantity of component described as a range",
+							"type": "array",
+							"items":
+							[
+								{
+									"description": "Minimum value",
+									"type": "number"
+								},
+								{
+									"description": "Maximum value",
+									"type": "number"
+								}
+							]
+						}
+					]
+				},
+				"ratio":
+				{
+					"description": "Ratio",
+					"type": "array",
+					"items":
+					[
+						{
+							"description": "Numerator",
+							"type": "number"
+						},
+						{
+							"description": "Denominator",
+							"type": "number"
+						}
+					]
+				},
+				"units":
+				{
+					"description": "Unit associated with the quantity of ratio of the component",
+					"type": "string",
+					"enum":
+					[
+						"%",
+						"w/v%",
+						"w/w%",
+						"v/v%",
+						"mol/mol%",
+						"mol/L",
+						"mmol/L",
+						"μmol/L",
+						"nmol/L",
+						"pmol/L",
+						"g/L",
+						"mg/L",
+						"μg/L",
+						"mol/kg",
+						"ratio"
+					]
+				},
+				"relation":
+				{
+					"description": "The relation field can be defined when the quantity number is other than a point value, e.g. inequalities or approximately",
+					"type": "string"
+				},
+				"identifiers":
+				{
+					"description": "Identifiers are typically database assignments, and can be paired with human-readable keys to signify popular repositories.",
+					"type": "object"
+				},
+				"links":
+				{
+					"description": "The links field should be populated with URLs that are relevant to the component",
+					"type": "object"
+				},
+				"contents":
+				{
+					"description": "List of sub-components",
+					"type": "array",
+					"items":
+					{
+						"$ref": "#/definitions/component"
+					}
+				}
+			}
+		}
+	},
+	"type": "object",
+	"required":
+	[
+		"mixfileVersion",
+		"contents"
+	],
+	"items":
+	{
+		"mixfileVersion":
+		{
+			"description": "",
+			"type": "string"
+		},
+		"name":
+		{
+			"description": "",
+			"type": "string"
+		},
+		"contents":
+		{
+			"description": "List of Components",
+			"type": "array",
+			"items":
+			{
+				"$ref": "#/definitions/component"
+			}
+		}
+	}
+}
