@@ -55,7 +55,7 @@ const PAIR_UNIT_NAMES:any[] =
 	[StandardUnits.perM, ''],*/
 	[StandardUnits.g_L, 'g/L', 1],
 	[StandardUnits.mg_L, 'mg/L', 1E-3],
-	[StandardUnits.ug_L, '\u{03BC}/L', 1E-6],
+	[StandardUnits.ug_L, '\u{03BC}g/L', 1E-6],
 	[StandardUnits.mol_kg, 'mol/kg', 1],
 ];
 
