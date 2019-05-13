@@ -36,6 +36,8 @@ import newElement = WebMolKit.newElement;
 
 namespace Mixtures /* BOF */ {
 
+$ = require('./jquery.js');
+
 export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally executed window version
 
 /*
@@ -44,8 +46,10 @@ export let ON_DESKTOP = false; // by default assume it's running in a regular we
 
 let BASE_APP = ''; // base URL location for the app's program files (could be URL or filename)
 
-export function runMixfileEditor(resURL:string, root:JQuery):void
+export function runMixfileEditor(resURL:string, rootID:string):void
 {
+	let root = $('#' + rootID);
+
 	ON_DESKTOP = true;
 	wmk.initWebMolKit(resURL);
 
@@ -92,7 +96,8 @@ export function runMixfileEditor(resURL:string, root:JQuery):void
 export function openNewWindow(panelClass:string, filename?:string):void
 {
 	const electron = require('electron');
-	let bw = new electron.remote.BrowserWindow({'width': 900, 'height': 800, 'icon': 'app/img/icon.png'});
+	const WEBPREF = {'nodeIntegration': true};
+	let bw = new electron.remote.BrowserWindow({'width': 900, 'height': 800, 'icon': 'app/img/icon.png', 'webPreferences': WEBPREF});
 	let url = BASE_APP + '/index.html?panel=' + panelClass;
 	if (filename) url += '&fn=' + encodeURIComponent(filename);
 	bw.loadURL(url);
