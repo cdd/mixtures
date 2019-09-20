@@ -41,9 +41,9 @@ export class ExportSDFile
 
     constructor()
     {
-        this.colMol = this.ds.appendColumn('Molecule', wmk.DataSheet.COLTYPE_MOLECULE, '');
-        this.colSeq = this.ds.appendColumn('MINCHI$N', wmk.DataSheet.COLTYPE_STRING, '');
-        this.colConc = this.ds.appendColumn('MINCHI$C', wmk.DataSheet.COLTYPE_STRING, '');
+        this.colMol = this.ds.appendColumn('Molecule', wmk.DataSheetColumn.Molecule, '');
+        this.colSeq = this.ds.appendColumn('MINCHI$N', wmk.DataSheetColumn.String, '');
+        this.colConc = this.ds.appendColumn('MINCHI$C', wmk.DataSheetColumn.String, '');
     }
 
     // can add any number of mixtures, which will be numbered automatically
