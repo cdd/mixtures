@@ -36,7 +36,7 @@ import newElement = WebMolKit.newElement;
 
 namespace Mixtures /* BOF */ {
 
-$ = require('./jquery.js');
+$ = (window as any)['$'] || require('./jquery.js');
 
 export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally executed window version
 
