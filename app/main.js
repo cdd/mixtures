@@ -173,61 +173,8 @@ function setupMenu()
 				{'role': 'quit'}
 			]
 		});
-		/*
-		// Edit menu.
-		template[1].submenu.push(
-			{
-			type: 'separator'
-			},
-			{
-			label: 'Speech',
-			submenu: [
-				{
-				role: 'startspeaking'
-				},
-				{
-				role: 'stopspeaking'
-				}
-			]
-			}
-		)
-		// Window menu.
-		template[3].submenu = [
-			{
-			label: 'Close',
-			accelerator: 'CmdOrCtrl+W',
-			role: 'close'
-			},
-			{
-			label: 'Minimize',
-			accelerator: 'CmdOrCtrl+M',
-			role: 'minimize'
-			},
-			{
-			label: 'Zoom',
-			role: 'zoom'
-			},
-			{
-			type: 'separator'
-			},
-			{
-			label: 'Bring All to Front',
-			role: 'front'
-			}
-		]*/
 	}
 
 	const menu = Menu.buildFromTemplate(template);
 	Menu.setApplicationMenu(menu);
-
-/*
-	//const ipcRenderer = electron.ipcRenderer;
-	const {ipcRenderer} = require('electron');
-console.log('IPC?'+!!ipcRenderer+"/"+electron+"/"+electron.ipcRenderer);
-for (let zog in electron) console.log('-- ' + zog);
-	ipcRenderer.on('menu', function(event, arg)
-	{
-      console.log('menu message reviced'); // appear on macOS, not appear on Windows.
-      if (arg == 'disable') menu.items[0].submenu.items[1].enabled = false;
-    });*/
 }
