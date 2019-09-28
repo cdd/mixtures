@@ -64,7 +64,7 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 	BASE_APP = path.normalize('file:/' + __dirname);
 
 	var url = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
-	wmk.RPC.RESOURCE_URL = path.normalize(url + '/res');
+	wmk.Theme.RESOURCE_URL = path.normalize(url + '/res');
 
 	// unpack web params: if present, they determine where to go from here
  	let params = window.location.search.substring(1).split('&');
