@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017-2018 Collaborative Drug Discovery, Inc
+    (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
     
@@ -31,7 +31,7 @@ export class Mixture
 	// instantiates a new mixture object by casting a component into a root mixfile
 	public static fromComponent(comp:MixfileComponent)
 	{
-		let mixfile = <Mixfile>deepClone(comp);
+		let mixfile = deepClone(comp) as Mixfile;
 		mixfile.mixfileVersion = MIXFILE_VERSION;
 		return new Mixture(mixfile);
 	}
@@ -131,16 +131,16 @@ export class Mixture
 		let modified = false;
 		for (let k in comp)
 		{
-			let v = (<any>comp)[k];
-			if (v != (<any>find)[k])
+			let v = (comp as any)[k];
+			if (v != (find as any)[k])
 			{
-				(<any>find)[k] = v;
+				(find as any)[k] = v;
 				modified = true;
 			}
 		}
 
 		// cleanup by removing explicit nulls
-		Object.keys(find).forEach((key:string) => {if ((<any>find)[key] == null) delete (<any>find)[key];});
+		Object.keys(find).forEach((key:string) => {if ((find as any)[key] == null) delete (find as any)[key];});
 
 		return modified;
 	}

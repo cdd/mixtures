@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017-2018 Collaborative Drug Discovery, Inc
+    (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
     
@@ -280,10 +280,7 @@ export class ArrangeMixture
 				else break;
 			}
 			return str;
-			/*const REGEX = /^(\d+\.\d*?)0+$/;
-			let m = str.match(REGEX);
-			return m ? m[1] : str;*/
-		}
+		};
 
 		if (mixcomp.ratio)
 		{

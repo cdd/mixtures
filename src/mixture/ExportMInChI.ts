@@ -1,11 +1,11 @@
 /*
-    Mixfile Editor & Viewing Libraries
+	Mixfile Editor & Viewing Libraries
 
-    (c) 2017-2018 Collaborative Drug Discovery, Inc
+	(c) 2017-2020 Collaborative Drug Discovery, Inc
 
-    All rights reserved
-    
-    http://collaborativedrug.com
+	All rights reserved
+
+	http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
 */
@@ -51,10 +51,10 @@ export class ExportMInChI
 
 	// ------------ public methods ------------
 
-    constructor(private mixfile:Mixfile)
-    {
+	constructor(private mixfile:Mixfile)
+	{
 		this.mixture = new Mixture(deepClone(mixfile));
-    }
+	}
 
 	// this should generally be called first: any component that has a structure but not an InChI string gets one calculated,
 	// which presumes that the external environment has been configured to allow this; returns true if anything was done, i.e.
@@ -130,17 +130,17 @@ export class ExportMInChI
 		placeList.sort();
 		let componentList = Vec.concat(inchiList, placeList);
 
-		let root = <any>modmix.mixfile as MInChIComponent;
+		let root = modmix.mixfile as any as MInChIComponent;
 		let builder = this.assembleContents(root, componentList);
 
 		this.minchi = 'MInChI=0.00.1S/' + componentList.join('&') + '/n' + builder.layerN + '/g' + builder.layerG;
 	}
 
-    // returns the MInChI string formulated as above
-    public getResult():string
-    {
-        return this.minchi;
-    }
+	// returns the MInChI string formulated as above
+	public getResult():string
+	{
+		return this.minchi;
+	}
 
 	// ------------ private methods ------------
 
@@ -175,7 +175,7 @@ export class ExportMInChI
 		{
 			builder.layerN = '{' + tree.layerN + '}' + builder.layerN;
 			builder.layerG = '{' + tree.layerG + '}' + builder.layerG;
-			this.shaveBeard(builder);				   
+			this.shaveBeard(builder);
 		}
 		return builder;
 	}
@@ -197,9 +197,9 @@ export class ExportMInChI
 		return comp.ratio != null || comp.quantity != null || comp.units != null || comp.relation != null;
 	}
 
-    // turns a concentration into a suitable precursor string, or null otherwise
-    private formatConcentration(comp:MixfileComponent):string
-    {
+	// turns a concentration into a suitable precursor string, or null otherwise
+	private formatConcentration(comp:MixfileComponent):string
+	{
 		let mantissa = (value:number, exp:number):string => Math.round(value * Math.pow(10, -exp)).toString();
 
 		// check for special deal: the "useRatio" property is defined if everything in this peer group has a ratio with
@@ -212,42 +212,42 @@ export class ExportMInChI
 			return mantissa(useRatio, exp) + 'vp' + exp;
 		}
 
-        if (comp.ratio && comp.ratio.length >= 2)
-        {
-            let numer = comp.ratio[0], denom = comp.ratio[1];
-            if (!(denom > 0)) return null;
+		if (comp.ratio && comp.ratio.length >= 2)
+		{
+			let numer = comp.ratio[0], denom = comp.ratio[1];
+			if (!(denom > 0)) return null;
 			let value = 100 * numer / denom, exp = this.determineExponent([value], 4);
 			return mantissa(value, exp) + 'pp' + exp;
-        }
+		}
 
-        if (comp.quantity == null || comp.units == null) return null;
+		if (comp.quantity == null || comp.units == null) return null;
 
-        // special deal (maybe temporary): units that are written with common names that map to a URI are converted automatically
-        let unitURI = comp.units;
-        if (!unitURI.startsWith('http://')) unitURI = Units.nameToURI(unitURI);
-        if (!unitURI) return;
+		// special deal (maybe temporary): units that are written with common names that map to a URI are converted automatically
+		let unitURI = comp.units;
+		if (!unitURI.startsWith('http://')) unitURI = Units.nameToURI(unitURI);
+		if (!unitURI) return;
 
-        // TODO: maybe another special deal for absolute weight/volume/mole quantities - convert them into ratios, to the extent that's
-        // possible... maybe approximating where necessary
+		// TODO: maybe another special deal for absolute weight/volume/mole quantities - convert them into ratios, to the extent that's
+		// possible... maybe approximating where necessary
 
-        let bits:string[] = [];
-        
-        if (comp.relation != null) bits.push(comp.relation);
+		let bits:string[] = [];
 
-        let values:number[] = typeof comp.quantity == 'number' ? [comp.quantity as number] : comp.quantity;
+		if (comp.relation != null) bits.push(comp.relation);
 
-        let [mnemonic, scaled] = Units.convertToMInChI(unitURI, values);
-        if (!mnemonic) return;
+		let values:number[] = typeof comp.quantity == 'number' ? [comp.quantity as number] : comp.quantity;
+
+		let [mnemonic, scaled] = Units.convertToMInChI(unitURI, values);
+		if (!mnemonic) return;
 
 		let exp = this.determineExponent(scaled, 4);
 
-        bits.push(mantissa(scaled[0], exp));
-        if (scaled.length > 1) {bits.push(':'); bits.push(mantissa(scaled[1], exp));}
-        bits.push(mnemonic);
+		bits.push(mantissa(scaled[0], exp));
+		if (scaled.length > 1) {bits.push(':'); bits.push(mantissa(scaled[1], exp));}
+		bits.push(mnemonic);
 		bits.push(exp.toString());
 
-        return bits.join('');
-    }
+		return bits.join('');
+	}
 
 	// given a positive number, gives out an appropriate exponent to scale it to, such that the mantissa can be an integer that accommodates
 	// the required number of significant figures
@@ -266,7 +266,7 @@ export class ExportMInChI
 
 		outer: while (true)
 		{
-			for (let n = 0; n < str.length; n++) 
+			for (let n = 0; n < str.length; n++)
 			{
 				if (!str[n].endsWith('0')) break outer;
 				str[n] = str[n].substring(0, str[n].length - 1);

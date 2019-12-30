@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017-2018 Collaborative Drug Discovery, Inc
+    (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
     
@@ -149,7 +149,7 @@ export class MixturePanel extends MainPanel
 		else if (cmd == 'zoomFull') this.editor.zoomFull();
 		else if (cmd == 'zoomIn') this.editor.zoom(1.25);
 		else if (cmd == 'zoomOut') this.editor.zoom(0.8);
-		else console.log('MENU:'+cmd);
+		else console.log('MENU:' + cmd);
 	}
 
 	// ------------ private methods ------------
@@ -342,7 +342,7 @@ export class MixturePanel extends MainPanel
 		if (this.filename == null) {document.title = 'Mixtures'; return;}
 
 		let slash = Math.max(this.filename.lastIndexOf('/'), this.filename.lastIndexOf('\\'));
-		let title = 'Mixtures - ' + this.filename.substring(slash + 1);;
+		let title = 'Mixtures - ' + this.filename.substring(slash + 1);
 		if (this.editor.isDirty() && !this.editor.isBlank()) title += '*';
 		document.title = title;
 	}

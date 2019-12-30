@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017-2018 Collaborative Drug Discovery, Inc
+    (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
     
@@ -36,7 +36,7 @@ export class InChI
 
 		this.remote = require('electron').remote;
 		this.inchiPath = this.remote.getGlobal('INCHI_EXEC');
-
+	
 		if (this.inchiPath)
 		{
 			const fs = require('fs');
@@ -71,7 +71,7 @@ export class InChI
 		//writer.enhancedFields = false; (InChI generator will ignore the enhanced fields, so this is OK)
 		let mdlmol = writer.write();
 		let result = proc.spawnSync(cmd, ['-STDIO', '-AuxNone', '-NoLabels', '-Key'], {'input': mdlmol});
-		let raw = result.stdout.toString(), bits = raw.split('\n')
+		let raw = result.stdout.toString(), bits = raw.split('\n');
 
 		if (bits.length < 2 || !bits[0].startsWith('InChI='))
 		{
@@ -83,6 +83,5 @@ export class InChI
 		return [bits[0], bits[1]];
 	}
 }
-
 
 /* EOF */ }

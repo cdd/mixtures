@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017-2018 Collaborative Drug Discovery, Inc
+    (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
     
@@ -107,9 +107,9 @@ export class WebWidget extends wmk.Widget
 		this.content.css('display', 'flex');
 		this.content.css('flex-direction', 'column');
 
-		let divMenu = $('<div style="width: 100%; flex-grow: 0;"></div>').appendTo(this.content);
-		let divMain = $('<div style="width: 100%; flex: 1 1 0; height: 100%; position: relative;"></div>').appendTo(this.content);
-		let divMainX = $('<div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"></div>').appendTo(divMain); // workaround
+		let divMenu = $('<div style="width: 100%; flex-grow: 0;"/>').appendTo(this.content);
+		let divMain = $('<div style="width: 100%; flex: 1 1 0; height: 100%; position: relative;"/>').appendTo(this.content);
+		let divMainX = $('<div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"/>').appendTo(divMain); // workaround
 		
 		this.menu.render(divMenu);
 		this.editor.render(divMainX);

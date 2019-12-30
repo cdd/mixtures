@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017-2018 Collaborative Drug Discovery, Inc
+    (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
     
@@ -63,7 +63,7 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 
 	BASE_APP = path.normalize('file:/' + __dirname);
 
-	var url = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+	let url = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
 	wmk.Theme.RESOURCE_URL = path.normalize(url + '/res');
 
 	// unpack web params: if present, they determine where to go from here
@@ -86,13 +86,18 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 	}
 	else
 	{
-		let constructor = eval('Mixtures.' + panelClass);
-		let dw:MainPanel = new constructor(root);
+		/*let constructor = eval('Mixtures.' + panelClass);
+		let dw:MainPanel = new constructor(root);*/
+
+		let panelFunc = (Mixtures as any)[panelClass];
+		if (!panelFunc) throw 'Unknown class: ' + panelClass;
+		let dw = panelFunc.apply(this, root) as MainPanel;
+
 		if (filename) dw.loadFile(filename);
 	}
 }
 
-// high level functionality for opening a window, with a given panel as content
+// high level functionality for opening a window, with a given panelq as content
 export function openNewWindow(panelClass:string, filename?:string):void
 {
 	const electron = require('electron');
@@ -103,6 +108,5 @@ export function openNewWindow(panelClass:string, filename?:string):void
 	bw.loadURL(url);
 	/*bw.on('closed', function() {bw = null;});*/
 }
-
 
 /* EOF */ }

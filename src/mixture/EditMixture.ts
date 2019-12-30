@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017-2018 Collaborative Drug Discovery, Inc
+    (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
     
@@ -93,8 +93,8 @@ export class EditMixture extends wmk.Widget
 		this.content.css('outline-width', '0');
 
 		let canvasStyle = 'position: absolute; left: 0; top: 0; pointer-events: none;';
-		this.canvasMixture = <HTMLCanvasElement>newElement(this.content, 'canvas', {'style': canvasStyle});
-		this.canvasOver = <HTMLCanvasElement>newElement(this.content, 'canvas', {'style': canvasStyle});
+		this.canvasMixture = newElement(this.content, 'canvas', {'style': canvasStyle}) as HTMLCanvasElement;
+		this.canvasOver = newElement(this.content, 'canvas', {'style': canvasStyle}) as HTMLCanvasElement;
 
 		this.content.resize(() => this.redraw());
 
@@ -366,7 +366,7 @@ export class EditMixture extends wmk.Widget
 		let origin = this.layout.components[this.selectedIndex].origin;
 		
 		let comp = deepClone(this.mixture.getComponent(origin));
-		delete (<any>comp).mixfileVersion;
+		delete (comp as any).mixfileVersion;
 		if (!wholeBranch) comp.contents = [];
 		let str = Mixture.serialiseComponent(comp);
 
@@ -426,8 +426,8 @@ export class EditMixture extends wmk.Widget
 		let comp = modmix.getComponent(origin);
 		if (Mixture.isComponentEmpty(comp))
 		{
-			Object.keys(comp).forEach((key:string) => delete (<any>comp)[key]);
-			Object.keys(json).forEach((key:string) => (<any>comp)[key] = json[key]);
+			Object.keys(comp).forEach((key:string) => delete (comp as any)[key]);
+			Object.keys(json).forEach((key:string) => (comp as any)[key] = json[key]);
 			this.delayedSelect = origin;
 		}
 		else // append
