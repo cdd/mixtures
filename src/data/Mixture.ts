@@ -11,6 +11,7 @@
 */
 
 ///<reference path='../decl/node.d.ts'/>
+///<reference path='../../../WebMolKit/src/util/Vec.ts'/>
 ///<reference path='Mixfile.ts'/>
 
 namespace Mixtures /* BOF */ {
@@ -189,10 +190,8 @@ export class Mixture
 		return [parent, idx];
 	}
 
-	// ------------ private methods ------------
-
 	// makes a JSON object into a nicely formatted string for human readability
-	private static beautify(json:any):string
+	public static beautify(json:any):string
 	{
 		let lines = JSON.stringify(json, null, 4).split('\n');
 		let regex = /^(\s*\"\w+\": )([\[\{].*)$/, regpad = /^(\s*)/;
@@ -205,6 +204,8 @@ export class Mixture
 		}
 		return lines.join('\n');
 	}
+
+	// ------------ private methods ------------
 
 	// returns true if this component, and all sub-components, are equal
 	private recursiveEqual(comp1:MixfileComponent, comp2:MixfileComponent):boolean

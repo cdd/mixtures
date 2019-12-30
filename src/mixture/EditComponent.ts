@@ -236,9 +236,9 @@ export class EditComponent extends wmk.Dialog
 			let lines = str.split('\n').filter((line) => line.length > 0);
 			return lines.length > 0 ? lines : null;
 		};
-		let splitKeys = (str:string):{[id:string] : any} =>
+		let splitKeys = (str:string):Record<string, any> =>
 		{
-			let dict:{[id:string] : any} = null;
+			let dict:Record<string, any> = null;
 			for (let line of str.split('\n'))
 			{
 				let eq = line.indexOf('=');

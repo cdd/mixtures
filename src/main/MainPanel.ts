@@ -20,8 +20,10 @@ namespace Mixtures /* BOF */ {
 	Base class for "main windows": an object that takes up the entire browser window document, responds to resizing, etc.
 */
 
-export class MainPanel
+export abstract class MainPanel
 {
+	// ------------ public methods ------------
+
 	constructor(public root:JQuery)
 	{
 		$('body').css('overflow', 'hidden');
@@ -44,10 +46,30 @@ export class MainPanel
 		this.root.css('height', document.documentElement.clientHeight + 'px');
 	}
 
-	// stub: override this to receive menu events
+	// optionally override this to pre-empt menu actions
 	public menuAction(cmd:string):void
 	{
+		if (cmd == 'newMixture') openNewWindow('MixturePanel');
+		if (cmd == 'newCollection') openNewWindow('CollectionPanel');
+		else if (cmd == 'open') this.actionFileOpen();
+		else if (cmd == 'save') this.actionFileSave();
+		else if (cmd == 'saveAs') this.actionFileSaveAs();
+		else this.customMenuAction(cmd);
 	}
+
+	// override this to interpret menu non-default menu actions
+	public customMenuAction(cmd:string):void
+	{
+		console.log('MENU:' + cmd);
+	}
+
+	// standard actions that must be implemented
+	protected abstract actionFileOpen():void;
+	protected abstract actionFileSave():void;
+	protected abstract actionFileSaveAs():void;
+
+	// ------------ private methods ------------
+
 }
 
 /* EOF */ }

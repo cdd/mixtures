@@ -33,13 +33,13 @@
 namespace Mixtures /* BOF */ {
 
 /*
-	Viewing/editing window: dedicated entirely to the sketching of a mixture.
+	Browsing/editing a collection of mixtures.
 */
 
-export class MixturePanel extends MainPanel
+export class CollectionPanel extends MainPanel
 {
 	private filename:string = null;
-	private editor = new EditMixture();
+	//private editor = new EditMixture();
 	
 	// ------------ public methods ------------
 
@@ -49,11 +49,11 @@ export class MixturePanel extends MainPanel
 
 		//let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
 
-		this.editor.callbackUpdateTitle = () => this.updateTitle();
-		this.editor.render(root);
+		/*this.editor.callbackUpdateTitle = () => this.updateTitle();
+		this.editor.render(root);*/
 	}
 
-	public setMixture(mixture:Mixture):void
+	/*public setMixture(mixture:Mixture):void
 	{
 		this.editor.clearHistory();
 		this.editor.setMixture(mixture, true, false);
@@ -104,64 +104,37 @@ export class MixturePanel extends MainPanel
 
 		//let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
 		//this.sketcher.changeSize(w, h); // force a re-layout to match the new size
-	}
+	}*/
 
-	public menuAction(cmd:string):void
+	protected actionFileOpen():void
 	{
-		let dlg = this.editor.compoundEditor();
-		if (dlg)
-		{
-			if (cmd == 'cut') dlg.actionCut();
-			else if (cmd == 'copy') dlg.actionCopy();
-			else if (cmd == 'paste') dlg.actionPaste();
-			else if (cmd == 'undo') dlg.actionUndo();
-			else if (cmd == 'redo') dlg.actionRedo();
-			return;
-		}
-		if (!this.editor.isReceivingCommands()) 
-		{
-			// certain common menu/shortcut commands are passed through to standard behaviour, the rest are stopped
-			if (['cut', 'copy', 'paste', 'undo', 'redo'].indexOf(cmd) >= 0) document.execCommand(cmd);
-			return;
-		}
-
-		super.menuAction(cmd);
+		// !!
 	}
+
+	protected actionFileSave():void
+	{
+		// !!
+	}
+
+	protected actionFileSaveAs():void
+	{
+		// !!
+	}	
 
 	public customMenuAction(cmd:string):void
 	{
-		if (cmd == 'exportSDF') this.actionExportSDF();
-		else if (cmd == 'exportSVG') this.actionFileExportSVG();
-		else if (cmd == 'createMInChI') this.actionFileCreateMInChI();
-		else if (cmd == 'undo') this.editor.performUndo();
-		else if (cmd == 'redo') this.editor.performRedo();
-		else if (cmd == 'cut') this.editor.clipboardCopy(true);
-		else if (cmd == 'copy') this.editor.clipboardCopy(false);
-		else if (cmd == 'copyBranch') this.editor.clipboardCopy(false, true);
-		else if (cmd == 'paste') this.editor.clipboardPaste();
-		else if (cmd == 'editStructure') this.editor.editStructure();
-		else if (cmd == 'editDetails') this.editor.editDetails();
-		else if (cmd == 'lookup') this.editor.lookupCurrent();
-		else if (cmd == 'delete') this.editor.deleteCurrent();
-		else if (cmd == 'append') this.editor.appendToCurrent();
-		else if (cmd == 'prepend') this.editor.prependBeforeCurrent();
-		else if (cmd == 'moveUp') this.editor.reorderCurrent(-1);
-		else if (cmd == 'moveDown') this.editor.reorderCurrent(1);
-		else if (cmd == 'zoomFull') this.editor.zoomFull();
-		else if (cmd == 'zoomIn') this.editor.zoom(1.25);
-		else if (cmd == 'zoomOut') this.editor.zoom(0.8);
-		else super.customMenuAction(cmd);
+		super.customMenuAction(cmd);
 	}
 
 	// ------------ private methods ------------
 
-	protected actionFileOpen():void
+	/*private actionFileOpen():void
 	{
 		const electron = require('electron');
 		const dialog = electron.remote.dialog; 
 		let params:any =
 		{
-			'title': 'Open Mixture',
+			'title': 'Open Molecule',
 			'properties': ['openFile'],
 			'filters':
 			[
@@ -183,7 +156,7 @@ export class MixturePanel extends MainPanel
 		});
 	}
 
-	protected actionFileSave():void
+	private actionFileSave():void
 	{
 		if (this.editor.isBlank()) return;
 		if (!this.filename) {this.actionFileSaveAs(); return;}
@@ -193,7 +166,7 @@ export class MixturePanel extends MainPanel
 		this.updateTitle();
 	}
 
-	protected actionFileSaveAs():void
+	private actionFileSaveAs():void
 	{
 		if (this.editor.isBlank()) return;
 
@@ -301,43 +274,6 @@ export class MixturePanel extends MainPanel
 		clipboard.writeText(minchi);
 	}
 
-/*
-	private actionCopy(andCut:boolean):void
-	{
-		let input = this.sketcher.getState(), mol = input.mol;
-		let mask = Vec.booleanArray(false, mol.numAtoms);
-		if (Vec.anyTrue(input.selectedMask)) mask = input.selectedMask;
-		else if (input.currentAtom > 0) mask[input.currentAtom - 1] = true;
-		else if (input.currentBond > 0) {mask[mol.bondFrom(input.currentBond) - 1] = true; mask[mol.bondTo(input.currentBond) - 1] = true;}
-		else mask = Vec.booleanArray(true, mol.numAtoms);
-		
-		let copyMol = Vec.allTrue(mask) ? mol.clone() : MolUtil.subgraphWithAttachments(mol, mask);
-
-		if (andCut)
-		{
-			this.sketcher.clearSubject();
-			this.setMolecule(MolUtil.subgraphMask(mol, Vec.notMask(mask)));
-		}
-
-		const {clipboard} = require('electron');
-		clipboard.writeText(copyMol.toString());
-
-		this.sketcher.showMessage('Molecule with ' + copyMol.numAtoms + ' atom' + (copyMol.numAtoms == 1 ? '' : 's') + ' copied to clipboard.');
-	}
-
-	private actionPaste():void
-	{
-		const {clipboard} = require('electron');
-		let content = clipboard.readText();
-		if (!content) {alert('Clipboard has no text on it.'); return;}
-		try
-		{
-			let mol = MoleculeStream.readUnknown(content);
-			this.sketcher.pasteMolecule(mol);
-		}
-		catch (ex) {alert('Clipboard does not contain a recognisable molecule.'); return;}
-	}*/
-
 	private updateTitle():void
 	{
 		if (this.filename == null) {document.title = 'Mixtures'; return;}
@@ -346,7 +282,7 @@ export class MixturePanel extends MainPanel
 		let title = 'Mixtures - ' + this.filename.substring(slash + 1);
 		if (this.editor.isDirty() && !this.editor.isBlank()) title += '*';
 		document.title = title;
-	}
+	}*/
 }
 
 /* EOF */ }

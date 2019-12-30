@@ -38,7 +38,8 @@ namespace Mixtures /* BOF */ {
 
 $ = (window as any)['$'] || require('./jquery.js');
 
-export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally executed window version
+export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally 
+							   // executed window version
 
 /*
 	Startup: gets the ball rolling, and provide some high level window handling.
@@ -86,18 +87,14 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 	}
 	else
 	{
-		/*let constructor = eval('Mixtures.' + panelClass);
-		let dw:MainPanel = new constructor(root);*/
-
-		let panelFunc = (Mixtures as any)[panelClass];
-		if (!panelFunc) throw 'Unknown class: ' + panelClass;
-		let dw = panelFunc.apply(this, root) as MainPanel;
-
+		let proto = (Mixtures as any)[panelClass];
+		if (!proto) throw 'Unknown class: ' + panelClass;
+		let dw:MainPanel = new (proto as any)(root);
 		if (filename) dw.loadFile(filename);
 	}
 }
 
-// high level functionality for opening a window, with a given panelq as content
+// high level functionality for opening a window, with a given panel as content
 export function openNewWindow(panelClass:string, filename?:string):void
 {
 	const electron = require('electron');

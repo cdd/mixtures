@@ -85,9 +85,9 @@ export class Units
 {
 	private static STANDARD_LIST:string[] = [];
 	private static COMMON_NAMES:string[] = [];
-	private static URI_TO_NAME:{[id:string] : string} = {};
-	private static NAME_TO_URI:{[id:string] : string} = {};
-	private static URI_TO_MINCHI:{[id:string] : [string, number]} = {};
+	private static URI_TO_NAME:Record<string, string> = {};
+	private static NAME_TO_URI:Record<string, string> = {};
+	private static URI_TO_MINCHI:Record<string, [string, number]> = {};
 	public static setup()
 	{
 		for (let pair of PAIR_UNIT_NAMES)
