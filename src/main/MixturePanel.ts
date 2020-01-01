@@ -40,6 +40,9 @@ namespace Mixtures /* BOF */ {
 const BANNER:MenuBannerButton[][] =
 [
 	[
+		{'icon': 'CommandSave.svg', 'tip': 'Save', 'cmd': MenuBannerCommand.Save},
+	],
+	[
 		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
 		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
 		{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
@@ -80,7 +83,7 @@ export class MixturePanel extends MainPanel
 	{
 		super(root);
 
-		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.customMenuAction(cmd));
+		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
 		this.editor.callbackUpdateTitle = () => this.updateTitle();
 

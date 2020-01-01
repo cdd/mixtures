@@ -67,7 +67,7 @@ export class EditMixture extends wmk.Widget
 	protected hoverIndex = -1; // component over which the mouse is hovering
 	protected activeIndex = -1; // component that is currently being clicked upon
 	protected selectedIndex = -1; // selected component (having been previously clicked)
-	protected delayedSelect:number[] = null; // if set to an origin vector, will be used to rederive selectedIndex next time the layout is evaluated
+	protected delayedSelect:number[] = null; // if set to an origin vector: to rederive selectedIndex next time the layout is evaluated
 
 	protected dragReason = DragReason.None;
 	protected dragIndex = -1;
@@ -142,7 +142,7 @@ export class EditMixture extends wmk.Widget
 		this.redraw(withAutoScale);
 
 		this.dirty = true;
-		this.callbackUpdateTitle();
+		if (this.callbackUpdateTitle) this.callbackUpdateTitle();
 	}
 
 	// wipes the undo & redo stacks

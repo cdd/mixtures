@@ -40,6 +40,9 @@ namespace Mixtures /* BOF */ {
 const BANNER:MenuBannerButton[][] =
 [
 	[
+		{'icon': 'CommandSave.svg', 'tip': 'Save', 'cmd': MenuBannerCommand.Save},
+	],
+	[
 		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
 		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
 		{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
@@ -76,6 +79,9 @@ enum CollectionPanelView
 	Card,
 }
 
+const BG_NORMAL = '#E0E0E0';
+const BG_SELECTED = '#B9CBFF';
+
 export class CollectionPanel extends MainPanel
 {
 	private filename:string = null;
@@ -84,6 +90,9 @@ export class CollectionPanel extends MainPanel
 	private divMain:JQuery;
 	private policy = wmk.RenderPolicy.defaultColourOnWhite(20);
 	private viewType = CollectionPanelView.Detail;
+	private selected = -1;
+	private divMixtures:JQuery[] = [];
+	private editor:EditMixture = null; // when defined, refers to collection{selected}
 
 	// ------------ public methods ------------
 
@@ -91,7 +100,7 @@ export class CollectionPanel extends MainPanel
 	{
 		super(root);
 
-		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.customMenuAction(cmd));
+		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
 		let divFlex = $('<div/>').appendTo(root).css({'display': 'flex'});
 		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
@@ -159,46 +168,79 @@ export class CollectionPanel extends MainPanel
 		//this.sketcher.changeSize(w, h); // force a re-layout to match the new size
 	}*/
 
-	protected actionFileOpen():void
+	public menuAction(cmd:MenuBannerCommand):void
 	{
-		// !!
-	}
+		if (this.editor)
+		{
+			let dlg = this.editor.compoundEditor();
+			if (dlg)
+			{
+				if (cmd == MenuBannerCommand.Cut) dlg.actionCut();
+				else if (cmd == MenuBannerCommand.Copy) dlg.actionCopy();
+				else if (cmd == MenuBannerCommand.Paste) dlg.actionPaste();
+				else if (cmd == MenuBannerCommand.Undo) dlg.actionUndo();
+				else if (cmd == MenuBannerCommand.Redo) dlg.actionRedo();
+				return;
+			}
+			if (!this.editor.isReceivingCommands()) 
+			{
+				// certain common menu/shortcut commands are passed through to standard behaviour, the rest are stopped
+				if ([MenuBannerCommand.Cut, MenuBannerCommand.Copy, MenuBannerCommand.Paste, 
+					MenuBannerCommand.Undo, MenuBannerCommand.Redo].indexOf(cmd) >= 0) document.execCommand(cmd);
+				return;
+			}
+		}
 
-	protected actionFileSave():void
-	{
-		// !!
-	}
-
-	protected actionFileSaveAs():void
-	{
-		// !!
+		super.menuAction(cmd);
 	}
 
 	public customMenuAction(cmd:MenuBannerCommand):void
 	{
-		/*if (cmd == MenuBannerCommand.ExportSDF) this.actionExportSDF();
-		else if (cmd == MenuBannerCommand.ExportSVG) this.actionFileExportSVG();
-		else if (cmd == MenuBannerCommand.CreateMInChI) this.actionFileCreateMInChI();
-		else if (cmd == MenuBannerCommand.Undo) this.editor.performUndo();
-		else if (cmd == MenuBannerCommand.Redo) this.editor.performRedo();
-		else if (cmd == MenuBannerCommand.Cut) this.editor.clipboardCopy(true);
-		else if (cmd == MenuBannerCommand.Copy) this.editor.clipboardCopy(false);
-		else if (cmd == MenuBannerCommand.CopyBranch) this.editor.clipboardCopy(false, true);
-		else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
-		else if (cmd == MenuBannerCommand.EditStructure) this.editor.editStructure();
-		else if (cmd == MenuBannerCommand.EditDetails) this.editor.editDetails();
-		else if (cmd == MenuBannerCommand.Lookup) this.editor.lookupCurrent();
-		else if (cmd == MenuBannerCommand.Delete) this.editor.deleteCurrent();
-		else if (cmd == MenuBannerCommand.Append) this.editor.appendToCurrent();
-		else if (cmd == MenuBannerCommand.Prepend) this.editor.prependBeforeCurrent();
-		else if (cmd == MenuBannerCommand.MoveUp) this.editor.reorderCurrent(-1);
-		else if (cmd == MenuBannerCommand.MoveDown) this.editor.reorderCurrent(1);
-		else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
-		else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
-		else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
-		else */if (cmd == MenuBannerCommand.ViewDetail) this.changeView(cmd);
-		else if (cmd == MenuBannerCommand.ViewCard) this.changeView(cmd);
-		else super.customMenuAction(cmd);
+		if (this.editor)
+		{
+			/* !! if (cmd == MenuBannerCommand.ExportSDF) this.actionExportSDF();
+			else if (cmd == MenuBannerCommand.ExportSVG) this.actionFileExportSVG();
+			else if (cmd == MenuBannerCommand.CreateMInChI) this.actionFileCreateMInChI();
+			else*/ if (cmd == MenuBannerCommand.Undo) this.editor.performUndo();
+			else if (cmd == MenuBannerCommand.Redo) this.editor.performRedo();
+			else if (cmd == MenuBannerCommand.Cut) this.editor.clipboardCopy(true);
+			else if (cmd == MenuBannerCommand.Copy) this.editor.clipboardCopy(false);
+			else if (cmd == MenuBannerCommand.CopyBranch) this.editor.clipboardCopy(false, true);
+			else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
+			else if (cmd == MenuBannerCommand.EditStructure) this.editor.editStructure();
+			else if (cmd == MenuBannerCommand.EditDetails) this.editor.editDetails();
+			else if (cmd == MenuBannerCommand.Lookup) this.editor.lookupCurrent();
+			else if (cmd == MenuBannerCommand.Delete) this.editor.deleteCurrent();
+			else if (cmd == MenuBannerCommand.Append) this.editor.appendToCurrent();
+			else if (cmd == MenuBannerCommand.Prepend) this.editor.prependBeforeCurrent();
+			else if (cmd == MenuBannerCommand.MoveUp) this.editor.reorderCurrent(-1);
+			else if (cmd == MenuBannerCommand.MoveDown) this.editor.reorderCurrent(1);
+			else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
+			else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
+			else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
+			else super.customMenuAction(cmd);		
+		}
+		else
+		{
+			/*if (cmd == MenuBannerCommand.ExportSDF) this.actionExportSDF();
+			else if (cmd == MenuBannerCommand.ExportSVG) this.actionFileExportSVG();
+			else if (cmd == MenuBannerCommand.CreateMInChI) this.actionFileCreateMInChI();
+			else*/ if (cmd == MenuBannerCommand.Cut) this.clipboardCopy(true);
+			else if (cmd == MenuBannerCommand.Copy) this.clipboardCopy(false);
+			else if (cmd == MenuBannerCommand.Paste) this.clipboardPaste();
+			else if (cmd == MenuBannerCommand.EditDetails) this.editMixture();
+			else if (cmd == MenuBannerCommand.Delete) this.deleteMixture();
+			else if (cmd == MenuBannerCommand.Append) this.appendMixture();
+			else if (cmd == MenuBannerCommand.Prepend) this.prependMixture();
+			else if (cmd == MenuBannerCommand.MoveUp) this.reorderCurrent(-1);
+			else if (cmd == MenuBannerCommand.MoveDown) this.reorderCurrent(1);
+			else if (cmd == MenuBannerCommand.ZoomFull) this.zoomScale();
+			else if (cmd == MenuBannerCommand.ZoomIn) this.zoomScale(1.25);
+			else if (cmd == MenuBannerCommand.ZoomOut) this.zoomScale(0.8);
+			else if (cmd == MenuBannerCommand.ViewDetail) this.changeView(cmd);
+			else if (cmd == MenuBannerCommand.ViewCard) this.changeView(cmd);
+			else super.customMenuAction(cmd);
+		}
 	}
 
 	// ------------ private methods ------------
@@ -206,26 +248,24 @@ export class CollectionPanel extends MainPanel
 	private renderMain():void
 	{
 		this.divMain.empty();
+		this.selected = -1;
+		this.divMixtures = [];
+
 		let divContent = $('<div/>').appendTo(this.divMain);
-		
+
 		if (this.viewType == CollectionPanelView.Card)
 		{
 			divContent.css({'display': 'flex', 'flex-wrap': 'wrap'});
 			divContent.css({'justify-content': 'flex-start', 'align-items': 'flex-start'});
 		}
 
-		for (let mixture of this.collection.mixtures)
+		for (let n = 0; n < this.collection.mixtures.length; n++)
 		{
-			let div = this.createMixture(mixture).appendTo(divContent);
-			// .. clicky...
+			let div = this.createMixture(this.collection.mixtures[n]).appendTo(divContent);
+			div.click(() => this.changeSelection(n));
+			div.dblclick(() => this.editMixture());
+			this.divMixtures.push(div);
 		}
-	}
-
-	private changeView(cmd:MenuBannerCommand):void
-	{
-		if (cmd == MenuBannerCommand.ViewDetail) this.viewType = CollectionPanelView.Detail;
-		else if (cmd == MenuBannerCommand.ViewCard) this.viewType = CollectionPanelView.Card;
-		this.renderMain();
 	}
 
 	private createMixture(mixture:Mixture):JQuery
@@ -242,7 +282,7 @@ export class CollectionPanel extends MainPanel
 
 		let divInner = $('<div/>').appendTo(divOuter);
 		divInner.css({'margin': '2px', 'padding': '2px', 'border-radius': '4px'});
-		divInner.css({'background-color': '#E0E0E0', 'border': '1px solid #808080'});
+		divInner.css({'background-color': BG_NORMAL, 'border': '1px solid #808080'});
 
 		let measure = new wmk.OutlineMeasurement(0, 0, this.policy.data.pointScale);
 		let layout = new ArrangeMixture(mixture, measure, this.policy);
@@ -250,22 +290,55 @@ export class CollectionPanel extends MainPanel
 
 		let gfx = new wmk.MetaVector();
 		let draw = new DrawMixture(layout, gfx);
-		/*draw.hoverIndex = this.hoverIndex;
-		draw.activeIndex = this.activeIndex;
-		draw.selectedIndex = this.selectedIndex;*/
 		draw.draw();
 
 		gfx.normalise();
-		/*gfx.offsetX = this.offsetX;
-		gfx.offsetY = this.offsetY;*/
 		let svg = $(gfx.createSVG()).appendTo(divInner);
 
-		return divOuter;
+		return divInner;
 	}
 
-	/*private actionFileOpen():void
+	private changeView(cmd:MenuBannerCommand):void
 	{
-		const electron = require('electron');
+		if (cmd == MenuBannerCommand.ViewDetail) this.viewType = CollectionPanelView.Detail;
+		else if (cmd == MenuBannerCommand.ViewCard) this.viewType = CollectionPanelView.Card;
+		this.renderMain();
+	}
+
+	private changeSelection(idx:number):void
+	{
+		if (this.selected >= 0) this.divMixtures[this.selected].css({'background-color': BG_NORMAL});
+		this.selected = idx;
+		if (idx >= 0) this.divMixtures[idx].css({'background-color': BG_SELECTED});
+	}
+
+	private editMixture():void
+	{
+		if (this.selected < 0) return;
+
+		this.editor = new EditMixture();
+
+		this.divMain.empty();
+		this.editor.render(this.divMain);
+
+		this.editor.setMixture(this.collection.mixtures[this.selected].clone());
+		this.updateBanner();
+	}
+
+	private stopEdit():void
+	{
+		if (!this.editor) return;
+
+		// !! SAVE it...
+		this.editor = null;
+		this.renderMain();
+		// !! scroll to selected...
+		this.updateBanner();
+	}
+
+	protected actionFileOpen():void
+	{
+		/*const electron = require('electron');
 		const dialog = electron.remote.dialog;
 		let params:any =
 		{
@@ -288,22 +361,29 @@ export class CollectionPanel extends MainPanel
 				}
 				else openNewWindow('MixturePanel', fn);
 			}
-		});
+		});*/
 	}
 
-	private actionFileSave():void
+	protected actionFileSave():void
 	{
+		if (this.editor)
+		{
+			this.stopEdit();
+			return;
+		}
+
+		/* !! collections...
 		if (this.editor.isBlank()) return;
 		if (!this.filename) {this.actionFileSaveAs(); return;}
 
 		this.saveFile(this.filename);
 		this.editor.setDirty(false);
-		this.updateTitle();
+		this.updateTitle();*/
 	}
 
-	private actionFileSaveAs():void
+	protected actionFileSaveAs():void
 	{
-		if (this.editor.isBlank()) return;
+		/*if (this.editor.isBlank()) return;
 
 		const electron = require('electron');
 		const dialog = electron.remote.dialog;
@@ -322,10 +402,10 @@ export class CollectionPanel extends MainPanel
 			this.filename = filename;
 			this.editor.setDirty(false);
 			this.updateTitle();
-		});
+		});*/
 	}
 
-	private actionExportSDF():void
+	/*private actionExportSDF():void
 	{
 		let mixture = this.editor.getMixture();
 		if (mixture.isEmpty()) return;
@@ -421,7 +501,7 @@ export class CollectionPanel extends MainPanel
 
 	private updateBanner():void
 	{
-		let isEditing = false; // !!
+		let isEditing = this.editor != null;
 
 		this.banner.activateButtons(
 		{
@@ -432,11 +512,43 @@ export class CollectionPanel extends MainPanel
 			[MenuBannerCommand.Redo]: isEditing,
 			[MenuBannerCommand.ViewDetail]: !isEditing,
 			[MenuBannerCommand.ViewCard]: !isEditing,
-			[MenuBannerCommand.ZoomFull]: isEditing,
-			[MenuBannerCommand.ZoomIn]: isEditing,
-			[MenuBannerCommand.ZoomOut]: isEditing,
 		});
-		
+	}
+
+	private clipboardCopy(withCut:boolean):void
+	{
+		// !!
+	}
+
+	private clipboardPaste():void
+	{
+		// !!
+	}
+
+	private deleteMixture():void
+	{
+		// !!
+	}
+
+	private appendMixture():void
+	{
+		// !!
+	}
+
+	private prependMixture():void
+	{
+		// !!
+	}
+
+	private reorderCurrent(dir:number):void
+	{
+		// !!
+	}
+
+	// alter zoom level by a factor, or reset (null)
+	public zoomScale(scale?:number):void
+	{
+		// !!
 	}
 }
 

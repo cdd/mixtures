@@ -29,10 +29,11 @@ export abstract class MainPanel
 	constructor(public root:JQuery)
 	{
 		$('body').css('overflow', 'hidden');
-
+		
 		root.css('width', '100%');
 		root.css('height', document.documentElement.clientHeight + 'px');
 		$(window).resize(() => this.onResize()); 
+		root.css('user-select', 'none');
 
 		root.on('menuAction', (event:any, cmd:string) => this.menuAction(cmd as MenuBannerCommand));
 	}
