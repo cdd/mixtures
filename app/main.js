@@ -133,6 +133,9 @@ function setupMenu()
 				{'label': 'Zoom In', 'accelerator': 'CmdOrCtrl+=', 'click': () => sendCommand('zoomIn')},
 				{'label': 'Zoom Out', 'accelerator': 'CmdOrCtrl+-', 'click': () => sendCommand('zoomOut')},
 				{'type': 'separator'},
+				{'label': 'Detail List', 'click': () => sendCommand('viewDetail')},
+				{'label': 'Card List', 'click': () => sendCommand('viewCard')},
+				{'type': 'separator'},
 				{'role': 'togglefullscreen'}
 			]
 		},

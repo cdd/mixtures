@@ -70,6 +70,12 @@ const BANNER:MenuBannerButton[][] =
 	],
 ];
 
+enum CollectionPanelView
+{
+	Detail,
+	Card,
+}
+
 export class CollectionPanel extends MainPanel
 {
 	private filename:string = null;
@@ -77,6 +83,7 @@ export class CollectionPanel extends MainPanel
 	private banner:MenuBanner;
 	private divMain:JQuery;
 	private policy = wmk.RenderPolicy.defaultColourOnWhite(20);
+	private viewType = CollectionPanelView.Detail;
 
 	// ------------ public methods ------------
 
@@ -189,7 +196,9 @@ export class CollectionPanel extends MainPanel
 		else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
 		else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
 		else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
-		else */super.customMenuAction(cmd);
+		else */if (cmd == MenuBannerCommand.ViewDetail) this.changeView(cmd);
+		else if (cmd == MenuBannerCommand.ViewCard) this.changeView(cmd);
+		else super.customMenuAction(cmd);
 	}
 
 	// ------------ private methods ------------
@@ -197,23 +206,39 @@ export class CollectionPanel extends MainPanel
 	private renderMain():void
 	{
 		this.divMain.empty();
-
-		// TODO: detail vs. card view
+		let divContent = $('<div/>').appendTo(this.divMain);
+		
+		if (this.viewType == CollectionPanelView.Card)
+		{
+			divContent.css({'display': 'flex', 'flex-wrap': 'wrap'});
+			divContent.css({'justify-content': 'flex-start', 'align-items': 'flex-start'});
+		}
 
 		for (let mixture of this.collection.mixtures)
 		{
-			let div = this.createMixture(mixture).appendTo(this.divMain);
+			let div = this.createMixture(mixture).appendTo(divContent);
 			// .. clicky...
 		}
+	}
+
+	private changeView(cmd:MenuBannerCommand):void
+	{
+		if (cmd == MenuBannerCommand.ViewDetail) this.viewType = CollectionPanelView.Detail;
+		else if (cmd == MenuBannerCommand.ViewCard) this.viewType = CollectionPanelView.Card;
+		this.renderMain();
 	}
 
 	private createMixture(mixture:Mixture):JQuery
 	{
 		let divOuter = $('<div/>');
-		if (true) // row
+		if (this.viewType == CollectionPanelView.Detail)
+		{
 			divOuter.css('display', 'block');
-		else
-			divOuter.css('display', 'inlineblock');
+		}
+		else // == CollectionPanelView.Card
+		{
+			divOuter.css('display', 'inline-block');
+		}
 
 		let divInner = $('<div/>').appendTo(divOuter);
 		divInner.css({'margin': '2px', 'padding': '2px', 'border-radius': '4px'});
