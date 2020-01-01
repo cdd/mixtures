@@ -39,6 +39,7 @@ namespace Mixtures /* BOF */ {
 export class MixturePanel extends MainPanel
 {
 	private filename:string = null;
+	private banner:MenuBanner;
 	private editor = new EditMixture();
 	
 	// ------------ public methods ------------
@@ -47,10 +48,47 @@ export class MixturePanel extends MainPanel
 	{
 		super(root);
 
-		//let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
+		let menu = (cmd:string) => this.customMenuAction(cmd);
+		this.banner = new MenuBanner(
+			[
+				[
+					{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'action': () => menu('editDetails')},
+					{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'action': () => menu('editStructure')},
+					{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'action': () => menu('lookup')},
+					{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'action': () => menu('exportSVG')},
+				],
+				[
+					{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'action': () => menu('append')},
+					{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'action': () => menu('prepend')},
+					{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'action': () => menu('delete')},
+					{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'action': () => menu('moveUp')},
+					{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'action': () => menu('moveDown')},
+				],
+				[
+					{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'action': () => menu('undo')},
+					{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'action': () => menu('redo')},
+				],
+				[
+					{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'action': () => menu('copy')},
+					{'icon': 'CommandCut.svg', 'tip': 'Cut', 'action': () => menu('cut')},
+					{'icon': 'CommandPaste.svg', 'tip': 'Paste', 'action': () => menu('paste')},
+				],
+				[
+					{'icon': 'CommandZoomNormal.svg', 'tip': 'Zoom full', 'action': () => menu('zoomFull')},
+					{'icon': 'CommandZoomIn.svg', 'tip': 'Zoom in', 'action': () => menu('zoomIn')},
+					{'icon': 'CommandZoomOut.svg', 'tip': 'Zoom out', 'action': () => menu('zoomOut')},
+				],
+			]);
 
 		this.editor.callbackUpdateTitle = () => this.updateTitle();
-		this.editor.render(root);
+
+		let divFlex = $('<div/>').appendTo(root).css({'display': 'flex'});
+		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
+		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
+		let divEditor = $('<div/>').appendTo(divFlex).css({'flex-grow': '1'});
+
+		this.banner.render(divBanner);
+		this.editor.render(divEditor);
 	}
 
 	public setMixture(mixture:Mixture):void
@@ -255,7 +293,7 @@ export class MixturePanel extends MainPanel
 		const dialog = electron.remote.dialog; 
 		let params:any =
 		{
-			'title': 'Save Molecule',
+			'title': 'Save SVG Diagram',
 			//defaultPath...
 			'filters':
 			[
