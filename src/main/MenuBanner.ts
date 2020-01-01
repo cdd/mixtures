@@ -20,20 +20,53 @@ namespace Mixtures /* BOF */ {
 	A banner that goes along the top of the screen and fills up with clickable icons.
 */
 
-export interface MenuBannerCommand
+export enum MenuBannerCommand
+{
+	NewMixture = 'newMixture',
+	NewCollection = 'newCollection',
+	Open = 'open',
+	Save = 'save',
+	SaveAs = 'saveAs',
+	EditDetails = 'editDetails',
+	EditStructure = 'editStructure',
+	Lookup = 'lookup',
+	ExportSVG = 'exportSVG',
+	ExportSDF = 'exportSDF',
+	CreateMInChI = 'createMInChI',
+	Append = 'append',
+	Prepend = 'prepend',
+	Delete = 'delete',
+	MoveUp = 'moveUp',
+	MoveDown = 'moveDown',
+	Undo = 'undo',
+	Redo = 'redo',
+	Copy = 'copy',
+	CopyBranch = 'copyBranch',
+	Cut = 'cut',
+	Paste = 'paste',
+	ZoomFull = 'zoomFull',
+	ZoomIn = 'zoomIn',
+	ZoomOut = 'zoomOut',
+	ViewDetail = 'viewDetail',
+	ViewCard = 'viewCard',
+}
+
+export interface MenuBannerButton
 {
 	icon:string; // filename
 	tip:string; // popup tooltip
-	action:() => void; // upon-activate
+	cmd:MenuBannerCommand;
 }
 
 export class MenuBanner
 {
 	private divFlex:JQuery;
+	private mapSVG:Record<string, JQuery> = {};
+	private mapActive:Record<string, boolean> = {};
 
 	// ------------ public methods ------------
 
-	constructor(private commands:MenuBannerCommand[][])
+	constructor(private commands:MenuBannerButton[][], private onAction:(cmd:MenuBannerCommand) => void)
 	{
 	}
 
@@ -48,24 +81,45 @@ export class MenuBanner
 		for (let blk of this.commands)
 		{
 			let divBlk = $('<div/>').appendTo(this.divFlex);
-			for (let cmd of blk) divBlk.append(this.createCommand(cmd));
+			for (let btn of blk) 
+			{
+				let [div, svg] = this.createCommand(btn);
+				divBlk.append(div);
+				this.mapSVG[btn.cmd] = svg;
+				this.mapActive[btn.cmd] = true;
+			}
+		}
+	}
+
+	// switch on/off specific buttons
+	public activateButtons(map:Record<string, boolean>):void
+	{
+		for (let cmd in map)
+		{
+			let active = this.mapActive[cmd] = map[cmd];
+			this.mapSVG[cmd].css('opacity', active ? 1 : 0.5);
 		}
 	}
 	
 	// ------------ private methods ------------
 
-	private createCommand(cmd:MenuBannerCommand):JQuery
+	private createCommand(btn:MenuBannerButton):JQuery[]
 	{
 		let div = $('<div/>').css({'display': 'inline-block'});
 		div.css({'width': '20px', 'height': '20px', 'margin': '2px', 'padding': '5px'});
 		div.css({'border-radius': '4px'});
-		$('<img/>').appendTo(div).attr({'src': 'res/img/icons/' + cmd.icon});
+		let svg = $('<img/>').appendTo(div).attr({'src': 'res/img/icons/' + btn.icon});
 
-		div.hover(() => div.css('background-color', '#C0C0C0'), () => div.css('background-color', 'transparent'));
-		div.click(cmd.action);
-		wmk.addTooltip(div, escapeHTML(cmd.tip));
+		div.hover(() => div.css('background-color', this.mapActive[btn.cmd] ? '#C0C0C0' : 'transparent'), 
+				  () => div.css('background-color', 'transparent'));
+		div.click(() => 
+		{
+			if (!this.mapActive[btn.cmd]) return;
+			this.onAction(btn.cmd);
+		});
+		wmk.addTooltip(div, escapeHTML(btn.tip));
 
-		return div;
+		return [div, svg];
 	}
 }
 

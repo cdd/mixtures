@@ -29,12 +29,44 @@
 ///<reference path='../mixture/ExportSDFile.ts'/>
 ///<reference path='../mixture/ExportMInChI.ts'/>
 ///<reference path='MainPanel.ts'/>
+///<reference path='MenuBanner.ts'/>
 
 namespace Mixtures /* BOF */ {
 
 /*
 	Viewing/editing window: dedicated entirely to the sketching of a mixture.
 */
+
+const BANNER:MenuBannerButton[][] =
+[
+	[
+		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
+		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
+		{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
+		{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'cmd': MenuBannerCommand.ExportSVG},
+	],
+	[
+		{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'cmd': MenuBannerCommand.Append},
+		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'cmd': MenuBannerCommand.Prepend},
+		{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'cmd': MenuBannerCommand.Delete},
+		{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'cmd': MenuBannerCommand.MoveUp},
+		{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'cmd': MenuBannerCommand.MoveDown},
+	],
+	[
+		{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'cmd': MenuBannerCommand.Undo},
+		{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'cmd': MenuBannerCommand.Redo},
+	],
+	[
+		{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'cmd': MenuBannerCommand.Copy},
+		{'icon': 'CommandCut.svg', 'tip': 'Cut', 'cmd': MenuBannerCommand.Cut},
+		{'icon': 'CommandPaste.svg', 'tip': 'Paste', 'cmd': MenuBannerCommand.Paste},
+	],
+	[
+		{'icon': 'CommandZoomNormal.svg', 'tip': 'Zoom full', 'cmd': MenuBannerCommand.ZoomFull},
+		{'icon': 'CommandZoomIn.svg', 'tip': 'Zoom in', 'cmd': MenuBannerCommand.ZoomIn},
+		{'icon': 'CommandZoomOut.svg', 'tip': 'Zoom out', 'cmd': MenuBannerCommand.ZoomOut},
+	],
+];
 
 export class MixturePanel extends MainPanel
 {
@@ -48,37 +80,7 @@ export class MixturePanel extends MainPanel
 	{
 		super(root);
 
-		let menu = (cmd:string) => this.customMenuAction(cmd);
-		this.banner = new MenuBanner(
-			[
-				[
-					{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'action': () => menu('editDetails')},
-					{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'action': () => menu('editStructure')},
-					{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'action': () => menu('lookup')},
-					{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'action': () => menu('exportSVG')},
-				],
-				[
-					{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'action': () => menu('append')},
-					{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'action': () => menu('prepend')},
-					{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'action': () => menu('delete')},
-					{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'action': () => menu('moveUp')},
-					{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'action': () => menu('moveDown')},
-				],
-				[
-					{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'action': () => menu('undo')},
-					{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'action': () => menu('redo')},
-				],
-				[
-					{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'action': () => menu('copy')},
-					{'icon': 'CommandCut.svg', 'tip': 'Cut', 'action': () => menu('cut')},
-					{'icon': 'CommandPaste.svg', 'tip': 'Paste', 'action': () => menu('paste')},
-				],
-				[
-					{'icon': 'CommandZoomNormal.svg', 'tip': 'Zoom full', 'action': () => menu('zoomFull')},
-					{'icon': 'CommandZoomIn.svg', 'tip': 'Zoom in', 'action': () => menu('zoomIn')},
-					{'icon': 'CommandZoomOut.svg', 'tip': 'Zoom out', 'action': () => menu('zoomOut')},
-				],
-			]);
+		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.customMenuAction(cmd));
 
 		this.editor.callbackUpdateTitle = () => this.updateTitle();
 
@@ -144,50 +146,51 @@ export class MixturePanel extends MainPanel
 		//this.sketcher.changeSize(w, h); // force a re-layout to match the new size
 	}
 
-	public menuAction(cmd:string):void
+	public menuAction(cmd:MenuBannerCommand):void
 	{
 		let dlg = this.editor.compoundEditor();
 		if (dlg)
 		{
-			if (cmd == 'cut') dlg.actionCut();
-			else if (cmd == 'copy') dlg.actionCopy();
-			else if (cmd == 'paste') dlg.actionPaste();
-			else if (cmd == 'undo') dlg.actionUndo();
-			else if (cmd == 'redo') dlg.actionRedo();
+			if (cmd == MenuBannerCommand.Cut) dlg.actionCut();
+			else if (cmd == MenuBannerCommand.Copy) dlg.actionCopy();
+			else if (cmd == MenuBannerCommand.Paste) dlg.actionPaste();
+			else if (cmd == MenuBannerCommand.Undo) dlg.actionUndo();
+			else if (cmd == MenuBannerCommand.Redo) dlg.actionRedo();
 			return;
 		}
 		if (!this.editor.isReceivingCommands()) 
 		{
 			// certain common menu/shortcut commands are passed through to standard behaviour, the rest are stopped
-			if (['cut', 'copy', 'paste', 'undo', 'redo'].indexOf(cmd) >= 0) document.execCommand(cmd);
+			if ([MenuBannerCommand.Cut, MenuBannerCommand.Copy, MenuBannerCommand.Paste, 
+				 MenuBannerCommand.Undo, MenuBannerCommand.Redo].indexOf(cmd) >= 0) document.execCommand(cmd);
 			return;
 		}
 
 		super.menuAction(cmd);
 	}
 
-	public customMenuAction(cmd:string):void
+	public customMenuAction(cmd:MenuBannerCommand):void
 	{
-		if (cmd == 'exportSDF') this.actionExportSDF();
-		else if (cmd == 'exportSVG') this.actionFileExportSVG();
-		else if (cmd == 'createMInChI') this.actionFileCreateMInChI();
-		else if (cmd == 'undo') this.editor.performUndo();
-		else if (cmd == 'redo') this.editor.performRedo();
-		else if (cmd == 'cut') this.editor.clipboardCopy(true);
-		else if (cmd == 'copy') this.editor.clipboardCopy(false);
-		else if (cmd == 'copyBranch') this.editor.clipboardCopy(false, true);
-		else if (cmd == 'paste') this.editor.clipboardPaste();
-		else if (cmd == 'editStructure') this.editor.editStructure();
-		else if (cmd == 'editDetails') this.editor.editDetails();
-		else if (cmd == 'lookup') this.editor.lookupCurrent();
-		else if (cmd == 'delete') this.editor.deleteCurrent();
-		else if (cmd == 'append') this.editor.appendToCurrent();
-		else if (cmd == 'prepend') this.editor.prependBeforeCurrent();
-		else if (cmd == 'moveUp') this.editor.reorderCurrent(-1);
-		else if (cmd == 'moveDown') this.editor.reorderCurrent(1);
-		else if (cmd == 'zoomFull') this.editor.zoomFull();
-		else if (cmd == 'zoomIn') this.editor.zoom(1.25);
-		else if (cmd == 'zoomOut') this.editor.zoom(0.8);
+		if (cmd == MenuBannerCommand.ExportSDF) this.actionExportSDF();
+		else if (cmd == MenuBannerCommand.ExportSVG) this.actionFileExportSVG();
+		else if (cmd == MenuBannerCommand.CreateMInChI) this.actionFileCreateMInChI();
+		else if (cmd == MenuBannerCommand.Undo) this.editor.performUndo();
+		else if (cmd == MenuBannerCommand.Redo) this.editor.performRedo();
+		else if (cmd == MenuBannerCommand.Cut) this.editor.clipboardCopy(true);
+		else if (cmd == MenuBannerCommand.Copy) this.editor.clipboardCopy(false);
+		else if (cmd == MenuBannerCommand.CopyBranch) this.editor.clipboardCopy(false, true);
+		else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
+		else if (cmd == MenuBannerCommand.EditStructure) this.editor.editStructure();
+		else if (cmd == MenuBannerCommand.EditDetails) this.editor.editDetails();
+		else if (cmd == MenuBannerCommand.Lookup) this.editor.lookupCurrent();
+		else if (cmd == MenuBannerCommand.Delete) this.editor.deleteCurrent();
+		else if (cmd == MenuBannerCommand.Append) this.editor.appendToCurrent();
+		else if (cmd == MenuBannerCommand.Prepend) this.editor.prependBeforeCurrent();
+		else if (cmd == MenuBannerCommand.MoveUp) this.editor.reorderCurrent(-1);
+		else if (cmd == MenuBannerCommand.MoveDown) this.editor.reorderCurrent(1);
+		else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
+		else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
+		else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
 		else super.customMenuAction(cmd);
 	}
 

@@ -29,12 +29,46 @@
 ///<reference path='../mixture/ExportSDFile.ts'/>
 ///<reference path='../mixture/ExportMInChI.ts'/>
 ///<reference path='MainPanel.ts'/>
+///<reference path='MenuBanner.ts'/>
 
 namespace Mixtures /* BOF */ {
 
 /*
 	Browsing/editing a collection of mixtures.
 */
+
+const BANNER:MenuBannerButton[][] =
+[
+	[
+		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
+		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
+		{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
+		{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'cmd': MenuBannerCommand.ExportSVG},
+	],
+	[
+		{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'cmd': MenuBannerCommand.Append},
+		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'cmd': MenuBannerCommand.Prepend},
+		{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'cmd': MenuBannerCommand.Delete},
+		{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'cmd': MenuBannerCommand.MoveUp},
+		{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'cmd': MenuBannerCommand.MoveDown},
+	],
+	[
+		{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'cmd': MenuBannerCommand.Undo},
+		{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'cmd': MenuBannerCommand.Redo},
+	],
+	[
+		{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'cmd': MenuBannerCommand.Copy},
+		{'icon': 'CommandCut.svg', 'tip': 'Cut', 'cmd': MenuBannerCommand.Cut},
+		{'icon': 'CommandPaste.svg', 'tip': 'Paste', 'cmd': MenuBannerCommand.Paste},
+	],
+	[
+		{'icon': 'CommandViewDetail.svg', 'tip': 'Detail', 'cmd': MenuBannerCommand.ViewDetail},
+		{'icon': 'CommandViewCard.svg', 'tip': 'Cards', 'cmd': MenuBannerCommand.ViewCard},
+		{'icon': 'CommandZoomNormal.svg', 'tip': 'Zoom full', 'cmd': MenuBannerCommand.ZoomFull},
+		{'icon': 'CommandZoomIn.svg', 'tip': 'Zoom in', 'cmd': MenuBannerCommand.ZoomIn},
+		{'icon': 'CommandZoomOut.svg', 'tip': 'Zoom out', 'cmd': MenuBannerCommand.ZoomOut},
+	],
+];
 
 export class CollectionPanel extends MainPanel
 {
@@ -50,38 +84,7 @@ export class CollectionPanel extends MainPanel
 	{
 		super(root);
 
-		let menu = (cmd:string) => this.customMenuAction(cmd);
-		this.banner = new MenuBanner(
-			[
-				[
-					{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'action': () => menu('editDetails')},
-					{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'action': () => menu('editStructure')},
-					{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'action': () => menu('lookup')},
-					{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'action': () => menu('exportSVG')},
-				],
-				[
-					{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'action': () => menu('append')},
-					{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'action': () => menu('prepend')},
-					{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'action': () => menu('delete')},
-					{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'action': () => menu('moveUp')},
-					{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'action': () => menu('moveDown')},
-				],
-				[
-					{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'action': () => menu('undo')},
-					{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'action': () => menu('redo')},
-				],
-				[
-					{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'action': () => menu('copy')},
-					{'icon': 'CommandCut.svg', 'tip': 'Cut', 'action': () => menu('cut')},
-					{'icon': 'CommandPaste.svg', 'tip': 'Paste', 'action': () => menu('paste')},
-				],
-				[
-					{'icon': 'CommandViewDetail.svg', 'tip': 'Detail', 'action': () => menu('!')},
-					{'icon': 'CommandViewCard.svg', 'tip': 'Cards', 'action': () => menu('!')},
-				],
-			]);
-
-		//this.editor.callbackUpdateTitle = () => this.updateTitle();
+		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.customMenuAction(cmd));
 
 		let divFlex = $('<div/>').appendTo(root).css({'display': 'flex'});
 		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
@@ -90,6 +93,8 @@ export class CollectionPanel extends MainPanel
 
 		this.banner.render(divBanner);
 		this.renderMain();
+
+		this.updateBanner();
 	}
 
 	public setCollection(collection:MixtureCollection):void
@@ -162,9 +167,29 @@ export class CollectionPanel extends MainPanel
 		// !!
 	}
 
-	public customMenuAction(cmd:string):void
+	public customMenuAction(cmd:MenuBannerCommand):void
 	{
-		super.customMenuAction(cmd);
+		/*if (cmd == MenuBannerCommand.ExportSDF) this.actionExportSDF();
+		else if (cmd == MenuBannerCommand.ExportSVG) this.actionFileExportSVG();
+		else if (cmd == MenuBannerCommand.CreateMInChI) this.actionFileCreateMInChI();
+		else if (cmd == MenuBannerCommand.Undo) this.editor.performUndo();
+		else if (cmd == MenuBannerCommand.Redo) this.editor.performRedo();
+		else if (cmd == MenuBannerCommand.Cut) this.editor.clipboardCopy(true);
+		else if (cmd == MenuBannerCommand.Copy) this.editor.clipboardCopy(false);
+		else if (cmd == MenuBannerCommand.CopyBranch) this.editor.clipboardCopy(false, true);
+		else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
+		else if (cmd == MenuBannerCommand.EditStructure) this.editor.editStructure();
+		else if (cmd == MenuBannerCommand.EditDetails) this.editor.editDetails();
+		else if (cmd == MenuBannerCommand.Lookup) this.editor.lookupCurrent();
+		else if (cmd == MenuBannerCommand.Delete) this.editor.deleteCurrent();
+		else if (cmd == MenuBannerCommand.Append) this.editor.appendToCurrent();
+		else if (cmd == MenuBannerCommand.Prepend) this.editor.prependBeforeCurrent();
+		else if (cmd == MenuBannerCommand.MoveUp) this.editor.reorderCurrent(-1);
+		else if (cmd == MenuBannerCommand.MoveDown) this.editor.reorderCurrent(1);
+		else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
+		else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
+		else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
+		else */super.customMenuAction(cmd);
 	}
 
 	// ------------ private methods ------------
@@ -367,6 +392,26 @@ export class CollectionPanel extends MainPanel
 		let title = 'Mixture Collection - ' + this.filename.substring(slash + 1);
 		// !! if (this.editor.isDirty() && !this.editor.isBlank()) title += '*';
 		document.title = title;
+	}
+
+	private updateBanner():void
+	{
+		let isEditing = false; // !!
+
+		this.banner.activateButtons(
+		{
+			[MenuBannerCommand.EditStructure]: isEditing,
+			[MenuBannerCommand.Lookup]: isEditing,
+			[MenuBannerCommand.ExportSVG]: isEditing,
+			[MenuBannerCommand.Undo]: isEditing,
+			[MenuBannerCommand.Redo]: isEditing,
+			[MenuBannerCommand.ViewDetail]: !isEditing,
+			[MenuBannerCommand.ViewCard]: !isEditing,
+			[MenuBannerCommand.ZoomFull]: isEditing,
+			[MenuBannerCommand.ZoomIn]: isEditing,
+			[MenuBannerCommand.ZoomOut]: isEditing,
+		});
+		
 	}
 }
 

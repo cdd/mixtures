@@ -14,6 +14,8 @@
 ///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
 
+///<reference path='MenuBanner.ts'/>
+
 namespace Mixtures /* BOF */ {
 
 /*
@@ -32,7 +34,7 @@ export abstract class MainPanel
 		root.css('height', document.documentElement.clientHeight + 'px');
 		$(window).resize(() => this.onResize()); 
 
-		root.on('menuAction', (event:any, cmd:string) => this.menuAction(cmd));
+		root.on('menuAction', (event:any, cmd:string) => this.menuAction(cmd as MenuBannerCommand));
 	}
 
 	// stub: may be called early on to provide a source file upon which to work
@@ -47,18 +49,18 @@ export abstract class MainPanel
 	}
 
 	// optionally override this to pre-empt menu actions
-	public menuAction(cmd:string):void
+	public menuAction(cmd:MenuBannerCommand):void
 	{
-		if (cmd == 'newMixture') openNewWindow('MixturePanel');
-		if (cmd == 'newCollection') openNewWindow('CollectionPanel');
-		else if (cmd == 'open') this.actionFileOpen();
-		else if (cmd == 'save') this.actionFileSave();
-		else if (cmd == 'saveAs') this.actionFileSaveAs();
+		if (cmd == MenuBannerCommand.NewMixture) openNewWindow('MixturePanel');
+		if (cmd == MenuBannerCommand.NewCollection) openNewWindow('CollectionPanel');
+		else if (cmd == MenuBannerCommand.Open) this.actionFileOpen();
+		else if (cmd == MenuBannerCommand.Save) this.actionFileSave();
+		else if (cmd == MenuBannerCommand.SaveAs) this.actionFileSaveAs();
 		else this.customMenuAction(cmd);
 	}
 
 	// override this to interpret menu non-default menu actions
-	public customMenuAction(cmd:string):void
+	public customMenuAction(cmd:MenuBannerCommand):void
 	{
 		console.log('MENU:' + cmd);
 	}
