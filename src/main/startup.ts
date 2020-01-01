@@ -80,6 +80,8 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 		else if (key == 'fn') filename = val;
 	}	
 
+	if (!panelClass && filename && filename.endsWith('.json')) panelClass = 'CollectionPanel';
+
 	if (!panelClass)
 	{
 		let dw = new MixturePanel(root);

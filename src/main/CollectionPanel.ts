@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -39,9 +39,11 @@ namespace Mixtures /* BOF */ {
 export class CollectionPanel extends MainPanel
 {
 	private filename:string = null;
+	private collection = new MixtureCollection();
 	private banner:MenuBanner;
-	//private editor = new EditMixture();
-	
+	private divMain:JQuery;
+	private policy = wmk.RenderPolicy.defaultColourOnWhite(20);
+
 	// ------------ public methods ------------
 
 	constructor(root:JQuery)
@@ -84,17 +86,21 @@ export class CollectionPanel extends MainPanel
 		let divFlex = $('<div/>').appendTo(root).css({'display': 'flex'});
 		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
 		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
-		let divEditor = $('<div/>').appendTo(divFlex).css({'flex-grow': '1'});
+		this.divMain = $('<div/>').appendTo(divFlex).css({'flex-grow': '1', 'overflow-y': 'scroll'});
 
 		this.banner.render(divBanner);
-		//this.editor.render(divEditor);
+		this.renderMain();
 	}
 
-	/*public setMixture(mixture:Mixture):void
+	public setCollection(collection:MixtureCollection):void
 	{
+		/* !!
 		this.editor.clearHistory();
 		this.editor.setMixture(mixture, true, false);
-		this.editor.setDirty(false);
+		this.editor.setDirty(false);*/
+
+		this.collection = collection;
+		this.renderMain();
 	}
 
 	public loadFile(filename:string):void
@@ -103,25 +109,23 @@ export class CollectionPanel extends MainPanel
 		fs.readFile(filename, 'utf-8', (err:any, data:string):void =>
 		{
 			if (err) throw err;
-			
-			let mixture:Mixture;
-			try {mixture = Mixture.deserialise(data);}
+
+			let collection:MixtureCollection;
+			try {collection = MixtureCollection.deserialise(data);}
 			catch (e)
 			{
-				console.log('Invalid mixture file: ' + e + '\n' + data);
-				alert('Not a valid mixture file.');
+				console.log('Invalid mixture collection file: ' + e + '\n' + data);
+				alert('Not a valid mixture collection file.');
 				return;
 			}
 
-			this.editor.clearHistory();
-			this.editor.setMixture(mixture, true, false);
-			this.editor.setDirty(false);
+			this.setCollection(collection);
 			this.filename = filename;
-			this.updateTitle();			
-		});		
+			this.updateTitle();
+		});
 	}
 
-	public saveFile(filename:string):void
+	/*public saveFile(filename:string):void
 	{
 		const fs = require('fs');
 
@@ -156,7 +160,7 @@ export class CollectionPanel extends MainPanel
 	protected actionFileSaveAs():void
 	{
 		// !!
-	}	
+	}
 
 	public customMenuAction(cmd:string):void
 	{
@@ -165,10 +169,54 @@ export class CollectionPanel extends MainPanel
 
 	// ------------ private methods ------------
 
+	private renderMain():void
+	{
+		this.divMain.empty();
+
+		// TODO: detail vs. card view
+
+		for (let mixture of this.collection.mixtures)
+		{
+			let div = this.createMixture(mixture).appendTo(this.divMain);
+			// .. clicky...
+		}
+	}
+
+	private createMixture(mixture:Mixture):JQuery
+	{
+		let divOuter = $('<div/>');
+		if (true) // row
+			divOuter.css('display', 'block');
+		else
+			divOuter.css('display', 'inlineblock');
+
+		let divInner = $('<div/>').appendTo(divOuter);
+		divInner.css({'margin': '2px', 'padding': '2px', 'border-radius': '4px'});
+		divInner.css({'background-color': '#E0E0E0', 'border': '1px solid #808080'});
+
+		let measure = new wmk.OutlineMeasurement(0, 0, this.policy.data.pointScale);
+		let layout = new ArrangeMixture(mixture, measure, this.policy);
+		layout.arrange();
+
+		let gfx = new wmk.MetaVector();
+		let draw = new DrawMixture(layout, gfx);
+		/*draw.hoverIndex = this.hoverIndex;
+		draw.activeIndex = this.activeIndex;
+		draw.selectedIndex = this.selectedIndex;*/
+		draw.draw();
+
+		gfx.normalise();
+		/*gfx.offsetX = this.offsetX;
+		gfx.offsetY = this.offsetY;*/
+		let svg = $(gfx.createSVG()).appendTo(divInner);
+
+		return divOuter;
+	}
+
 	/*private actionFileOpen():void
 	{
 		const electron = require('electron');
-		const dialog = electron.remote.dialog; 
+		const dialog = electron.remote.dialog;
 		let params:any =
 		{
 			'title': 'Open Molecule',
@@ -181,7 +229,7 @@ export class CollectionPanel extends MainPanel
 		dialog.showOpenDialog(params, (filenames:string[]):void =>
 		{
 			let inPlace = this.editor.getMixture().isEmpty();
-			if (filenames) for (let fn of filenames) 
+			if (filenames) for (let fn of filenames)
 			{
 				if (inPlace)
 				{
@@ -208,7 +256,7 @@ export class CollectionPanel extends MainPanel
 		if (this.editor.isBlank()) return;
 
 		const electron = require('electron');
-		const dialog = electron.remote.dialog; 
+		const dialog = electron.remote.dialog;
 		let params:any =
 		{
 			'title': 'Save Mixfile',
@@ -247,7 +295,7 @@ export class CollectionPanel extends MainPanel
 				{'name': 'SDfile', 'extensions': ['sdf']}
 			]
 		};
-		if (this.filename && this.filename.endsWith('.mixfile')) 
+		if (this.filename && this.filename.endsWith('.mixfile'))
 			params.defaultPath = (this.filename.substring(0, this.filename.length - 8) + '.sdf').split(/[\/\\]/).pop();
 
 		dialog.showSaveDialog(params, (filename:string):void =>
@@ -262,7 +310,7 @@ export class CollectionPanel extends MainPanel
 	private actionFileExportSVG():void
 	{
 		const electron = require('electron');
-		const dialog = electron.remote.dialog; 
+		const dialog = electron.remote.dialog;
 		let params:any =
 		{
 			'title': 'Save Molecule',
@@ -284,17 +332,17 @@ export class CollectionPanel extends MainPanel
 			gfx.normalise();
 			let svg = gfx.createSVG();
 
-			const fs = require('fs');			
+			const fs = require('fs');
 			fs.writeFile(filename, svg, (err:any):void =>
 			{
 				if (err) alert('Unable to save: ' + err);
-			});		
+			});
 		});
 	}
 
 	private actionFileCreateMInChI():void
 	{
-		if (!InChI.isAvailable()) 
+		if (!InChI.isAvailable())
 		{
 			alert('InChI executable has not been configured. Specify with --inchi parameter.');
 			return;
@@ -309,17 +357,17 @@ export class CollectionPanel extends MainPanel
 		alert('Generated MInChI identifier:\n' + minchi);
 		let clipboard = require('electron').clipboard;
 		clipboard.writeText(minchi);
-	}
+	}*/
 
 	private updateTitle():void
 	{
-		if (this.filename == null) {document.title = 'Mixtures'; return;}
+		if (this.filename == null) {document.title = 'Mixture Collection'; return;}
 
 		let slash = Math.max(this.filename.lastIndexOf('/'), this.filename.lastIndexOf('\\'));
-		let title = 'Mixtures - ' + this.filename.substring(slash + 1);
-		if (this.editor.isDirty() && !this.editor.isBlank()) title += '*';
+		let title = 'Mixture Collection - ' + this.filename.substring(slash + 1);
+		// !! if (this.editor.isDirty() && !this.editor.isBlank()) title += '*';
 		document.title = title;
-	}*/
+	}
 }
 
 /* EOF */ }

@@ -42,6 +42,8 @@ export class MenuBanner
 		domParent.empty();
 		this.divFlex = $('<div/>').appendTo(domParent).css({'display': 'flex', 'width': '100%', 'height': '100%'});
 		this.divFlex.css({'flex-direction': 'row', 'flex-wrap': 'nowrap', 'justify-content': 'space-around', 'align-items': 'center'});
+		//this.divFlex.css({'linear-gradient': '90deg, #F0F0F0, #808080'});
+		this.divFlex.css({'background': 'linear-gradient(to bottom, #FFFFFF, #C0C0C0)'});
 
 		for (let blk of this.commands)
 		{
