@@ -26,7 +26,7 @@ export class MixtureCollection
 {
 	// ------------ public methods ------------
 
-	constructor(public mixtures:Mixture[] = [])
+	constructor(private mixtures:Mixture[] = [])
 	{
 	}
 
@@ -46,6 +46,14 @@ export class MixtureCollection
 	public get count():number 
 	{
 		return this.mixtures.length;
+	}
+	public getMixture(idx:number):Mixture
+	{
+		return this.mixtures[idx].clone();
+	}
+	public setMixture(idx:number, mixture:Mixture):void
+	{
+		this.mixtures[idx] = mixture.clone();
 	}
 	public deleteMixture(idx:number):void 
 	{

@@ -259,9 +259,9 @@ export class CollectionPanel extends MainPanel
 			divContent.css({'justify-content': 'flex-start', 'align-items': 'flex-start'});
 		}
 
-		for (let n = 0; n < this.collection.mixtures.length; n++)
+		for (let n = 0; n < this.collection.count; n++)
 		{
-			let div = this.createMixture(this.collection.mixtures[n]).appendTo(divContent);
+			let div = this.createMixture(this.collection.getMixture(n)).appendTo(divContent);
 			div.click(() => this.changeSelection(n));
 			div.dblclick(() => this.editMixture());
 			this.divMixtures.push(div);
@@ -508,7 +508,7 @@ export class CollectionPanel extends MainPanel
 		this.divMain.empty();
 		this.editor.render(this.divMain);
 
-		this.editor.setMixture(this.collection.mixtures[this.selected].clone());
+		this.editor.setMixture(this.collection.getMixture(this.selected));
 		this.updateBanner();
 	}
 
@@ -517,7 +517,7 @@ export class CollectionPanel extends MainPanel
 		if (!this.editor) return;
 
 		let idx = this.selected;
-		// !! SAVE it...
+		this.collection.setMixture(idx, this.editor.getMixture());
 
 		this.editor = null;
 		this.renderMain();
