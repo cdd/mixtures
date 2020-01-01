@@ -30,8 +30,7 @@ export class MixtureCollection
 	{
 	}
 
-/*
-	// makes a deep copy of self
+/*	// makes a deep copy of self
 	public clone():Mixture
 	{
 		return new Mixture(deepClone(this.mixfile));
@@ -43,6 +42,30 @@ export class MixtureCollection
 		if (other == null) return false;
 		return this.recursiveEqual(this.mixfile, other.mixfile);
 	}*/
+
+	public get count():number 
+	{
+		return this.mixtures.length;
+	}
+	public deleteMixture(idx:number):void 
+	{
+		this.mixtures.splice(idx, 1);
+	}
+	public appendMixture(mixture:Mixture):number 
+	{
+		this.mixtures.push(mixture); 
+		return this.mixtures.length - 1;
+	}
+	public insertMixture(idx:number, mixture:Mixture):void 
+	{
+		this.mixtures.splice(idx, 0, mixture);
+	}
+	public swapMixtures(idx1:number, idx2:number):void
+	{
+		let [m1, m2] = [this.mixtures[idx1], this.mixtures[idx2]];
+		this.mixtures[idx1] = m2;
+		this.mixtures[idx2] = m1;
+	}
 
 	// unpacks a string into a mixture; throws an exception if anything went wrong
 	public static deserialise(data:string):MixtureCollection

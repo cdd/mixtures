@@ -312,30 +312,6 @@ export class CollectionPanel extends MainPanel
 		if (idx >= 0) this.divMixtures[idx].css({'background-color': BG_SELECTED});
 	}
 
-	private editMixture():void
-	{
-		if (this.selected < 0) return;
-
-		this.editor = new EditMixture();
-
-		this.divMain.empty();
-		this.editor.render(this.divMain);
-
-		this.editor.setMixture(this.collection.mixtures[this.selected].clone());
-		this.updateBanner();
-	}
-
-	private stopEdit():void
-	{
-		if (!this.editor) return;
-
-		// !! SAVE it...
-		this.editor = null;
-		this.renderMain();
-		// !! scroll to selected...
-		this.updateBanner();
-	}
-
 	protected actionFileOpen():void
 	{
 		/*const electron = require('electron');
@@ -515,6 +491,41 @@ export class CollectionPanel extends MainPanel
 		});
 	}
 
+	private scrollToIndex(idx:number):void
+	{
+		if (idx < 0) return;
+		let div = this.divMixtures[idx];
+		this.divMain[0].scrollTop = div.offset().top - this.divMain.offset().top + this.divMain[0].scrollTop;
+		//setTimeout(() => this.content.animate({'scrollTop': dom.offset().top}, 500), 1);
+	}
+
+	private editMixture():void
+	{
+		if (this.selected < 0) return;
+
+		this.editor = new EditMixture();
+
+		this.divMain.empty();
+		this.editor.render(this.divMain);
+
+		this.editor.setMixture(this.collection.mixtures[this.selected].clone());
+		this.updateBanner();
+	}
+
+	private stopEdit():void
+	{
+		if (!this.editor) return;
+
+		let idx = this.selected;
+		// !! SAVE it...
+
+		this.editor = null;
+		this.renderMain();
+		this.changeSelection(idx);
+		this.scrollToIndex(idx);
+		this.updateBanner();
+	}
+
 	private clipboardCopy(withCut:boolean):void
 	{
 		// !!
@@ -527,22 +538,49 @@ export class CollectionPanel extends MainPanel
 
 	private deleteMixture():void
 	{
-		// !!
+		let idx = this.selected;
+		if (idx < 0) return;
+		this.collection.deleteMixture(idx);
+		this.renderMain();
+		if (idx < this.collection.count) this.scrollToIndex(idx);
 	}
 
 	private appendMixture():void
 	{
-		// !!
+		let idx:number;
+		if (this.selected < 0)
+		{
+			idx = this.collection.appendMixture(new Mixture());
+		}
+		else
+		{
+			idx = this.selected + 1;
+			this.collection.insertMixture(idx, new Mixture());
+		}
+		this.renderMain();
+		this.changeSelection(idx);
+		this.scrollToIndex(idx);
 	}
 
 	private prependMixture():void
 	{
-		// !!
+		let idx = Math.max(0, this.selected);
+		this.collection.insertMixture(idx, new Mixture());
+		let top = this.divMain[0].scrollTop;
+		this.renderMain();
+		this.changeSelection(idx);
+		this.divMain[0].scrollTop = top;
 	}
 
 	private reorderCurrent(dir:number):void
 	{
-		// !!
+		let idx = this.selected;
+		if (idx < 0 || idx + dir < 0 || idx + dir >= this.collection.count) return;
+		this.collection.swapMixtures(idx, idx + dir);
+		let top = this.divMain[0].scrollTop;
+		this.renderMain();
+		this.changeSelection(idx + dir);
+		this.divMain[0].scrollTop = top;
 	}
 
 	// alter zoom level by a factor, or reset (null)
