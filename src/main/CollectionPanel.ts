@@ -86,10 +86,13 @@ export class CollectionPanel extends MainPanel
 {
 	private filename:string = null;
 	private collection = new MixtureCollection();
+	private isDirty = false;
+
 	private banner:MenuBanner;
 	private divMain:JQuery;
 	private policy = wmk.RenderPolicy.defaultColourOnWhite(20);
 	private viewType = CollectionPanelView.Detail;
+
 	private selected = -1;
 	private divMixtures:JQuery[] = [];
 	private editor:EditMixture = null; // when defined, refers to collection{selected}
@@ -142,6 +145,7 @@ export class CollectionPanel extends MainPanel
 
 			this.setCollection(collection);
 			this.filename = filename;
+			this.isDirty = false;
 			this.updateTitle();
 		});
 	}
@@ -348,6 +352,7 @@ export class CollectionPanel extends MainPanel
 			return;
 		}
 
+fnord
 		/* !! collections...
 		if (this.editor.isBlank()) return;
 		if (!this.filename) {this.actionFileSaveAs(); return;}
@@ -471,7 +476,7 @@ export class CollectionPanel extends MainPanel
 
 		let slash = Math.max(this.filename.lastIndexOf('/'), this.filename.lastIndexOf('\\'));
 		let title = 'Mixture Collection - ' + this.filename.substring(slash + 1);
-		// !! if (this.editor.isDirty() && !this.editor.isBlank()) title += '*';
+		if (this.isDirty) title += '*';
 		document.title = title;
 	}
 
@@ -509,6 +514,7 @@ export class CollectionPanel extends MainPanel
 		this.editor.render(this.divMain);
 
 		this.editor.setMixture(this.collection.getMixture(this.selected));
+		this.editor.setDirty(false);
 		this.updateBanner();
 	}
 
@@ -517,13 +523,19 @@ export class CollectionPanel extends MainPanel
 		if (!this.editor) return;
 
 		let idx = this.selected;
-		this.collection.setMixture(idx, this.editor.getMixture());
+		if (this.editor.isDirty())
+		{
+			this.collection.setMixture(idx, this.editor.getMixture());
+			this.isDirty = true;
+		}
 
 		this.editor = null;
 		this.renderMain();
 		this.changeSelection(idx);
 		this.scrollToIndex(idx);
 		this.updateBanner();
+
+		this.updateTitle();
 	}
 
 	private clipboardCopy(withCut:boolean):void
@@ -543,6 +555,9 @@ export class CollectionPanel extends MainPanel
 		this.collection.deleteMixture(idx);
 		this.renderMain();
 		if (idx < this.collection.count) this.scrollToIndex(idx);
+
+		this.isDirty = true;
+		this.updateTitle();
 	}
 
 	private appendMixture():void
@@ -560,6 +575,9 @@ export class CollectionPanel extends MainPanel
 		this.renderMain();
 		this.changeSelection(idx);
 		this.scrollToIndex(idx);
+
+		this.isDirty = true;
+		this.updateTitle();
 	}
 
 	private prependMixture():void
@@ -570,6 +588,9 @@ export class CollectionPanel extends MainPanel
 		this.renderMain();
 		this.changeSelection(idx);
 		this.divMain[0].scrollTop = top;
+
+		this.isDirty = true;
+		this.updateTitle();
 	}
 
 	private reorderCurrent(dir:number):void
@@ -581,6 +602,9 @@ export class CollectionPanel extends MainPanel
 		this.renderMain();
 		this.changeSelection(idx + dir);
 		this.divMain[0].scrollTop = top;
+
+		this.isDirty = true;
+		this.updateTitle();
 	}
 
 	// alter zoom level by a factor, or reset (null)
