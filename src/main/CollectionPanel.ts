@@ -319,30 +319,28 @@ export class CollectionPanel extends MainPanel
 
 	protected actionFileOpen():void
 	{
-		/*const electron = require('electron');
-		const dialog = electron.remote.dialog;
+		const electron = require('electron');
+		const dialog = electron.remote.dialog; 
 		let params:any =
 		{
-			'title': 'Open Molecule',
+			'title': 'Open Mixtures',
 			'properties': ['openFile'],
 			'filters':
 			[
-				{'name': 'Mixfile', 'extensions': ['mixfile']}
+				{'name': 'Mixfile Collection', 'extensions': ['json']},
+				{'name': 'Mixfile', 'extensions': ['mixfile']},
 			]
 		};
 		dialog.showOpenDialog(params, (filenames:string[]):void =>
 		{
-			let inPlace = this.editor.getMixture().isEmpty();
-			if (filenames) for (let fn of filenames)
+			if (filenames) for (let fn of filenames) 
 			{
-				if (inPlace)
-				{
-					this.loadFile(fn);
-					inPlace = false;
-				}
-				else openNewWindow('MixturePanel', fn);
+				if (fn.endsWith('.mixfile'))
+					openNewWindow('MixturePanel', fn);
+				else
+					openNewWindow('CollectionPanel', fn);
 			}
-		});*/
+		});
 	}
 
 	protected actionFileSave():void

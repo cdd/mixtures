@@ -210,7 +210,8 @@ export class MixturePanel extends MainPanel
 			'properties': ['openFile'],
 			'filters':
 			[
-				{'name': 'Mixfile', 'extensions': ['mixfile']}
+				{'name': 'Mixfile', 'extensions': ['mixfile']},
+				{'name': 'Mixfile Collection', 'extensions': ['json']},
 			]
 		};
 		dialog.showOpenDialog(params, (filenames:string[]):void =>
@@ -218,12 +219,15 @@ export class MixturePanel extends MainPanel
 			let inPlace = this.editor.getMixture().isEmpty();
 			if (filenames) for (let fn of filenames) 
 			{
-				if (inPlace)
+				if (inPlace && fn.endsWith('.mixfile'))
 				{
 					this.loadFile(fn);
 					inPlace = false;
 				}
-				else openNewWindow('MixturePanel', fn);
+				else if (fn.endsWith('.json'))
+					openNewWindow('CollectionPanel', fn);
+				else				
+					openNewWindow('MixturePanel', fn);
 			}
 		});
 	}
