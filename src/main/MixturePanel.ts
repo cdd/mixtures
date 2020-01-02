@@ -255,6 +255,7 @@ export class MixturePanel extends MainPanel
 		};
 		dialog.showSaveDialog({}, (filename:string):void =>
 		{
+			if (!filename) return;
 			this.saveFile(filename);
 			this.filename = filename;
 			this.editor.setDirty(false);

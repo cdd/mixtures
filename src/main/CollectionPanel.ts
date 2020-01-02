@@ -353,37 +353,45 @@ export class CollectionPanel extends MainPanel
 			return;
 		}
 
-		/* !! collections...
-		if (this.editor.isBlank()) return;
 		if (!this.filename) {this.actionFileSaveAs(); return;}
 
 		this.saveFile(this.filename);
-		this.editor.setDirty(false);
-		this.updateTitle();*/
+		this.isDirty = false;
+		this.updateTitle();
 	}
 
 	protected actionFileSaveAs():void
 	{
-		/*if (this.editor.isBlank()) return;
-
 		const electron = require('electron');
 		const dialog = electron.remote.dialog;
 		let params:any =
 		{
-			'title': 'Save Mixfile',
+			'title': 'Save Mixfile Collection',
 			//defaultPath...
 			'filters':
 			[
-				{'name': 'Mixfile', 'extensions': ['mixfile']}
+				{'name': 'Mixfile Collection', 'extensions': ['json']}
 			]
 		};
 		dialog.showSaveDialog({}, (filename:string):void =>
 		{
+			if (!filename) return;
 			this.saveFile(filename);
 			this.filename = filename;
-			this.editor.setDirty(false);
+			this.isDirty = false;
 			this.updateTitle();
-		});*/
+		});
+	}
+
+	public saveFile(filename:string):void
+	{
+		let content = this.collection.serialise();
+
+		const fs = require('fs');
+		fs.writeFile(filename, content, (err:any):void =>
+		{
+			if (err) alert('Unable to save: ' + err);
+		});
 	}
 
 	/*private actionExportSDF():void
@@ -501,7 +509,6 @@ export class CollectionPanel extends MainPanel
 		if (idx < 0) return;
 		let div = this.divMixtures[idx];
 		this.divMain[0].scrollTop = div.offset().top - this.divMain.offset().top + this.divMain[0].scrollTop;
-		//setTimeout(() => this.content.animate({'scrollTop': dom.offset().top}, 500), 1);
 	}
 
 	private editMixture():void
@@ -534,48 +541,45 @@ export class CollectionPanel extends MainPanel
 		this.changeSelection(idx);
 		this.scrollToIndex(idx);
 		this.updateBanner();
-
 		this.updateTitle();
 	}
 
 	private clipboardCopy(withCut:boolean):void
 	{
+		let idx = this.selected;
+		if (idx < 0 || this.editor) return;
 
-		/* TODO
-		if (this.selectedIndex < 0) return;
-		let origin = this.layout.components[this.selectedIndex].origin;
-		
-		let comp = deepClone(this.mixture.getComponent(origin));
-		delete (comp as any).mixfileVersion;
-		if (!wholeBranch) comp.contents = [];
-		let str = Mixture.serialiseComponent(comp);
+		let str = this.collection.getMixture(idx).serialise();
+		this.proxyClip.setString(str);
 
-		let clipboard = require('electron').clipboard;
-		clipboard.writeText(str);
+		if (withCut)
+		{
+			this.collection.deleteMixture(idx);
+			this.isDirty = true;
 
-		if (origin.length > 0 && andCut) this.deleteCurrent();*/
+			let top = this.divMain[0].scrollTop;
+			this.renderMain();
+			this.divMain[0].scrollTop = top;
+			this.updateBanner();
+			this.updateTitle();	
+		}
 	}
 
 	private clipboardPaste():void
 	{
-
-	
-		/* TODO
-		let clipboard = require('electron').clipboard;
-
-		let str = clipboard.readText();
-		let json:any = null;
-		try {json = JSON.parse(str);}
-		catch (e) {} // silent failure
-
-		let origin:number[] = [];
-		if (this.selectedIndex >= 0) origin = this.layout.components[this.selectedIndex].origin;*/		
+		let mixture = Mixture.deserialise(this.proxyClip.getString());
+		if (!mixture)
+		{
+			alert('No mixture on clipboard.');
+			return;
+		}
+		this.appendMixture(mixture);
 	}
 
 	private deleteMixture():void
 	{
 		let idx = this.selected;
-		if (idx < 0) return;
+		if (idx < 0 || this.editor) return;
 		this.collection.deleteMixture(idx);
 		this.renderMain();
 		if (idx < this.collection.count) this.scrollToIndex(idx);
@@ -584,17 +588,20 @@ export class CollectionPanel extends MainPanel
 		this.updateTitle();
 	}
 
-	private appendMixture():void
+	private appendMixture(mixture?:Mixture):void
 	{
+		if (!mixture) mixture = new Mixture();
+
+		if (this.editor) return;
 		let idx:number;
 		if (this.selected < 0)
 		{
-			idx = this.collection.appendMixture(new Mixture());
+			idx = this.collection.appendMixture(mixture);
 		}
 		else
 		{
 			idx = this.selected + 1;
-			this.collection.insertMixture(idx, new Mixture());
+			this.collection.insertMixture(idx, mixture);
 		}
 		this.renderMain();
 		this.changeSelection(idx);
@@ -606,6 +613,7 @@ export class CollectionPanel extends MainPanel
 
 	private prependMixture():void
 	{
+		if (this.editor) return;
 		let idx = Math.max(0, this.selected);
 		this.collection.insertMixture(idx, new Mixture());
 		let top = this.divMain[0].scrollTop;
@@ -620,7 +628,7 @@ export class CollectionPanel extends MainPanel
 	private reorderCurrent(dir:number):void
 	{
 		let idx = this.selected;
-		if (idx < 0 || idx + dir < 0 || idx + dir >= this.collection.count) return;
+		if (idx < 0 || idx + dir < 0 || idx + dir >= this.collection.count || this.editor) return;
 		this.collection.swapMixtures(idx, idx + dir);
 		let top = this.divMain[0].scrollTop;
 		this.renderMain();
@@ -634,7 +642,7 @@ export class CollectionPanel extends MainPanel
 	// alter zoom level by a factor, or reset (null)
 	public zoomScale(scale?:number):void
 	{
-		// !!
+		// TODO
 	}
 }
 
