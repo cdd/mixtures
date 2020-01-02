@@ -88,7 +88,8 @@ function setupMenu()
 			'label': 'File',
 			'submenu': 
 			[
-				{'label': 'New Mixture', 'accelerator': 'CmdOrCtrl+N', 'click': () => new BrowserWindow(BROWSER_PARAMS).loadURL(INIT_URL)},
+				{'label': 'New Mixture', 'accelerator': 'CmdOrCtrl+N', 'click': () => sendCommand('newMixture')},
+				{'label': 'New Collection', 'accelerator': 'CmdOrCtrl+Shift+N', 'click': () => sendCommand('newCollection')},
 				{'label': 'Open...', 'accelerator': 'CmdOrCtrl+O', 'click': () => sendCommand('open')},
 				{'label': 'Save', 'accelerator': 'CmdOrCtrl+S', 'click': () => sendCommand('save')},
 				{'label': 'Save As...', 'accelerator': 'CmdOrCtrl+Shift+S', 'click': () => sendCommand('saveAs')},
@@ -131,6 +132,9 @@ function setupMenu()
 				{'label': 'Normal Size', 'accelerator': 'CmdOrCtrl+0', 'click': () => sendCommand('zoomFull')},
 				{'label': 'Zoom In', 'accelerator': 'CmdOrCtrl+=', 'click': () => sendCommand('zoomIn')},
 				{'label': 'Zoom Out', 'accelerator': 'CmdOrCtrl+-', 'click': () => sendCommand('zoomOut')},
+				{'type': 'separator'},
+				{'label': 'Detail List', 'click': () => sendCommand('viewDetail')},
+				{'label': 'Card List', 'click': () => sendCommand('viewCard')},
 				{'type': 'separator'},
 				{'role': 'togglefullscreen'}
 			]

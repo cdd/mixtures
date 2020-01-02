@@ -13,6 +13,7 @@
 ///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
 ///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
+///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 
 // NOTE: imports need to go before we start defining our own stuff, otherwise transpiler order sometimes breaks
 import wmk = WebMolKit;
@@ -38,7 +39,8 @@ namespace Mixtures /* BOF */ {
 
 $ = (window as any)['$'] || require('./jquery.js');
 
-export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally executed window version
+export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally 
+							   // executed window version
 
 /*
 	Startup: gets the ball rolling, and provide some high level window handling.
@@ -79,25 +81,31 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 		else if (key == 'fn') filename = val;
 	}	
 
+	if (!panelClass && filename && filename.endsWith('.json')) panelClass = 'CollectionPanel';
+
+	let proxyClip = new wmk.ClipboardProxy();
+	const {clipboard} = electron;
+	proxyClip.getString = ():string => clipboard.readText();
+	proxyClip.setString = (str:string):void => clipboard.writeText(str);
+	proxyClip.setHTML = (html:string):void => clipboard.writeHTML(html);
+	proxyClip.canSetHTML = ():boolean => true;
+	proxyClip.canAlwaysGet = ():boolean => true;
+
 	if (!panelClass)
 	{
-		let dw = new MixturePanel(root);
+		let dw = new MixturePanel(root, proxyClip);
 		if (filename) dw.loadFile(filename);
 	}
 	else
 	{
-		/*let constructor = eval('Mixtures.' + panelClass);
-		let dw:MainPanel = new constructor(root);*/
-
-		let panelFunc = (Mixtures as any)[panelClass];
-		if (!panelFunc) throw 'Unknown class: ' + panelClass;
-		let dw = panelFunc.apply(this, root) as MainPanel;
-
+		let proto = (Mixtures as any)[panelClass];
+		if (!proto) throw 'Unknown class: ' + panelClass;
+		let dw:MainPanel = new (proto as any)(root, proxyClip);
 		if (filename) dw.loadFile(filename);
 	}
 }
 
-// high level functionality for opening a window, with a given panelq as content
+// high level functionality for opening a window, with a given panel as content
 export function openNewWindow(panelClass:string, filename?:string):void
 {
 	const electron = require('electron');

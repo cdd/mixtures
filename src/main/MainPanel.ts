@@ -14,23 +14,28 @@
 ///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
 
+///<reference path='MenuBanner.ts'/>
+
 namespace Mixtures /* BOF */ {
 
 /*
 	Base class for "main windows": an object that takes up the entire browser window document, responds to resizing, etc.
 */
 
-export class MainPanel
+export abstract class MainPanel
 {
+	// ------------ public methods ------------
+
 	constructor(public root:JQuery)
 	{
 		$('body').css('overflow', 'hidden');
-
+		
 		root.css('width', '100%');
 		root.css('height', document.documentElement.clientHeight + 'px');
 		$(window).resize(() => this.onResize()); 
+		root.css('user-select', 'none');
 
-		root.on('menuAction', (event:any, cmd:string) => this.menuAction(cmd));
+		root.on('menuAction', (event:any, cmd:string) => this.menuAction(cmd as MenuBannerCommand));
 	}
 
 	// stub: may be called early on to provide a source file upon which to work
@@ -44,10 +49,30 @@ export class MainPanel
 		this.root.css('height', document.documentElement.clientHeight + 'px');
 	}
 
-	// stub: override this to receive menu events
-	public menuAction(cmd:string):void
+	// optionally override this to pre-empt menu actions
+	public menuAction(cmd:MenuBannerCommand):void
 	{
+		if (cmd == MenuBannerCommand.NewMixture) openNewWindow('MixturePanel');
+		if (cmd == MenuBannerCommand.NewCollection) openNewWindow('CollectionPanel');
+		else if (cmd == MenuBannerCommand.Open) this.actionFileOpen();
+		else if (cmd == MenuBannerCommand.Save) this.actionFileSave();
+		else if (cmd == MenuBannerCommand.SaveAs) this.actionFileSaveAs();
+		else this.customMenuAction(cmd);
 	}
+
+	// override this to interpret menu non-default menu actions
+	public customMenuAction(cmd:MenuBannerCommand):void
+	{
+		console.log('MENU:' + cmd);
+	}
+
+	// standard actions that must be implemented
+	protected abstract actionFileOpen():void;
+	protected abstract actionFileSave():void;
+	protected abstract actionFileSaveAs():void;
+
+	// ------------ private methods ------------
+
 }
 
 /* EOF */ }

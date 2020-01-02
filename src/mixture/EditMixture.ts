@@ -21,8 +21,6 @@
 ///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 ///<reference path='../../../WebMolKit/src/dialog/EditCompound.ts'/>
 
-///<reference path='../decl/node.d.ts'/>
-///<reference path='../decl/electron.d.ts'/>
 ///<reference path='../main/startup.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
 ///<reference path='../lookup/LookupCompoundDialog.ts'/>
@@ -67,7 +65,7 @@ export class EditMixture extends wmk.Widget
 	protected hoverIndex = -1; // component over which the mouse is hovering
 	protected activeIndex = -1; // component that is currently being clicked upon
 	protected selectedIndex = -1; // selected component (having been previously clicked)
-	protected delayedSelect:number[] = null; // if set to an origin vector, will be used to rederive selectedIndex next time the layout is evaluated
+	protected delayedSelect:number[] = null; // if set to an origin vector: to rederive selectedIndex next time the layout is evaluated
 
 	protected dragReason = DragReason.None;
 	protected dragIndex = -1;
@@ -78,7 +76,7 @@ export class EditMixture extends wmk.Widget
 
 	// ------------ public methods ------------
 
-	constructor()
+	constructor(private proxyClip:wmk.ClipboardProxy)
 	{
 		super();
 	}
@@ -142,7 +140,7 @@ export class EditMixture extends wmk.Widget
 		this.redraw(withAutoScale);
 
 		this.dirty = true;
-		this.callbackUpdateTitle();
+		if (this.callbackUpdateTitle) this.callbackUpdateTitle();
 	}
 
 	// wipes the undo & redo stacks
@@ -227,11 +225,11 @@ export class EditMixture extends wmk.Widget
 
 		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
 
-		const {clipboard} = require('electron');
+		/*const {clipboard} = require('electron');
 		let proxy = new wmk.ClipboardProxy();
 		proxy.getString = ():string => clipboard.readText();
 		proxy.setString = (str:string):void => clipboard.writeText(str);
-		proxy.canAlwaysGet = ():boolean => true;
+		proxy.canAlwaysGet = ():boolean => true;*/
 
 		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule());
 		this.dlgCompound.onSave(() => 
@@ -251,7 +249,7 @@ export class EditMixture extends wmk.Widget
 			this.isEditing = false;
 			this.dlgCompound = null;
 		});
-		this.dlgCompound.defineClipboard(proxy);
+		this.dlgCompound.defineClipboard(this.proxyClip);
 		this.isEditing = true;
 		this.dlgCompound.open();
 	}
@@ -370,8 +368,9 @@ export class EditMixture extends wmk.Widget
 		if (!wholeBranch) comp.contents = [];
 		let str = Mixture.serialiseComponent(comp);
 
-		let clipboard = require('electron').clipboard;
-		clipboard.writeText(str);
+		/*let clipboard = require('electron').clipboard;
+		clipboard.writeText(str);*/
+		this.proxyClip.setString(str);
 
 		if (origin.length > 0 && andCut) this.deleteCurrent();
 	}
@@ -379,9 +378,10 @@ export class EditMixture extends wmk.Widget
 	// paste from clipboard, if possible
 	public clipboardPaste():void
 	{
-		let clipboard = require('electron').clipboard;
+		/*let clipboard = require('electron').clipboard;
+		let str = clipboard.readText();*/
+		let str = this.proxyClip.getString();
 
-		let str = clipboard.readText();
 		let json:any = null;
 		try {json = JSON.parse(str);}
 		catch (e) {} // silent failure

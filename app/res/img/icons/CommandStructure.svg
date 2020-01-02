@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   class="svg-icon"
+   viewBox="0 0 20 20"
+   version="1.1"
+   id="svg7177"
+   sodipodi:docname="CommandStructure.svg"
+   inkscape:version="1.0beta1 (fe3e306, 2019-09-17)">
+  <metadata
+     id="metadata7183">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs7181" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     inkscape:document-rotation="0"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1397"
+     inkscape:window-height="855"
+     id="namedview7179"
+     showgrid="true"
+     inkscape:zoom="13.6"
+     inkscape:cx="0.51470589"
+     inkscape:cy="11.691176"
+     inkscape:window-x="43"
+     inkscape:window-y="23"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg7177">
+    <inkscape:grid
+       id="grid830"
+       type="xygrid" />
+  </sodipodi:namedview>
+  <path
+     d="m 10,17.22792 -6.2595619,-3.61396 -2e-7,-7.2279196 6.2595619,-3.61396 6.2595622,3.6139596 0,7.22792 z"
+     inkscape:randomized="0"
+     inkscape:rounded="0"
+     inkscape:flatsided="true"
+     sodipodi:arg2="2.0943951"
+     sodipodi:arg1="1.5707963"
+     sodipodi:r2="6.2595615"
+     sodipodi:r1="7.2279196"
+     sodipodi:cy="10"
+     sodipodi:cx="10"
+     sodipodi:sides="6"
+     id="path834"
+     style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     sodipodi:type="star" />
+</svg>

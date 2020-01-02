@@ -17,6 +17,7 @@
 ///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
 ///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
+///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 
 ///<reference path='../decl/node.d.ts'/>
 ///<reference path='../decl/electron.d.ts'/>
@@ -29,6 +30,7 @@
 ///<reference path='../mixture/ExportSDFile.ts'/>
 ///<reference path='../mixture/ExportMInChI.ts'/>
 ///<reference path='MainPanel.ts'/>
+///<reference path='MenuBanner.ts'/>
 
 namespace Mixtures /* BOF */ {
 
@@ -36,21 +38,63 @@ namespace Mixtures /* BOF */ {
 	Viewing/editing window: dedicated entirely to the sketching of a mixture.
 */
 
+const BANNER:MenuBannerButton[][] =
+[
+	[
+		{'icon': 'CommandSave.svg', 'tip': 'Save', 'cmd': MenuBannerCommand.Save},
+	],
+	[
+		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
+		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
+		{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
+		{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'cmd': MenuBannerCommand.ExportSVG},
+	],
+	[
+		{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'cmd': MenuBannerCommand.Append},
+		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'cmd': MenuBannerCommand.Prepend},
+		{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'cmd': MenuBannerCommand.Delete},
+		{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'cmd': MenuBannerCommand.MoveUp},
+		{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'cmd': MenuBannerCommand.MoveDown},
+	],
+	[
+		{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'cmd': MenuBannerCommand.Undo},
+		{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'cmd': MenuBannerCommand.Redo},
+	],
+	[
+		{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'cmd': MenuBannerCommand.Copy},
+		{'icon': 'CommandCut.svg', 'tip': 'Cut', 'cmd': MenuBannerCommand.Cut},
+		{'icon': 'CommandPaste.svg', 'tip': 'Paste', 'cmd': MenuBannerCommand.Paste},
+	],
+	[
+		{'icon': 'CommandZoomNormal.svg', 'tip': 'Zoom full', 'cmd': MenuBannerCommand.ZoomFull},
+		{'icon': 'CommandZoomIn.svg', 'tip': 'Zoom in', 'cmd': MenuBannerCommand.ZoomIn},
+		{'icon': 'CommandZoomOut.svg', 'tip': 'Zoom out', 'cmd': MenuBannerCommand.ZoomOut},
+	],
+];
+
 export class MixturePanel extends MainPanel
 {
 	private filename:string = null;
-	private editor = new EditMixture();
+	private banner:MenuBanner;
+	private editor = new EditMixture(this.proxyClip);
 	
 	// ------------ public methods ------------
 
-	constructor(root:JQuery)
+	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy)
 	{
 		super(root);
 
-		//let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
+		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
 		this.editor.callbackUpdateTitle = () => this.updateTitle();
-		this.editor.render(root);
+
+		let divFlex = $('<div/>').appendTo(root).css({'display': 'flex'});
+		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
+		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
+		let divEditor = $('<div/>').appendTo(divFlex).css({'flex-grow': '1'});
+
+		this.banner.render(divBanner);
+		this.editor.render(divEditor);
 	}
 
 	public setMixture(mixture:Mixture):void
@@ -106,65 +150,68 @@ export class MixturePanel extends MainPanel
 		//this.sketcher.changeSize(w, h); // force a re-layout to match the new size
 	}
 
-	public menuAction(cmd:string):void
+	public menuAction(cmd:MenuBannerCommand):void
 	{
 		let dlg = this.editor.compoundEditor();
 		if (dlg)
 		{
-			if (cmd == 'cut') dlg.actionCut();
-			else if (cmd == 'copy') dlg.actionCopy();
-			else if (cmd == 'paste') dlg.actionPaste();
-			else if (cmd == 'undo') dlg.actionUndo();
-			else if (cmd == 'redo') dlg.actionRedo();
+			if (cmd == MenuBannerCommand.Cut) dlg.actionCut();
+			else if (cmd == MenuBannerCommand.Copy) dlg.actionCopy();
+			else if (cmd == MenuBannerCommand.Paste) dlg.actionPaste();
+			else if (cmd == MenuBannerCommand.Undo) dlg.actionUndo();
+			else if (cmd == MenuBannerCommand.Redo) dlg.actionRedo();
 			return;
 		}
 		if (!this.editor.isReceivingCommands()) 
 		{
 			// certain common menu/shortcut commands are passed through to standard behaviour, the rest are stopped
-			if (['cut', 'copy', 'paste', 'undo', 'redo'].indexOf(cmd) >= 0) document.execCommand(cmd);
+			if ([MenuBannerCommand.Cut, MenuBannerCommand.Copy, MenuBannerCommand.Paste, 
+				 MenuBannerCommand.Undo, MenuBannerCommand.Redo].indexOf(cmd) >= 0) document.execCommand(cmd);
 			return;
 		}
 
-		if (cmd == 'new') openNewWindow('MixturePanel');
-		else if (cmd == 'open') this.actionFileOpen();
-		else if (cmd == 'save') this.actionFileSave();
-		else if (cmd == 'saveAs') this.actionFileSaveAs();
-		else if (cmd == 'exportSDF') this.actionExportSDF();
-		else if (cmd == 'exportSVG') this.actionFileExportSVG();
-		else if (cmd == 'createMInChI') this.actionFileCreateMInChI();
-		else if (cmd == 'undo') this.editor.performUndo();
-		else if (cmd == 'redo') this.editor.performRedo();
-		else if (cmd == 'cut') this.editor.clipboardCopy(true);
-		else if (cmd == 'copy') this.editor.clipboardCopy(false);
-		else if (cmd == 'copyBranch') this.editor.clipboardCopy(false, true);
-		else if (cmd == 'paste') this.editor.clipboardPaste();
-		else if (cmd == 'editStructure') this.editor.editStructure();
-		else if (cmd == 'editDetails') this.editor.editDetails();
-		else if (cmd == 'lookup') this.editor.lookupCurrent();
-		else if (cmd == 'delete') this.editor.deleteCurrent();
-		else if (cmd == 'append') this.editor.appendToCurrent();
-		else if (cmd == 'prepend') this.editor.prependBeforeCurrent();
-		else if (cmd == 'moveUp') this.editor.reorderCurrent(-1);
-		else if (cmd == 'moveDown') this.editor.reorderCurrent(1);
-		else if (cmd == 'zoomFull') this.editor.zoomFull();
-		else if (cmd == 'zoomIn') this.editor.zoom(1.25);
-		else if (cmd == 'zoomOut') this.editor.zoom(0.8);
-		else console.log('MENU:' + cmd);
+		super.menuAction(cmd);
+	}
+
+	public customMenuAction(cmd:MenuBannerCommand):void
+	{
+		if (cmd == MenuBannerCommand.ExportSDF) this.actionExportSDF();
+		else if (cmd == MenuBannerCommand.ExportSVG) this.actionFileExportSVG();
+		else if (cmd == MenuBannerCommand.CreateMInChI) this.actionFileCreateMInChI();
+		else if (cmd == MenuBannerCommand.Undo) this.editor.performUndo();
+		else if (cmd == MenuBannerCommand.Redo) this.editor.performRedo();
+		else if (cmd == MenuBannerCommand.Cut) this.editor.clipboardCopy(true);
+		else if (cmd == MenuBannerCommand.Copy) this.editor.clipboardCopy(false);
+		else if (cmd == MenuBannerCommand.CopyBranch) this.editor.clipboardCopy(false, true);
+		else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
+		else if (cmd == MenuBannerCommand.EditStructure) this.editor.editStructure();
+		else if (cmd == MenuBannerCommand.EditDetails) this.editor.editDetails();
+		else if (cmd == MenuBannerCommand.Lookup) this.editor.lookupCurrent();
+		else if (cmd == MenuBannerCommand.Delete) this.editor.deleteCurrent();
+		else if (cmd == MenuBannerCommand.Append) this.editor.appendToCurrent();
+		else if (cmd == MenuBannerCommand.Prepend) this.editor.prependBeforeCurrent();
+		else if (cmd == MenuBannerCommand.MoveUp) this.editor.reorderCurrent(-1);
+		else if (cmd == MenuBannerCommand.MoveDown) this.editor.reorderCurrent(1);
+		else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
+		else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
+		else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
+		else super.customMenuAction(cmd);
 	}
 
 	// ------------ private methods ------------
 
-	private actionFileOpen():void
+	protected actionFileOpen():void
 	{
 		const electron = require('electron');
 		const dialog = electron.remote.dialog; 
 		let params:any =
 		{
-			'title': 'Open Molecule',
+			'title': 'Open Mixture',
 			'properties': ['openFile'],
 			'filters':
 			[
-				{'name': 'Mixfile', 'extensions': ['mixfile']}
+				{'name': 'Mixfile', 'extensions': ['mixfile']},
+				{'name': 'Mixfile Collection', 'extensions': ['json']},
 			]
 		};
 		dialog.showOpenDialog(params, (filenames:string[]):void =>
@@ -172,17 +219,20 @@ export class MixturePanel extends MainPanel
 			let inPlace = this.editor.getMixture().isEmpty();
 			if (filenames) for (let fn of filenames) 
 			{
-				if (inPlace)
+				if (inPlace && fn.endsWith('.mixfile'))
 				{
 					this.loadFile(fn);
 					inPlace = false;
 				}
-				else openNewWindow('MixturePanel', fn);
+				else if (fn.endsWith('.json'))
+					openNewWindow('CollectionPanel', fn);
+				else				
+					openNewWindow('MixturePanel', fn);
 			}
 		});
 	}
 
-	private actionFileSave():void
+	protected actionFileSave():void
 	{
 		if (this.editor.isBlank()) return;
 		if (!this.filename) {this.actionFileSaveAs(); return;}
@@ -192,7 +242,7 @@ export class MixturePanel extends MainPanel
 		this.updateTitle();
 	}
 
-	private actionFileSaveAs():void
+	protected actionFileSaveAs():void
 	{
 		if (this.editor.isBlank()) return;
 
@@ -209,6 +259,7 @@ export class MixturePanel extends MainPanel
 		};
 		dialog.showSaveDialog({}, (filename:string):void =>
 		{
+			if (!filename) return;
 			this.saveFile(filename);
 			this.filename = filename;
 			this.editor.setDirty(false);
@@ -254,7 +305,7 @@ export class MixturePanel extends MainPanel
 		const dialog = electron.remote.dialog; 
 		let params:any =
 		{
-			'title': 'Save Molecule',
+			'title': 'Save SVG Diagram',
 			//defaultPath...
 			'filters':
 			[
@@ -299,43 +350,6 @@ export class MixturePanel extends MainPanel
 		let clipboard = require('electron').clipboard;
 		clipboard.writeText(minchi);
 	}
-
-/*
-	private actionCopy(andCut:boolean):void
-	{
-		let input = this.sketcher.getState(), mol = input.mol;
-		let mask = Vec.booleanArray(false, mol.numAtoms);
-		if (Vec.anyTrue(input.selectedMask)) mask = input.selectedMask;
-		else if (input.currentAtom > 0) mask[input.currentAtom - 1] = true;
-		else if (input.currentBond > 0) {mask[mol.bondFrom(input.currentBond) - 1] = true; mask[mol.bondTo(input.currentBond) - 1] = true;}
-		else mask = Vec.booleanArray(true, mol.numAtoms);
-		
-		let copyMol = Vec.allTrue(mask) ? mol.clone() : MolUtil.subgraphWithAttachments(mol, mask);
-
-		if (andCut)
-		{
-			this.sketcher.clearSubject();
-			this.setMolecule(MolUtil.subgraphMask(mol, Vec.notMask(mask)));
-		}
-
-		const {clipboard} = require('electron');
-		clipboard.writeText(copyMol.toString());
-
-		this.sketcher.showMessage('Molecule with ' + copyMol.numAtoms + ' atom' + (copyMol.numAtoms == 1 ? '' : 's') + ' copied to clipboard.');
-	}
-
-	private actionPaste():void
-	{
-		const {clipboard} = require('electron');
-		let content = clipboard.readText();
-		if (!content) {alert('Clipboard has no text on it.'); return;}
-		try
-		{
-			let mol = MoleculeStream.readUnknown(content);
-			this.sketcher.pasteMolecule(mol);
-		}
-		catch (ex) {alert('Clipboard does not contain a recognisable molecule.'); return;}
-	}*/
 
 	private updateTitle():void
 	{

@@ -49,8 +49,8 @@ export interface MixfileComponent
 	// identifiers that map the substance to external databases (e.g. PubChem, ChemSpider, CAS, etc.); identifiers are ID numbers, and
 	// the meaning is implied by the context; links should be resolvable URLs, which are an alternative way of locating external
 	// resources; in some cases where there are multiple identifiers, the value should be specified as an array
-	identifiers?:{[id:string] : string | string[]};
-	links?:{[id:string] : string | string[]};
+	identifiers?:Record<string, string | string[]>;
+	links?:Record<string, string | string[]>;
 
 	// subcomponents: if this is a discrete molecular entity, then there will be none; usually there are either 0 or 2-or-more; in cases
 	// where there are any subcomponents, any of the properties above apply to all of these subcomponents collectively
