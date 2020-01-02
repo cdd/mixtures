@@ -17,6 +17,7 @@
 ///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
 ///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
+///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 
 ///<reference path='../decl/node.d.ts'/>
 ///<reference path='../decl/electron.d.ts'/>
@@ -99,7 +100,7 @@ export class CollectionPanel extends MainPanel
 
 	// ------------ public methods ------------
 
-	constructor(root:JQuery)
+	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy)
 	{
 		super(root);
 
@@ -352,7 +353,6 @@ export class CollectionPanel extends MainPanel
 			return;
 		}
 
-fnord
 		/* !! collections...
 		if (this.editor.isBlank()) return;
 		if (!this.filename) {this.actionFileSaveAs(); return;}
@@ -508,7 +508,7 @@ fnord
 	{
 		if (this.selected < 0) return;
 
-		this.editor = new EditMixture();
+		this.editor = new EditMixture(this.proxyClip);
 
 		this.divMain.empty();
 		this.editor.render(this.divMain);
@@ -540,12 +540,36 @@ fnord
 
 	private clipboardCopy(withCut:boolean):void
 	{
-		// !!
+
+		/* TODO
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		
+		let comp = deepClone(this.mixture.getComponent(origin));
+		delete (comp as any).mixfileVersion;
+		if (!wholeBranch) comp.contents = [];
+		let str = Mixture.serialiseComponent(comp);
+
+		let clipboard = require('electron').clipboard;
+		clipboard.writeText(str);
+
+		if (origin.length > 0 && andCut) this.deleteCurrent();*/
 	}
 
 	private clipboardPaste():void
 	{
-		// !!
+
+	
+		/* TODO
+		let clipboard = require('electron').clipboard;
+
+		let str = clipboard.readText();
+		let json:any = null;
+		try {json = JSON.parse(str);}
+		catch (e) {} // silent failure
+
+		let origin:number[] = [];
+		if (this.selectedIndex >= 0) origin = this.layout.components[this.selectedIndex].origin;*/		
 	}
 
 	private deleteMixture():void

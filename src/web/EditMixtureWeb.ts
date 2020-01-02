@@ -39,9 +39,9 @@ export class EditMixtureWeb extends EditMixture
 
 	// ------------ public methods ------------
 
-	constructor()
+	constructor(proxyClip:wmk.ClipboardProxy)
 	{
-		super();
+		super(proxyClip);
 	}
 
 	public render(parent:any):void

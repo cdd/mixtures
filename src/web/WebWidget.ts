@@ -19,6 +19,7 @@
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/WebMenu.ts'/>
+///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 
 ///<reference path='../decl/node.d.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
@@ -43,13 +44,15 @@ export class WebWidget extends wmk.Widget
 {
 	private filename:string = null;
 	private menu:wmk.WebMenu;
-	private editor = new EditMixtureWeb();
+	private editor:EditMixtureWeb = null;
 	
 	// ------------ public methods ------------
 
-	constructor()
+	constructor(proxyClip:wmk.ClipboardProxy)
 	{
 		super();
+
+		this.editor = new EditMixtureWeb(proxyClip);
 
 		this.menu = new wmk.WebMenu(
 		[

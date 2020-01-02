@@ -17,6 +17,7 @@
 ///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
 ///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
+///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 
 ///<reference path='../decl/node.d.ts'/>
 ///<reference path='../decl/electron.d.ts'/>
@@ -75,11 +76,11 @@ export class MixturePanel extends MainPanel
 {
 	private filename:string = null;
 	private banner:MenuBanner;
-	private editor = new EditMixture();
+	private editor = new EditMixture(this.proxyClip);
 	
 	// ------------ public methods ------------
 
-	constructor(root:JQuery)
+	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy)
 	{
 		super(root);
 
@@ -344,43 +345,6 @@ export class MixturePanel extends MainPanel
 		let clipboard = require('electron').clipboard;
 		clipboard.writeText(minchi);
 	}
-
-/*
-	private actionCopy(andCut:boolean):void
-	{
-		let input = this.sketcher.getState(), mol = input.mol;
-		let mask = Vec.booleanArray(false, mol.numAtoms);
-		if (Vec.anyTrue(input.selectedMask)) mask = input.selectedMask;
-		else if (input.currentAtom > 0) mask[input.currentAtom - 1] = true;
-		else if (input.currentBond > 0) {mask[mol.bondFrom(input.currentBond) - 1] = true; mask[mol.bondTo(input.currentBond) - 1] = true;}
-		else mask = Vec.booleanArray(true, mol.numAtoms);
-		
-		let copyMol = Vec.allTrue(mask) ? mol.clone() : MolUtil.subgraphWithAttachments(mol, mask);
-
-		if (andCut)
-		{
-			this.sketcher.clearSubject();
-			this.setMolecule(MolUtil.subgraphMask(mol, Vec.notMask(mask)));
-		}
-
-		const {clipboard} = require('electron');
-		clipboard.writeText(copyMol.toString());
-
-		this.sketcher.showMessage('Molecule with ' + copyMol.numAtoms + ' atom' + (copyMol.numAtoms == 1 ? '' : 's') + ' copied to clipboard.');
-	}
-
-	private actionPaste():void
-	{
-		const {clipboard} = require('electron');
-		let content = clipboard.readText();
-		if (!content) {alert('Clipboard has no text on it.'); return;}
-		try
-		{
-			let mol = MoleculeStream.readUnknown(content);
-			this.sketcher.pasteMolecule(mol);
-		}
-		catch (ex) {alert('Clipboard does not contain a recognisable molecule.'); return;}
-	}*/
 
 	private updateTitle():void
 	{

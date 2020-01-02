@@ -13,6 +13,7 @@
 ///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
 ///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
+///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 
 // NOTE: imports need to go before we start defining our own stuff, otherwise transpiler order sometimes breaks
 import wmk = WebMolKit;
@@ -82,16 +83,24 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 
 	if (!panelClass && filename && filename.endsWith('.json')) panelClass = 'CollectionPanel';
 
+	let proxyClip = new wmk.ClipboardProxy();
+	const {clipboard} = electron;
+	proxyClip.getString = ():string => clipboard.readText();
+	proxyClip.setString = (str:string):void => clipboard.writeText(str);
+	proxyClip.setHTML = (html:string):void => clipboard.writeHTML(html);
+	proxyClip.canSetHTML = ():boolean => true;
+	proxyClip.canAlwaysGet = ():boolean => true;
+
 	if (!panelClass)
 	{
-		let dw = new MixturePanel(root);
+		let dw = new MixturePanel(root, proxyClip);
 		if (filename) dw.loadFile(filename);
 	}
 	else
 	{
 		let proto = (Mixtures as any)[panelClass];
 		if (!proto) throw 'Unknown class: ' + panelClass;
-		let dw:MainPanel = new (proto as any)(root);
+		let dw:MainPanel = new (proto as any)(root, proxyClip);
 		if (filename) dw.loadFile(filename);
 	}
 }
