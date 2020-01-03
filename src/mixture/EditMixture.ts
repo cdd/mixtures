@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -158,7 +158,7 @@ export class EditMixture extends wmk.Widget
 		while (this.undoStack.length > UNDO_SIZE) this.undoStack.splice(0, 1);
 		this.redoStack = [];
 	}
-	
+
 	// reports on the state of the undo/redo buffers
 	public canUndo():boolean {return this.undoStack.length > 0;}
 	public canRedo():boolean {return this.redoStack.length > 0;}
@@ -188,7 +188,7 @@ export class EditMixture extends wmk.Widget
 	public delayedRedraw():void
 	{
 		this.filthy = true;
-		window.setTimeout(() => {if (this.filthy) this.redraw();}, 10);		
+		window.setTimeout(() => {if (this.filthy) this.redraw();}, 10);
 	}
 
 	// alter zoom level by a factor
@@ -232,7 +232,7 @@ export class EditMixture extends wmk.Widget
 		proxy.canAlwaysGet = ():boolean => true;*/
 
 		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule());
-		this.dlgCompound.onSave(() => 
+		this.dlgCompound.onSave(() =>
 		{
 			let molfile = wmk.MoleculeStream.writeMDLMOL(this.dlgCompound.getMolecule());
 			if (!molfile) molfile = null;
@@ -241,10 +241,10 @@ export class EditMixture extends wmk.Widget
 			comp.molfile = molfile;
 			let modmix = this.mixture.clone();
 			if (modmix.setComponent(origin, comp)) this.setMixture(modmix);
-			
+
 			this.dlgCompound.close();
 		});
-		this.dlgCompound.onClose(() => 
+		this.dlgCompound.onClose(() =>
 		{
 			this.isEditing = false;
 			this.dlgCompound = null;
@@ -362,7 +362,7 @@ export class EditMixture extends wmk.Widget
 	{
 		if (this.selectedIndex < 0) return;
 		let origin = this.layout.components[this.selectedIndex].origin;
-		
+
 		let comp = deepClone(this.mixture.getComponent(origin));
 		delete (comp as any).mixfileVersion;
 		if (!wholeBranch) comp.contents = [];
@@ -389,7 +389,7 @@ export class EditMixture extends wmk.Widget
 		let origin:number[] = [];
 		if (this.selectedIndex >= 0) origin = this.layout.components[this.selectedIndex].origin;
 
-		if (!json) 
+		if (!json)
 		{
 			let mol = wmk.MoleculeStream.readUnknown(str);
 			if (wmk.MolUtil.notBlank(mol))
@@ -440,14 +440,14 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// ------------ private methods ------------
-	
+
 	protected redraw(rescale = false):void
 	{
 		this.filthy = false;
 
 		let width = this.content.width(), height = this.content.height();
 		let density = pixelDensity();
-		
+
 		for (let canvas of [this.canvasMixture, this.canvasOver])
 		{
 			canvas.width = width * density;
@@ -468,7 +468,7 @@ export class EditMixture extends wmk.Widget
 
 		if (this.delayedSelect)
 		{
-			for (let n = 0; n < this.layout.components.length; n++) 
+			for (let n = 0; n < this.layout.components.length; n++)
 				if (Vec.equals(this.delayedSelect, this.layout.components[n].origin)) {this.selectedIndex = n; break;}
 			this.delayedSelect = null;
 		}
@@ -486,7 +486,7 @@ export class EditMixture extends wmk.Widget
 		gfx.renderCanvas(this.canvasMixture, true);
 	}
 
-	// assuming that layout is already defined, modifies the offset/scale so that 
+	// assuming that layout is already defined, modifies the offset/scale so that
 	protected scaleToFit():void
 	{
 		let width = this.content.width(), height = this.content.height(), pad = 4;
@@ -651,7 +651,7 @@ export class EditMixture extends wmk.Widget
 
 		if (!event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey)
 		{
-			if (key == 27) {} // escape	
+			if (key == 27) {} // escape
 			if (key == 37) this.navigateDirection('left');
 			else if (key == 39) this.navigateDirection('right');
 			else if (key == 38) this.navigateDirection('up');
@@ -685,7 +685,7 @@ export class EditMixture extends wmk.Widget
 		event.preventDefault();
 
 		let comp = this.pickComponent(event.clientX, event.clientY);
-		
+
 		let electron = require('electron');
 		let menu = new electron.remote.Menu();
 		if (comp >= 0)

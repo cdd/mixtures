@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -81,7 +81,7 @@ export class MenuBanner
 		for (let blk of this.commands)
 		{
 			let divBlk = $('<div/>').appendTo(this.divFlex);
-			for (let btn of blk) 
+			for (let btn of blk)
 			{
 				let [div, svg] = this.createCommand(btn);
 				divBlk.append(div);
@@ -100,7 +100,7 @@ export class MenuBanner
 			this.mapSVG[cmd].css('opacity', active ? 1 : 0.5);
 		}
 	}
-	
+
 	// ------------ private methods ------------
 
 	private createCommand(btn:MenuBannerButton):JQuery[]
@@ -110,9 +110,9 @@ export class MenuBanner
 		div.css({'border-radius': '4px'});
 		let svg = $('<img/>').appendTo(div).attr({'src': 'res/img/icons/' + btn.icon});
 
-		div.hover(() => div.css('background-color', this.mapActive[btn.cmd] ? '#C0C0C0' : 'transparent'), 
+		div.hover(() => div.css('background-color', this.mapActive[btn.cmd] ? '#C0C0C0' : 'transparent'),
 				  () => div.css('background-color', 'transparent'));
-		div.click(() => 
+		div.click(() =>
 		{
 			if (!this.mapActive[btn.cmd]) return;
 			this.onAction(btn.cmd);

@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -29,7 +29,7 @@ import orBlank = WebMolKit.orBlank;
 import blendRGB = WebMolKit.blendRGB;
 import colourCode = WebMolKit.colourCode;
 import TWOPI = WebMolKit.TWOPI;
-import norm_xy = WebMolKit.norm_xy;
+import norm_xy = WebMolKit.norm_xy; // eslint-disable-line
 import newElement = WebMolKit.newElement;
 
 ///<reference path='../decl/node.d.ts'/>
@@ -39,7 +39,7 @@ namespace Mixtures /* BOF */ {
 
 $ = (window as any)['$'] || require('./jquery.js');
 
-export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally 
+export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally
 							   // executed window version
 
 /*
@@ -61,7 +61,7 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 	const electron = require('electron');
 	const process = require('process');
 
-	process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;	
+	process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
 
 	BASE_APP = path.normalize('file:/' + __dirname);
 
@@ -79,7 +79,7 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 		let key = p.substring(0, eq), val = decodeURIComponent(p.substring(eq + 1));
 		if (key == 'panel') panelClass = val;
 		else if (key == 'fn') filename = val;
-	}	
+	}
 
 	if (!panelClass && filename && filename.endsWith('.json')) panelClass = 'CollectionPanel';
 

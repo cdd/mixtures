@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -81,7 +81,11 @@ export class PubChemSearch
 		if (this.stopped) return;
 
 		let obj = null;
-		try {obj = JSON.parse(data);} catch (ex)
+		try
+		{
+			obj = JSON.parse(data);
+		}
+		catch (ex)
 		{
 			console.log('Received unparseable result: ' + data);
 			this.callbackFinished('Unparseable result from name query: ' + ex.toString());
@@ -131,7 +135,7 @@ export class PubChemSearch
 
 	private unpackCompound(ds:wmk.DataSheet, row:number):void
 	{
-		let result:PubChemSearchResult = 
+		let result:PubChemSearchResult =
 		{
 			'mol': ds.getMolecule(row, 'Molecule'),
 			'names': [],
@@ -146,7 +150,7 @@ export class PubChemSearch
 			wmk.CoordUtil.normaliseBondDistances(result.mol);
 		}
 
-		const NAMECOLS = ['PUBCHEM_IUPAC_TRADITIONAL_NAME', 'PUBCHEM_IUPAC_SYSTEMATIC_NAME', 
+		const NAMECOLS = ['PUBCHEM_IUPAC_TRADITIONAL_NAME', 'PUBCHEM_IUPAC_SYSTEMATIC_NAME',
 						  'PUBCHEM_IUPAC_OPENEYE_NAME', 'PUBCHEM_IUPAC_CAS_NAME', 'PUBCHEM_IUPAC_NAME'];
 		for (let colName of NAMECOLS)
 		{

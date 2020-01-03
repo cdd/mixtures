@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -21,7 +21,7 @@
 namespace Mixtures /* BOF */ {
 
 /*
-	Arranging a Mixfile: will create a tree layout for all of the components, according to parameters. 
+	Arranging a Mixfile: will create a tree layout for all of the components, according to parameters.
 */
 
 export class ArrangeMixtureComponent
@@ -92,7 +92,7 @@ export class ArrangeMixture
 			comp.boundary.x -= outline.x;
 			comp.boundary.y -= outline.y;
 
-			if (comp.molLayout) 
+			if (comp.molLayout)
 			{
 				let b1 = comp.boundary, b2 = comp.molBox;
 				comp.molLayout.squeezeInto(b1.x + b2.x, b1.y + b2.y, b2.w, b2.h);
@@ -129,7 +129,7 @@ export class ArrangeMixture
 		for (let n = 0; n < this.components.length; n++) if (Vec.equals(this.components[n].origin, origin)) return n;
 		return -1;
 	}
-		
+
 	// --------------------- private methods ---------------------
 
 	// instantiate each component in the diagram (which includes pluses and arrows)
@@ -163,7 +163,7 @@ export class ArrangeMixture
 				comp.molLayout = new wmk.ArrangeMolecule(comp.mol, this.measure, this.policy);
 				comp.molLayout.arrange();
 				comp.molLayout.squeezeInto(0, 0, this.limitStructW, this.limitStructH);
-				let bounds = comp.molLayout.determineBoundary();				
+				let bounds = comp.molLayout.determineBoundary();
 				comp.molBox = new wmk.Box(padding, padding, Math.ceil(bounds[2] - bounds[0]), Math.ceil(bounds[3] - bounds[1]));
 			}
 			else comp.molBox = wmk.Box.zero();
@@ -194,11 +194,11 @@ export class ArrangeMixture
 				comp.nameBox.w = Math.max(comp.nameBox.w, wad[0]);
 				comp.nameBox.h += wad[1] + (n > 0 ? wad[2] * 2 : 0);
 			}
-			
+
 			comp.boundary = wmk.Box.zero();
 			comp.boundary.w = Math.max(comp.molBox.w, comp.nameBox.w) + 2 * padding;
 			comp.boundary.h = comp.molBox.h + comp.nameBox.h + 2 * padding;
-			if (comp.molBox.notEmpty() && comp.nameBox.notEmpty()) 
+			if (comp.molBox.notEmpty() && comp.nameBox.notEmpty())
 			{
 				comp.boundary.h += padding;
 				comp.nameBox.y += comp.molBox.h + padding;
@@ -268,7 +268,7 @@ export class ArrangeMixture
 	// turn quantity info into a readable string
 	private formatQuantity(mixcomp:MixfileComponent):string
 	{
-		let prec = (val:number):string => 
+		let prec = (val:number):string =>
 		{
 			if (val > 10000) return Math.round(val).toString();
 			let str = val.toPrecision(6);
@@ -291,7 +291,7 @@ export class ArrangeMixture
 		if (mixcomp.quantity == null) return null;
 
 		let str = '';
-		if (mixcomp.relation) 
+		if (mixcomp.relation)
 		{
 			let rel = mixcomp.relation;
 			if (rel == '>=') rel = '\u{2265}'; else if (rel == '<=') rel = '\u{2264}';
@@ -303,7 +303,7 @@ export class ArrangeMixture
 			str += prec(mixcomp.quantity[0]);
 			if (mixcomp.quantity.length >= 2) str += ' - ' + prec(mixcomp.quantity[1]);
 		}
-		else 
+		else
 		{
 			str += prec(mixcomp.quantity); // is presumed to be scalar
 			if (mixcomp.error)

@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -31,14 +31,14 @@ export class DrawMixture
 	public activeIndex = -1; // component that is actively engaged with UI
 	public selectedIndex = -1; // component that is passively selected
 
-	private measure:wmk.ArrangeMeasurement; 
+	private measure:wmk.ArrangeMeasurement;
 	private policy:wmk.RenderPolicy;
 
 	private scale:number;
 	private invScale:number;
-	
+
 	// --------------------- public methods ---------------------
-	
+
 	constructor(private layout:ArrangeMixture, private vg:wmk.MetaVector)
 	{
 		this.measure = layout.measure;
@@ -57,7 +57,7 @@ export class DrawMixture
 	}
 
 	// --------------------- private methods ---------------------
-	
+
 	private drawConnection(parent:ArrangeMixtureComponent, child:ArrangeMixtureComponent):void
 	{
 		let x1 = parent.boundary.maxX(), x2 = child.boundary.minX();
@@ -81,9 +81,9 @@ export class DrawMixture
 		else if (idx == this.hoverIndex) bg = 0xE0E0E0;
 
 		this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, bg);
-		
+
 		if (comp.molLayout) new wmk.DrawMolecule(comp.molLayout, this.vg).draw();
-		
+
 		if (comp.nameLines.length > 0)
 		{
 			let x = box.x + comp.nameBox.midX(), y = box.y + comp.nameBox.y;
@@ -102,7 +102,7 @@ export class DrawMixture
 				let wad = this.measure.measureText(line, comp.fontSize);
 				comp.nameBox.w = Math.max(comp.nameBox.w, wad[0]);
 				comp.nameBox.h += wad[1] + wad[2];
-			}*/		
+			}*/
 	}
 
 	/*private drawComponent(xc:ArrangeComponent):void
@@ -171,11 +171,11 @@ export class DrawMixture
 		let bx = xc.box.x + xc.padding, by = xc.box.y + xc.padding;
 		let bw = xc.box.w - 2 * xc.padding, bh = xc.box.h - 2 * xc.padding;
 
-		if (bw > bh) 
+		if (bw > bh)
 			this.drawArrow(bx, by + 0.5 * bh, bx + bw, by + 0.5 * bh, bh, this.policy.data.foreground, this.scale * 0.05);
 		else
 			this.drawArrow(bx + 0.5 * bw, by, bx + 0.5 * bw, by + bh, bw, this.policy.data.foreground, this.scale * 0.05);
-    }	
+    }
 	private drawSymbolPlus(xc:ArrangeComponent):void
     {
 		let vg = this.vg, policy = this.policy;
@@ -193,9 +193,9 @@ export class DrawMixture
 		let sz = bw, x2 = bx + bw, y2 = by + bh, x1 = x2 - sz, y1 = by;
 		if (annot == ArrangeExperiment.COMP_ANNOT_PRIMARY) y2 = y1 + sz;
 		else if (annot == ArrangeExperiment.COMP_ANNOT_WASTE) y1 = y2 - sz;
-    	
+
     	//vg.drawRect(x1,y1,x2-x1,y2-y1,0x000000,1,NOCOLOUR);
-    	
+
 		if (annot == ArrangeExperiment.COMP_ANNOT_PRIMARY)
 		{
 			let cx = 0.5 * (x1 + x2), cy = 0.5 * (y1 + y2), ext = 0.25 * sz;
@@ -230,7 +230,7 @@ export class DrawMixture
 			let cx = x2 - 0.5 * tw, cy = y1 + 0.5 * th;
 			let ty = y1 + 0.25 * th, dsz = sz * 0.1, hsz = 0.5 * dsz;
 			let lw = 0.05 * this.scale, fg = policy.data.foreground;
-			
+
 			vg.drawLine(cx, y1, cx, y1 + th, fg, lw);
 			vg.drawLine(x2 - tw, ty, x2, ty, fg, lw);
 			vg.drawLine(x2 - tw, cy, x2, cy, fg, lw);
@@ -246,7 +246,7 @@ export class DrawMixture
 		dy *= invD;
 		let ox = dy, oy = -dx;
 		let hx = x2 - dx * headsz, hy = y2 - dy * headsz;
-		let px = 
+		let px =
 		[
 			x1 + ox * 0.5 * linesz,
 			hx + ox * 0.5 * linesz,
@@ -256,7 +256,7 @@ export class DrawMixture
      		hx - ox * 0.5 * linesz,
 			x1 - ox * 0.5 * linesz
 		];
-		let py = 
+		let py =
 		[
 			y1 + oy * 0.5 * linesz,
 			hy + oy * 0.5 * linesz,

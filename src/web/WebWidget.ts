@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -45,7 +45,7 @@ export class WebWidget extends wmk.Widget
 	private filename:string = null;
 	private menu:wmk.WebMenu;
 	private editor:EditMixtureWeb = null;
-	
+
 	// ------------ public methods ------------
 
 	constructor(proxyClip:wmk.ClipboardProxy)
@@ -58,7 +58,7 @@ export class WebWidget extends wmk.Widget
 		[
 			{
 				'label': 'File',
-				'submenu': 
+				'submenu':
 				[
 					{'label': 'Clear', 'click': () => this.actionClear()},
 					{'label': 'Save', 'click': () => this.actionSave()},
@@ -68,7 +68,7 @@ export class WebWidget extends wmk.Widget
 			},
 			{
 				'label': 'Edit',
-				'submenu': 
+				'submenu':
 				[
 					{'label': 'Edit Details', 'click': () => this.editor.editDetails()},
 					{'label': 'Edit Structure', 'click': () => this.editor.editStructure()},
@@ -89,7 +89,7 @@ export class WebWidget extends wmk.Widget
 			},
 			{
 				'label': 'View',
-				'submenu': 
+				'submenu':
 				[
 					{'label': 'Normal Size', 'click': () => this.editor.zoomFull()},
 					{'label': 'Zoom In', 'click': () => this.editor.zoom(1.25)},
@@ -113,7 +113,7 @@ export class WebWidget extends wmk.Widget
 		let divMenu = $('<div style="width: 100%; flex-grow: 0;"/>').appendTo(this.content);
 		let divMain = $('<div style="width: 100%; flex: 1 1 0; height: 100%; position: relative;"/>').appendTo(this.content);
 		let divMainX = $('<div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"/>').appendTo(divMain); // workaround
-		
+
 		this.menu.render(divMenu);
 		this.editor.render(divMainX);
 	}
@@ -170,7 +170,7 @@ export class WebWidget extends wmk.Widget
 
 		document.body.appendChild(a);
 		a.click();
-		document.body.removeChild(a);		
+		document.body.removeChild(a);
 	}
 }
 

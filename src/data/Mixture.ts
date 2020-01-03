@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -30,7 +30,7 @@ export class Mixture
 	}
 
 	// instantiates a new mixture object by casting a component into a root mixfile
-	public static fromComponent(comp:MixfileComponent)
+	public static fromComponent(comp:MixfileComponent):Mixture
 	{
 		let mixfile = deepClone(comp) as Mixfile;
 		mixfile.mixfileVersion = MIXFILE_VERSION;
@@ -44,7 +44,7 @@ export class Mixture
 	}
 	public static isComponentEmpty(comp:MixfileComponent):boolean
 	{
-		const BITS = ['name', 'description', 'synonyms', 'formula', 'molfile', 'inchi', 'inchiKey', 'smiles', 
+		const BITS = ['name', 'description', 'synonyms', 'formula', 'molfile', 'inchi', 'inchiKey', 'smiles',
 					  'ratio', 'quantity', 'units', 'relation', 'identifiers', 'links'];
 		for (let bit of BITS) if ((comp as any)[bit] != null) return false;
 		if (Vec.arrayLength(comp.contents) > 0) return false;
@@ -83,7 +83,7 @@ export class Mixture
 		return Mixture.beautify(comp);
 	}
 
-	// uses the "origin vector" to fetch a particular component; this is an array of indices, where [] indicates the root; its first component is [0], 
+	// uses the "origin vector" to fetch a particular component; this is an array of indices, where [] indicates the root; its first component is [0],
 	// the second child of its first component is [0,1], etc.
 	public getComponent(origin:number[]):MixfileComponent
 	{
@@ -211,7 +211,7 @@ export class Mixture
 	private recursiveEqual(comp1:MixfileComponent, comp2:MixfileComponent):boolean
 	{
 		let dict1:any = comp1, dict2:any = comp2;
-		/*let keys1 = Object.keys(dict1), keys2 = Object.keys(dict2);	
+		/*let keys1 = Object.keys(dict1), keys2 = Object.keys(dict2);
 		let i:number;
 		if ((i = keys1.indexOf('contents')) >= 0) keys1.splice(i, 1);
 		if ((i = keys2.indexOf('contents')) >= 0) keys2.splice(i, 1);*/
@@ -221,7 +221,7 @@ export class Mixture
 		keys1.sort();
 		keys2.sort();
 		if (!Vec.equals(keys1, keys2)) return false; // different keys (less contents) is a dealbreaker
-		for (let k of keys1) 
+		for (let k of keys1)
 		{
 			let v1 = dict1[k], v2 = dict2[k];
 			if (Array.isArray(v1) && Array.isArray(v2))
@@ -229,15 +229,15 @@ export class Mixture
 				if (!Vec.equals(v1, v2)) return false;
 			}
 			else // assume scalar
-			{	
+			{
 				if (v1 != v2) return false;
 			}
 		}
 
 		let len = Vec.arrayLength(comp1.contents);
-		if (len != Vec.arrayLength(comp2.contents)) return false;		
+		if (len != Vec.arrayLength(comp2.contents)) return false;
 		for (let n = 0; n < len; n++) if (!this.recursiveEqual(comp1.contents[n], comp2.contents[n])) return false;
-		
+
 		return true;
 	}
 }

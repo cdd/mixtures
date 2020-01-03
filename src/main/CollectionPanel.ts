@@ -187,10 +187,10 @@ export class CollectionPanel extends MainPanel
 				else if (cmd == MenuBannerCommand.Redo) dlg.actionRedo();
 				return;
 			}
-			if (!this.editor.isReceivingCommands()) 
+			if (!this.editor.isReceivingCommands())
 			{
 				// certain common menu/shortcut commands are passed through to standard behaviour, the rest are stopped
-				if ([MenuBannerCommand.Cut, MenuBannerCommand.Copy, MenuBannerCommand.Paste, 
+				if ([MenuBannerCommand.Cut, MenuBannerCommand.Copy, MenuBannerCommand.Paste,
 					MenuBannerCommand.Undo, MenuBannerCommand.Redo].indexOf(cmd) >= 0) document.execCommand(cmd);
 				return;
 			}
@@ -223,7 +223,7 @@ export class CollectionPanel extends MainPanel
 			else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
 			else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
 			else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
-			else super.customMenuAction(cmd);		
+			else super.customMenuAction(cmd);
 		}
 		else
 		{
@@ -320,7 +320,7 @@ export class CollectionPanel extends MainPanel
 	protected actionFileOpen():void
 	{
 		const electron = require('electron');
-		const dialog = electron.remote.dialog; 
+		const dialog = electron.remote.dialog;
 		let params:any =
 		{
 			'title': 'Open Mixtures',
@@ -333,7 +333,7 @@ export class CollectionPanel extends MainPanel
 		};
 		dialog.showOpenDialog(params, (filenames:string[]):void =>
 		{
-			if (filenames) for (let fn of filenames) 
+			if (filenames) for (let fn of filenames)
 			{
 				if (fn.endsWith('.mixfile'))
 					openNewWindow('MixturePanel', fn);
@@ -559,7 +559,7 @@ export class CollectionPanel extends MainPanel
 			this.renderMain();
 			this.divMain[0].scrollTop = top;
 			this.updateBanner();
-			this.updateTitle();	
+			this.updateTitle();
 		}
 	}
 

@@ -10,6 +10,8 @@
 	Made available under the Gnu Public License v3.0
 */
 
+/* eslint @typescript-eslint/camelcase: 0 */
+
 namespace Mixtures /* BOF */ {
 
 /*
@@ -88,7 +90,7 @@ export class Units
 	private static URI_TO_NAME:Record<string, string> = {};
 	private static NAME_TO_URI:Record<string, string> = {};
 	private static URI_TO_MINCHI:Record<string, [string, number]> = {};
-	public static setup()
+	public static setup():void
 	{
 		for (let pair of PAIR_UNIT_NAMES)
 		{

@@ -86,11 +86,11 @@ export class EditComponent extends wmk.Dialog
 		this.maximumHeight = parentSize[1];
 	}
 
-	public onSave(callback:(source?:EditComponent) => void)
+	public onSave(callback:(source?:EditComponent) => void):void
 	{
 		this.callbackSave = callback;
 	}
-	public onSketch(callback:(source?:EditComponent) => void)
+	public onSketch(callback:(source?:EditComponent) => void):void
 	{
 		this.callbackSketch = callback;
 	}
@@ -368,7 +368,7 @@ export class EditComponent extends wmk.Dialog
 		let flex = $('<div/>').appendTo(parent);
 		flex.css('display', 'flex');
 		flex.css('align-items', 'center');
-		let box = () => $('<div style="padding-left: 0.5em;"/>').appendTo(flex);
+		let box = ():JQuery => $('<div style="padding-left: 0.5em;"/>').appendTo(flex);
 
 		this.optQuantType = new wmk.OptionList([QuantityType.Value, QuantityType.Range, QuantityType.Ratio]);
 		this.optQuantType.render(flex);
@@ -391,19 +391,19 @@ export class EditComponent extends wmk.Dialog
 		this.dropQuantUnits = this.makeDropdownGroup(box(), this.component.units, unitValues, unitLabels,
 									(value:string, label:string) => {this.component.units = label;});
 
-		let changeToValue = () =>
+		let changeToValue = ():void =>
 		{
 			this.dropQuantRel.css('display', 'block');
 			spanGap.html('&plusmn;');
 			this.dropQuantUnits.css('display', 'block');
 		};
-		let changeToRange = () =>
+		let changeToRange = ():void =>
 		{
 			this.dropQuantRel.css('display', 'none');
 			spanGap.html('to');
 			this.dropQuantUnits.css('display', 'block');
 		};
-		let changeToRatio = () =>
+		let changeToRatio = ():void =>
 		{
 			this.dropQuantRel.css('display', 'none');
 			spanGap.html('/');

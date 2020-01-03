@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -77,7 +77,7 @@ export class MixturePanel extends MainPanel
 	private filename:string = null;
 	private banner:MenuBanner;
 	private editor = new EditMixture(this.proxyClip);
-	
+
 	// ------------ public methods ------------
 
 	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy)
@@ -110,7 +110,7 @@ export class MixturePanel extends MainPanel
 		fs.readFile(filename, 'utf-8', (err:any, data:string):void =>
 		{
 			if (err) throw err;
-			
+
 			let mixture:Mixture;
 			try {mixture = Mixture.deserialise(data);}
 			catch (e)
@@ -124,8 +124,8 @@ export class MixturePanel extends MainPanel
 			this.editor.setMixture(mixture, true, false);
 			this.editor.setDirty(false);
 			this.filename = filename;
-			this.updateTitle();			
-		});		
+			this.updateTitle();
+		});
 	}
 
 	public saveFile(filename:string):void
@@ -141,7 +141,7 @@ export class MixturePanel extends MainPanel
 		});
 	}
 
-	protected onResize()
+	protected onResize():void
 	{
 		super.onResize();
 		this.editor.delayedRedraw();
@@ -162,10 +162,10 @@ export class MixturePanel extends MainPanel
 			else if (cmd == MenuBannerCommand.Redo) dlg.actionRedo();
 			return;
 		}
-		if (!this.editor.isReceivingCommands()) 
+		if (!this.editor.isReceivingCommands())
 		{
 			// certain common menu/shortcut commands are passed through to standard behaviour, the rest are stopped
-			if ([MenuBannerCommand.Cut, MenuBannerCommand.Copy, MenuBannerCommand.Paste, 
+			if ([MenuBannerCommand.Cut, MenuBannerCommand.Copy, MenuBannerCommand.Paste,
 				 MenuBannerCommand.Undo, MenuBannerCommand.Redo].indexOf(cmd) >= 0) document.execCommand(cmd);
 			return;
 		}
@@ -203,7 +203,7 @@ export class MixturePanel extends MainPanel
 	protected actionFileOpen():void
 	{
 		const electron = require('electron');
-		const dialog = electron.remote.dialog; 
+		const dialog = electron.remote.dialog;
 		let params:any =
 		{
 			'title': 'Open Mixture',
@@ -217,7 +217,7 @@ export class MixturePanel extends MainPanel
 		dialog.showOpenDialog(params, (filenames:string[]):void =>
 		{
 			let inPlace = this.editor.getMixture().isEmpty();
-			if (filenames) for (let fn of filenames) 
+			if (filenames) for (let fn of filenames)
 			{
 				if (inPlace && fn.endsWith('.mixfile'))
 				{
@@ -226,7 +226,7 @@ export class MixturePanel extends MainPanel
 				}
 				else if (fn.endsWith('.json'))
 					openNewWindow('CollectionPanel', fn);
-				else				
+				else
 					openNewWindow('MixturePanel', fn);
 			}
 		});
@@ -247,7 +247,7 @@ export class MixturePanel extends MainPanel
 		if (this.editor.isBlank()) return;
 
 		const electron = require('electron');
-		const dialog = electron.remote.dialog; 
+		const dialog = electron.remote.dialog;
 		let params:any =
 		{
 			'title': 'Save Mixfile',
@@ -287,7 +287,7 @@ export class MixturePanel extends MainPanel
 				{'name': 'SDfile', 'extensions': ['sdf']}
 			]
 		};
-		if (this.filename && this.filename.endsWith('.mixfile')) 
+		if (this.filename && this.filename.endsWith('.mixfile'))
 			params.defaultPath = (this.filename.substring(0, this.filename.length - 8) + '.sdf').split(/[\/\\]/).pop();
 
 		dialog.showSaveDialog(params, (filename:string):void =>
@@ -302,7 +302,7 @@ export class MixturePanel extends MainPanel
 	private actionFileExportSVG():void
 	{
 		const electron = require('electron');
-		const dialog = electron.remote.dialog; 
+		const dialog = electron.remote.dialog;
 		let params:any =
 		{
 			'title': 'Save SVG Diagram',
@@ -324,17 +324,17 @@ export class MixturePanel extends MainPanel
 			gfx.normalise();
 			let svg = gfx.createSVG();
 
-			const fs = require('fs');			
+			const fs = require('fs');
 			fs.writeFile(filename, svg, (err:any):void =>
 			{
 				if (err) alert('Unable to save: ' + err);
-			});		
+			});
 		});
 	}
 
 	private actionFileCreateMInChI():void
 	{
-		if (!InChI.isAvailable()) 
+		if (!InChI.isAvailable())
 		{
 			alert('InChI executable has not been configured. Specify with --inchi parameter.');
 			return;

@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -29,10 +29,10 @@ export abstract class MainPanel
 	constructor(public root:JQuery)
 	{
 		$('body').css('overflow', 'hidden');
-		
+
 		root.css('width', '100%');
 		root.css('height', document.documentElement.clientHeight + 'px');
-		$(window).resize(() => this.onResize()); 
+		$(window).resize(() => this.onResize());
 		root.css('user-select', 'none');
 
 		root.on('menuAction', (event:any, cmd:string) => this.menuAction(cmd as MenuBannerCommand));

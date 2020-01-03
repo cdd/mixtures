@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -43,7 +43,7 @@ export class MixtureCollection
 		return this.recursiveEqual(this.mixfile, other.mixfile);
 	}*/
 
-	public get count():number 
+	public get count():number
 	{
 		return this.mixtures.length;
 	}
@@ -55,16 +55,16 @@ export class MixtureCollection
 	{
 		this.mixtures[idx] = mixture.clone();
 	}
-	public deleteMixture(idx:number):void 
+	public deleteMixture(idx:number):void
 	{
 		this.mixtures.splice(idx, 1);
 	}
-	public appendMixture(mixture:Mixture):number 
+	public appendMixture(mixture:Mixture):number
 	{
-		this.mixtures.push(mixture); 
+		this.mixtures.push(mixture);
 		return this.mixtures.length - 1;
 	}
-	public insertMixture(idx:number, mixture:Mixture):void 
+	public insertMixture(idx:number, mixture:Mixture):void
 	{
 		this.mixtures.splice(idx, 0, mixture);
 	}
@@ -94,7 +94,6 @@ export class MixtureCollection
 	}
 
 	// ------------ private methods ------------
-
 
 }
 

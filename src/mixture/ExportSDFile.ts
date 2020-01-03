@@ -47,7 +47,7 @@ export class ExportSDFile
 	}
 
 	// can add any number of mixtures, which will be numbered automatically
-	public append(mixfile:Mixfile)
+	public append(mixfile:Mixfile):void
 	{
 		// if the root node is something other than a pure placeholder, then add it explicitly
 		if (mixfile.name || mixfile.molfile || mixfile.inchi)
@@ -78,7 +78,14 @@ export class ExportSDFile
 		if (comp.molfile)
 		{
 			mol = wmk.Molecule.fromString(comp.molfile);
-			if (!mol) try {mol = new wmk.MDLMOLReader(comp.molfile).parse();} catch (e) {}
+			if (!mol)
+			{
+				try
+				{
+					mol = new wmk.MDLMOLReader(comp.molfile).parse();
+				}
+				catch (e) {}
+			}
 		}
 		if (!mol) mol = new wmk.Molecule();
 

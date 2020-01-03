@@ -12,12 +12,10 @@ endif
 
 echo "-- ESLint --"
 
-cd ts
-eslint src/**/*.ts
+eslint src/{data,lookup,main,mixture,web}/*.ts
 if ("$status" != "0") then
 	echo "**** ERRORS; fix TypeScript code before pushing to git"
 	exit
 endif
-cd ..
 
 echo "All good."

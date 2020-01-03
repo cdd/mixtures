@@ -71,7 +71,7 @@ export class LookupCompoundDialog extends wmk.Dialog
 		this.maximumHeight = parentSize[1];
 	}
 
-	public onSelect(callback:(source?:LookupCompoundDialog) => void)
+	public onSelect(callback:(source?:LookupCompoundDialog) => void):void
 	{
 		this.callbackSelect = callback;
 	}
