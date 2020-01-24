@@ -63,7 +63,6 @@ export class EditComponent extends wmk.Dialog
 	private areaSyn:JQuery = null;
 	private lineFormula:JQuery;
 	private lineInChI:JQuery;
-	private lineInChIKey:JQuery;
 	private lineSMILES:JQuery;
 	private areaIdent:JQuery;
 	private areaLinks:JQuery;
@@ -83,7 +82,7 @@ export class EditComponent extends wmk.Dialog
 		this.minPortionWidth = 20;
 		this.maxPortionWidth = 95;
 		//this.maximumWidth = parentSize[0];
-		this.maximumHeight = parentSize[1];
+		this.maximumHeight = parentSize[1];	
 	}
 
 	public onSave(callback:(source?:EditComponent) => void):void
@@ -192,15 +191,11 @@ export class EditComponent extends wmk.Dialog
 		this.lineInChI = this.createValueLine(grid2, line);
 		this.lineInChI.val(this.component.inchi);
 
-		this.createFieldName(grid2, ++line, 'InChIKey');
-		this.lineInChIKey = this.createValueLine(grid2, line);
-		this.lineInChIKey.val(this.component.inchiKey);
-
 		if (InChI.isAvailable() && this.component.molfile)
 		{
 			let div = this.createDiv(grid2, ++line);
 			let btn = $('<button class="wmk-button wmk-button-default">Calculate from Structure</button>').appendTo(div);
-			btn.click(() => this.calculateInChI());
+			btn.click(() => this.calculateInChI().then());
 		}
 
 		this.createFieldName(grid2, ++line, 'SMILES');
@@ -277,7 +272,6 @@ export class EditComponent extends wmk.Dialog
 
 		this.component.formula = nullifyBlank(this.lineFormula.val());
 		this.component.inchi = nullifyBlank(this.lineInChI.val());
-		this.component.inchiKey = nullifyBlank(this.lineInChIKey.val());
 		this.component.smiles = nullifyBlank(this.lineSMILES.val());
 
 		this.component.identifiers = splitKeys(this.areaIdent.val());
@@ -457,7 +451,7 @@ export class EditComponent extends wmk.Dialog
 	}
 
 	// uses the structure (if any) to calculate the InChI, and fill in the field value
-	private calculateInChI():void
+	private async calculateInChI():Promise<void>
 	{
 		if (!InChI.isAvailable()) return;
 		//let mol = this.sketcher.getMolecule();
@@ -470,9 +464,8 @@ export class EditComponent extends wmk.Dialog
 
 		try
 		{
-			let [inchi, inchiKey] = InChI.makeInChI(mol);
+			let inchi = await InChI.makeInChI(mol);
 			this.lineInChI.val(inchi);
-			this.lineInChIKey.val(inchiKey);
 		}
 		catch (ex) {alert('InChI generation failed: ' + ex);}
 	}

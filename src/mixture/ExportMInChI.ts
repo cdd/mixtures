@@ -59,7 +59,7 @@ export class ExportMInChI
 	// this should generally be called first: any component that has a structure but not an InChI string gets one calculated,
 	// which presumes that the external environment has been configured to allow this; returns true if anything was done, i.e.
 	// the parameter mixture was modified; note that if any components have an InChI that is wrong, this will be believed
-	public fillInChI():boolean
+	public async fillInChI():Promise<boolean>
 	{
 		if (!InChI.isAvailable()) return false; // silent failure: the caller should check if specific action is required
 
@@ -71,7 +71,7 @@ export class ExportMInChI
 			try {mol = wmk.MoleculeStream.readUnknown(comp.molfile);}
 			catch (e) {continue;} // silent failure if it's an invalid molecule
 			if (wmk.MolUtil.isBlank(mol)) continue;
-			[comp.inchi, comp.inchiKey] = InChI.makeInChI(mol);
+			comp.inchi = await InChI.makeInChI(mol);
 			modified = true;
 		}
 		return modified;

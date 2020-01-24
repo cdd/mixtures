@@ -26,6 +26,10 @@ let inchi:InChI = null;
 
 export class InChI
 {
+	// optional override: when using the Emscripten-ported version of InChI, set this function to call the
+	// natively encoded implementation
+	public static nativeMolfileToInChI:(mdlmol:string, options:string) => Promise<string> = null;
+
 	private available = false;
 	private inchiPath = '';
 	private remote:Electron.Remote = null;
@@ -52,6 +56,7 @@ export class InChI
 	// returns true if we have reason to believe the InChI executable can be run on demand
 	public static isAvailable():boolean
 	{
+		if (this.nativeMolfileToInChI != null) return true;
 		if (!inchi) inchi = new InChI();
 		return inchi.available;
 	}
@@ -59,17 +64,20 @@ export class InChI
 	// converts a molecule to an InChI string, if possible; should check the availability first, for graceful
 	// rejection; failure results in an exception; note that it is executed synchronously: if the executable takes
 	// a long time to run, this will be a problem for the UI; the return value is [InChI, InChIKey]
-	public static makeInChI(mol:wmk.Molecule):[string, string]
+	public static async makeInChI(mol:wmk.Molecule):Promise<string>
 	{
+		let writer = new wmk.MDLMOLWriter(mol);
+		//writer.enhancedFields = false; (InChI generator will ignore the enhanced fields, so this is OK)
+		let mdlmol = writer.write();
+
+		if (this.nativeMolfileToInChI != null) return this.nativeMolfileToInChI(mdlmol, '-AuxNone -NoLabels -Key');
+
 		if (!inchi) inchi = new InChI();
 		if (!inchi.available) throw 'InChI executable is not available.';
 
 		const proc = require('child_process'), path = require('path');
 
 		let cmd = inchi.inchiPath.replace(/ /g, '\\\ '); // very crude escaping of spaces
-		let writer = new wmk.MDLMOLWriter(mol);
-		//writer.enhancedFields = false; (InChI generator will ignore the enhanced fields, so this is OK)
-		let mdlmol = writer.write();
 		let result = proc.spawnSync(cmd, ['-STDIO', '-AuxNone', '-NoLabels', '-Key'], {'input': mdlmol});
 		let raw = result.stdout.toString(), bits = raw.split('\n');
 
@@ -80,7 +88,7 @@ export class InChI
 			console.log('MDL Molfile:\n' + mdlmol);
 			throw 'Invalid returned by InChI generator';
 		}
-		return [bits[0], bits[1]];
+		return bits[0];
 	}
 }
 

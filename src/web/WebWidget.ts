@@ -18,7 +18,6 @@
 ///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
-///<reference path='../../../WebMolKit/src/ui/WebMenu.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 
 ///<reference path='../decl/node.d.ts'/>
@@ -40,10 +39,42 @@ namespace Mixtures /* BOF */ {
 	equivalent.
 */
 
+const BANNER:MenuBannerButton[][] =
+[
+	/*[
+		{'icon': 'CommandSave.svg', 'tip': 'Save', 'cmd': MenuBannerCommand.Save},
+	],*/
+	[
+		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
+		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
+		//{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
+		//{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'cmd': MenuBannerCommand.ExportSVG},
+	],
+	[
+		{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'cmd': MenuBannerCommand.Append},
+		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'cmd': MenuBannerCommand.Prepend},
+		{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'cmd': MenuBannerCommand.Delete},
+		{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'cmd': MenuBannerCommand.MoveUp},
+		{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'cmd': MenuBannerCommand.MoveDown},
+	],
+	[
+		{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'cmd': MenuBannerCommand.Undo},
+		{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'cmd': MenuBannerCommand.Redo},
+	],
+	[
+		{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'cmd': MenuBannerCommand.Copy},
+		{'icon': 'CommandCut.svg', 'tip': 'Cut', 'cmd': MenuBannerCommand.Cut},
+	],
+	[
+		{'icon': 'CommandZoomNormal.svg', 'tip': 'Zoom full', 'cmd': MenuBannerCommand.ZoomFull},
+		{'icon': 'CommandZoomIn.svg', 'tip': 'Zoom in', 'cmd': MenuBannerCommand.ZoomIn},
+		{'icon': 'CommandZoomOut.svg', 'tip': 'Zoom out', 'cmd': MenuBannerCommand.ZoomOut},
+	],
+];
+
 export class WebWidget extends wmk.Widget
 {
-	private filename:string = null;
-	private menu:wmk.WebMenu;
+	private banner:MenuBanner;
 	private editor:EditMixtureWeb = null;
 
 	// ------------ public methods ------------
@@ -52,52 +83,9 @@ export class WebWidget extends wmk.Widget
 	{
 		super();
 
+		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.menuAction(cmd));
+
 		this.editor = new EditMixtureWeb(proxyClip);
-
-		this.menu = new wmk.WebMenu(
-		[
-			{
-				'label': 'File',
-				'submenu':
-				[
-					{'label': 'Clear', 'click': () => this.actionClear()},
-					{'label': 'Save', 'click': () => this.actionSave()},
-					{'label': 'Export SDF...', 'click': () => this.actionExportSDF()},
-					{'label': 'Export as SVG', 'click': () => this.actionExportSVG()},
-				]
-			},
-			{
-				'label': 'Edit',
-				'submenu':
-				[
-					{'label': 'Edit Details', 'click': () => this.editor.editDetails()},
-					{'label': 'Edit Structure', 'click': () => this.editor.editStructure()},
-					{'label': 'Delete', 'click': () => this.editor.deleteCurrent()},
-					{'label': 'Append', 'click': () => this.editor.appendToCurrent()},
-					{'label': 'Prepend', 'click': () => this.editor.prependBeforeCurrent()},
-					{'label': 'Move Up', 'click': () => this.editor.reorderCurrent(-1)},
-					{'label': 'Move Down', 'click': () => this.editor.reorderCurrent(1)},
-					//{'type': 'separator'},
-					{'label': 'Undo', 'click': () => this.editor.performUndo()},
-					{'label': 'Redo', 'click': () => this.editor.performRedo()},
-					//{'type': 'separator'},
-					{'label': 'Cut', 'click': () => this.editor.clipboardCopy(true)},
-					{'label': 'Copy', 'click': () => this.editor.clipboardCopy(false)},
-					{'label': 'Copy Branch', 'click': () => this.editor.clipboardCopy(false, true)},
-					{'label': 'Paste', 'click': () => this.editor.clipboardPaste()},
-				]
-			},
-			{
-				'label': 'View',
-				'submenu':
-				[
-					{'label': 'Normal Size', 'click': () => this.editor.zoomFull()},
-					{'label': 'Zoom In', 'click': () => this.editor.zoom(1.25)},
-					{'label': 'Zoom Out', 'click': () => this.editor.zoom(0.8)},
-				]
-			}
-		]);
-
 		this.editor.callbackUpdateTitle = () => {};
 	}
 
@@ -114,7 +102,7 @@ export class WebWidget extends wmk.Widget
 		let divMain = $('<div style="width: 100%; flex: 1 1 0; height: 100%; position: relative;"/>').appendTo(this.content);
 		let divMainX = $('<div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"/>').appendTo(divMain); // workaround
 
-		this.menu.render(divMenu);
+		this.banner.render(divMenu);
 		this.editor.render(divMainX);
 	}
 
@@ -123,6 +111,49 @@ export class WebWidget extends wmk.Widget
 		this.editor.clearHistory();
 		this.editor.setMixture(mixture, true, false);
 		this.editor.setDirty(false);
+	}
+
+	public menuAction(cmd:MenuBannerCommand):void
+	{
+		let dlg = this.editor.compoundEditor();
+		if (dlg)
+		{
+			if (cmd == MenuBannerCommand.Cut) dlg.actionCut();
+			else if (cmd == MenuBannerCommand.Copy) dlg.actionCopy();
+			//else if (cmd == MenuBannerCommand.Paste) dlg.actionPaste();
+			else if (cmd == MenuBannerCommand.Undo) dlg.actionUndo();
+			else if (cmd == MenuBannerCommand.Redo) dlg.actionRedo();
+			return;
+		}
+		if (!this.editor.isReceivingCommands())
+		{
+			// certain common menu/shortcut commands are passed through to standard behaviour, the rest are stopped
+			if ([MenuBannerCommand.Cut, MenuBannerCommand.Copy, MenuBannerCommand.Paste,
+				 MenuBannerCommand.Undo, MenuBannerCommand.Redo].indexOf(cmd) >= 0) document.execCommand(cmd);
+			return;
+		}
+
+		if (cmd == MenuBannerCommand.ExportSDF) this.actionExportSDF();
+		//else if (cmd == MenuBannerCommand.ExportSVG) this.actionFileExportSVG();
+		//else if (cmd == MenuBannerCommand.CreateMInChI) this.actionFileCreateMInChI();
+		else if (cmd == MenuBannerCommand.Undo) this.editor.performUndo();
+		else if (cmd == MenuBannerCommand.Redo) this.editor.performRedo();
+		else if (cmd == MenuBannerCommand.Cut) this.editor.clipboardCopy(true);
+		else if (cmd == MenuBannerCommand.Copy) this.editor.clipboardCopy(false);
+		else if (cmd == MenuBannerCommand.CopyBranch) this.editor.clipboardCopy(false, true);
+		//else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
+		else if (cmd == MenuBannerCommand.EditStructure) this.editor.editStructure();
+		else if (cmd == MenuBannerCommand.EditDetails) this.editor.editDetails();
+		else if (cmd == MenuBannerCommand.Lookup) this.editor.lookupCurrent();
+		else if (cmd == MenuBannerCommand.Delete) this.editor.deleteCurrent();
+		else if (cmd == MenuBannerCommand.Append) this.editor.appendToCurrent();
+		else if (cmd == MenuBannerCommand.Prepend) this.editor.prependBeforeCurrent();
+		else if (cmd == MenuBannerCommand.MoveUp) this.editor.reorderCurrent(-1);
+		else if (cmd == MenuBannerCommand.MoveDown) this.editor.reorderCurrent(1);
+		else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
+		else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
+		else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
+
 	}
 
 	// ------------ private methods ------------

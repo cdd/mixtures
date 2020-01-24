@@ -343,12 +343,14 @@ export class MixturePanel extends MainPanel
 		// NOTE: display/copy is temporary; replace this with a better way to view overall metadata for the whole mixture
 
 		let creator = new ExportMInChI(this.editor.getMixture().mixfile);
-		creator.fillInChI();
-		creator.formulate();
-		let minchi = creator.getResult();
-		alert('Generated MInChI identifier:\n' + minchi);
-		let clipboard = require('electron').clipboard;
-		clipboard.writeText(minchi);
+		creator.fillInChI().then(() =>
+		{
+			creator.formulate();
+			let minchi = creator.getResult();
+			alert('Generated MInChI identifier:\n' + minchi);
+			let clipboard = require('electron').clipboard;
+			clipboard.writeText(minchi);
+		});
 	}
 
 	private updateTitle():void
