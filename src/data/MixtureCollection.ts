@@ -64,6 +64,10 @@ export class MixtureCollection
 		this.mixtures.push(mixture);
 		return this.mixtures.length - 1;
 	}
+	public appendCollection(collection:MixtureCollection):void
+	{
+		this.mixtures = this.mixtures.concat(collection.mixtures);
+	}
 	public insertMixture(idx:number, mixture:Mixture):void
 	{
 		this.mixtures.splice(idx, 0, mixture);
