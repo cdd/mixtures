@@ -74,18 +74,21 @@ const BANNER:MenuBannerButton[][] =
 
 export class WebWidget extends wmk.Widget
 {
+	private proxyClip = new wmk.ClipboardProxyWeb();
 	private banner:MenuBanner;
 	private editor:EditMixtureWeb = null;
 
 	// ------------ public methods ------------
 
-	constructor(proxyClip:wmk.ClipboardProxy)
+	constructor()
 	{
 		super();
 
+		// proxyClip:wmk.ClipboardProxy
+
 		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
-		this.editor = new EditMixtureWeb(proxyClip);
+		this.editor = new EditMixtureWeb(this.proxyClip);
 		this.editor.callbackUpdateTitle = () => {};
 	}
 
