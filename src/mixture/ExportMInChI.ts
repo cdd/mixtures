@@ -33,6 +33,16 @@ interface MInChIBuilder
 	layerG:string; // G-layer has the concentrations
 }
 
+// for marking the segments of the outgoing MInChI string according to category
+export enum MInChISegment
+{
+	None = 0,
+	Header, // the initial recognition string
+	Component, // the components (of which there can be multiple contiguous instances)
+	Hierarchy, // the /n layer
+	Concentration, // the /g layer
+}
+
 // augmented version of a component used to stash some MInChI-specific derived content
 interface MInChIComponent extends MixfileComponent
 {
@@ -48,10 +58,11 @@ export class ExportMInChI
 {
 	private mixture:Mixture;
 	private minchi = '?';
+	private segment:MInChISegment[] = null;
 
 	// ------------ public methods ------------
 
-	constructor(private mixfile:Mixfile)
+	constructor(mixfile:Mixfile)
 	{
 		this.mixture = new Mixture(deepClone(mixfile));
 	}
@@ -133,13 +144,40 @@ export class ExportMInChI
 		let root = modmix.mixfile as any as MInChIComponent;
 		let builder = this.assembleContents(root, componentList);
 
-		this.minchi = 'MInChI=0.00.1S/' + componentList.join('&') + '/n' + builder.layerN + '/g' + builder.layerG;
+		//this.minchi = 'MInChI=0.00.1S/' + componentList.join('&') + '/n' + builder.layerN + '/g' + builder.layerG;
+
+		this.minchi = '';
+		this.segment = [];
+
+		let appendSegment = (str:string, type:MInChISegment) =>
+		{
+			this.minchi += str;
+			for (let n = 0; n < str.length; n++) this.segment.push(type);
+		};
+		
+		appendSegment('MInChI=0.00.1S', MInChISegment.Header);
+		appendSegment('/', MInChISegment.None);
+		for (let n = 0; n < componentList.length; n++)
+		{
+			if (n > 0) appendSegment('&', MInChISegment.None);
+			appendSegment(componentList[n], MInChISegment.Component);
+		}
+		appendSegment('/', MInChISegment.None);
+		appendSegment('n' + builder.layerN, MInChISegment.Hierarchy);
+		appendSegment('/', MInChISegment.None);
+		appendSegment('g' +  builder.layerG, MInChISegment.Concentration);
 	}
 
-	// returns the MInChI string formulated as above
+	// returns the MInChI notationstring formulated as above
 	public getResult():string
 	{
 		return this.minchi;
+	}
+
+	// return the segmentation values that mark the type for each character (corresponding to the notation string)
+	public getSegment():MInChISegment[]
+	{
+		return this.segment;
 	}
 
 	// ------------ private methods ------------

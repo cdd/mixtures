@@ -70,7 +70,7 @@ export class InChI
 		//writer.enhancedFields = false; (InChI generator will ignore the enhanced fields, so this is OK)
 		let mdlmol = writer.write();
 
-		if (this.nativeMolfileToInChI != null) return this.nativeMolfileToInChI(mdlmol, '-AuxNone -NoLabels -Key');
+		if (this.nativeMolfileToInChI != null) return this.nativeMolfileToInChI(mdlmol, '-AuxNone -NoLabels');
 
 		if (!inchi) inchi = new InChI();
 		if (!inchi.available) throw 'InChI executable is not available.';

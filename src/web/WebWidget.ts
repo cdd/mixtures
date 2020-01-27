@@ -109,6 +109,16 @@ export class WebWidget extends wmk.Widget
 		this.editor.render(divMainX);
 	}
 
+	public isBlank():boolean
+	{
+		return this.editor.isBlank();
+	}
+
+	public getMixture():Mixture
+	{
+		return this.editor.getMixture();
+	}
+
 	public setMixture(mixture:Mixture):void
 	{
 		this.editor.clearHistory();
