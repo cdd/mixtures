@@ -18,7 +18,7 @@
 ///<reference path='../../../WebMolKit/src/data/DataSheetStream.ts'/>
 ///<reference path='../../../WebMolKit/src/data/MDLWriter.ts'/>
 
-///<reference path='../main/startup.ts'/>
+///<reference path='../startup.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
 ///<reference path='../data/Mixture.ts'/>
 ///<reference path='../data/Units.ts'/>

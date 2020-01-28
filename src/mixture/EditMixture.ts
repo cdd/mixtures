@@ -21,7 +21,7 @@
 ///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 ///<reference path='../../../WebMolKit/src/dialog/EditCompound.ts'/>
 
-///<reference path='../main/startup.ts'/>
+///<reference path='../startup.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
 ///<reference path='../lookup/LookupCompoundDialog.ts'/>
 ///<reference path='ArrangeMixture.ts'/>

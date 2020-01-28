@@ -25,7 +25,7 @@
 
 ///<reference path='../decl/node.d.ts'/>
 ///<reference path='../decl/electron.d.ts'/>
-///<reference path='../main/startup.ts'/>
+///<reference path='../startup.ts'/>
 ///<reference path='../main/InChI.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
 ///<reference path='PubChemSearch.ts'/>

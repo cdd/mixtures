@@ -18,7 +18,7 @@
 ///<reference path='../../../WebMolKit/src/data/DataSheetStream.ts'/>
 ///<reference path='../../../WebMolKit/src/data/MDLWriter.ts'/>
 
-///<reference path='../main/startup.ts'/>
+///<reference path='../startup.ts'/>
 ///<reference path='../main/InChI.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
 ///<reference path='../data/Mixture.ts'/>
@@ -149,7 +149,7 @@ export class ExportMInChI
 		this.minchi = '';
 		this.segment = [];
 
-		let appendSegment = (str:string, type:MInChISegment) =>
+		let appendSegment = (str:string, type:MInChISegment):void =>
 		{
 			this.minchi += str;
 			for (let n = 0; n < str.length; n++) this.segment.push(type);
@@ -165,7 +165,7 @@ export class ExportMInChI
 		appendSegment('/', MInChISegment.None);
 		appendSegment('n' + builder.layerN, MInChISegment.Hierarchy);
 		appendSegment('/', MInChISegment.None);
-		appendSegment('g' +  builder.layerG, MInChISegment.Concentration);
+		appendSegment('g' + builder.layerG, MInChISegment.Concentration);
 	}
 
 	// returns the MInChI notationstring formulated as above

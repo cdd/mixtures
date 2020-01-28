@@ -379,7 +379,7 @@ export class CollectionPanel extends MainPanel
 			this.filename = value.filePath;
 			this.isDirty = false;
 			this.updateTitle();
-		});	
+		});
 	}
 
 	public saveFile(filename:string):void

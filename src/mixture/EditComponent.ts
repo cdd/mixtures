@@ -25,7 +25,7 @@
 
 ///<reference path='../decl/node.d.ts'/>
 ///<reference path='../decl/electron.d.ts'/>
-///<reference path='../main/startup.ts'/>
+///<reference path='../startup.ts'/>
 ///<reference path='../main/InChI.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
 
@@ -82,7 +82,7 @@ export class EditComponent extends wmk.Dialog
 		this.minPortionWidth = 20;
 		this.maxPortionWidth = 95;
 		//this.maximumWidth = parentSize[0];
-		this.maximumHeight = parentSize[1];	
+		this.maximumHeight = parentSize[1];
 	}
 
 	public onSave(callback:(source?:EditComponent) => void):void

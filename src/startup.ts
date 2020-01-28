@@ -10,10 +10,10 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
-///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
-///<reference path='../../../WebMolKit/src/util/util.ts'/>
-///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
+///<reference path='../../WebMolKit/src/decl/corrections.d.ts'/>
+///<reference path='../../WebMolKit/src/decl/jquery.d.ts'/>
+///<reference path='../../WebMolKit/src/util/util.ts'/>
+///<reference path='../../WebMolKit/src/ui/ClipboardProxy.ts'/>
 
 // NOTE: imports need to go before we start defining our own stuff, otherwise transpiler order sometimes breaks
 import wmk = WebMolKit;
@@ -110,11 +110,9 @@ export function openNewWindow(panelClass:string, filename?:string):void
 {
 	const electron = require('electron');
 	const WEBPREF = {'nodeIntegration': true};
-console.log('open...');	
 	let bw = new electron.remote.BrowserWindow({'width': 900, 'height': 800, 'icon': 'app/img/icon.png', 'webPreferences': WEBPREF});
 	let url = BASE_APP + '/index.html?panel=' + panelClass;
 	if (filename) url += '&fn=' + encodeURIComponent(filename);
-console.log('URL:'+url);	
 	bw.loadURL(url);
 	/*bw.on('closed', function() {bw = null;});*/
 }

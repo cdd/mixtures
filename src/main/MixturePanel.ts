@@ -219,7 +219,7 @@ export class MixturePanel extends MainPanel
 			if (value.canceled) return;
 			let inPlace = this.editor.getMixture().isEmpty();
 			for (let fn of value.filePaths)
-			{			
+			{
 				if (inPlace && fn.endsWith('.mixfile'))
 				{
 					this.loadFile(fn);
@@ -332,7 +332,7 @@ export class MixturePanel extends MainPanel
 			{
 				if (err) alert('Unable to save: ' + err);
 			});
-		});	
+		});
 	}
 
 	private actionFileCreateMInChI():void
