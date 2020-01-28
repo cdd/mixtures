@@ -331,9 +331,10 @@ export class CollectionPanel extends MainPanel
 				{'name': 'Mixfile', 'extensions': ['mixfile']},
 			]
 		};
-		dialog.showOpenDialog(params, (filenames:string[]):void =>
+		dialog.showOpenDialog(params).then((value) =>
 		{
-			if (filenames) for (let fn of filenames)
+			if (value.canceled) return;
+			for (let fn of value.filePaths)
 			{
 				if (fn.endsWith('.mixfile'))
 					openNewWindow('MixturePanel', fn);
@@ -371,14 +372,14 @@ export class CollectionPanel extends MainPanel
 				{'name': 'Mixfile Collection', 'extensions': ['json']}
 			]
 		};
-		dialog.showSaveDialog({}, (filename:string):void =>
+		dialog.showSaveDialog({}).then((value) =>
 		{
-			if (!filename) return;
-			this.saveFile(filename);
-			this.filename = filename;
+			if (value.canceled) return;
+			this.saveFile(value.filePath);
+			this.filename = value.filePath;
 			this.isDirty = false;
 			this.updateTitle();
-		});
+		});	
 	}
 
 	public saveFile(filename:string):void

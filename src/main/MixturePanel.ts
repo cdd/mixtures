@@ -214,11 +214,12 @@ export class MixturePanel extends MainPanel
 				{'name': 'Mixfile Collection', 'extensions': ['json']},
 			]
 		};
-		dialog.showOpenDialog(params, (filenames:string[]):void =>
+		dialog.showOpenDialog(params).then((value) =>
 		{
+			if (value.canceled) return;
 			let inPlace = this.editor.getMixture().isEmpty();
-			if (filenames) for (let fn of filenames)
-			{
+			for (let fn of value.filePaths)
+			{			
 				if (inPlace && fn.endsWith('.mixfile'))
 				{
 					this.loadFile(fn);
@@ -257,11 +258,11 @@ export class MixturePanel extends MainPanel
 				{'name': 'Mixfile', 'extensions': ['mixfile']}
 			]
 		};
-		dialog.showSaveDialog({}, (filename:string):void =>
+		dialog.showSaveDialog({}).then((value) =>
 		{
-			if (!filename) return;
-			this.saveFile(filename);
-			this.filename = filename;
+			if (value.canceled) return;
+			this.saveFile(value.filePath);
+			this.filename = value.filePath;
 			this.editor.setDirty(false);
 			this.updateTitle();
 		});
@@ -290,9 +291,10 @@ export class MixturePanel extends MainPanel
 		if (this.filename && this.filename.endsWith('.mixfile'))
 			params.defaultPath = (this.filename.substring(0, this.filename.length - 8) + '.sdf').split(/[\/\\]/).pop();
 
-		dialog.showSaveDialog(params, (filename:string):void =>
+		dialog.showSaveDialog({}).then((value) =>
 		{
-			fs.writeFile(filename, sdfile, (err:any):void =>
+			if (value.canceled) return;
+			fs.writeFile(value.filePath, sdfile, (err:any):void =>
 			{
 				if (err) alert('Unable to save: ' + err);
 			});
@@ -312,8 +314,9 @@ export class MixturePanel extends MainPanel
 				{'name': 'Scalable Vector Graphics', 'extensions': ['svg']}
 			]
 		};
-		dialog.showSaveDialog(params, (filename:string):void =>
+		dialog.showSaveDialog({}).then((value) =>
 		{
+			if (value.canceled) return;
 			let policy = wmk.RenderPolicy.defaultColourOnWhite();
 			let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
 			let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
@@ -325,11 +328,11 @@ export class MixturePanel extends MainPanel
 			let svg = gfx.createSVG();
 
 			const fs = require('fs');
-			fs.writeFile(filename, svg, (err:any):void =>
+			fs.writeFile(value.filePath, svg, (err:any):void =>
 			{
 				if (err) alert('Unable to save: ' + err);
 			});
-		});
+		});	
 	}
 
 	private actionFileCreateMInChI():void

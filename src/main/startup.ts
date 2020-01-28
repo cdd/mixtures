@@ -110,9 +110,11 @@ export function openNewWindow(panelClass:string, filename?:string):void
 {
 	const electron = require('electron');
 	const WEBPREF = {'nodeIntegration': true};
+console.log('open...');	
 	let bw = new electron.remote.BrowserWindow({'width': 900, 'height': 800, 'icon': 'app/img/icon.png', 'webPreferences': WEBPREF});
 	let url = BASE_APP + '/index.html?panel=' + panelClass;
 	if (filename) url += '&fn=' + encodeURIComponent(filename);
+console.log('URL:'+url);	
 	bw.loadURL(url);
 	/*bw.on('closed', function() {bw = null;});*/
 }

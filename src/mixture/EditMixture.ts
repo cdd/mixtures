@@ -719,7 +719,7 @@ export class EditMixture extends wmk.Widget
 			menu.append(new electron.remote.MenuItem({'label': 'Zoom Out', 'click': () => this.zoom(0.8)}));
 		}
 
-		menu.popup(electron.remote.getCurrentWindow());
+		menu.popup({'window': electron.remote.getCurrentWindow()});
 	}
 }
 

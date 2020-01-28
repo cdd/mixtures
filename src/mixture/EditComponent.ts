@@ -156,28 +156,6 @@ export class EditComponent extends wmk.Dialog
 		this.areaDescr.val(this.component.description);
 		if (this.component.synonyms) this.areaSyn.val(this.component.synonyms.join('\n'));
 
-		/*let skw = Math.min(1000, Math.max(500, this.parentSize[0] - 100));
-		let skh = Math.min(800, Math.max(450, this.parentSize[1] - 300));
-		let skdiv = $('<div></div>').appendTo(vertical);
-		skdiv.css('width', skw + 'px');
-		skdiv.css('height', skh + 'px');
-		skdiv.css('margin-top', '1em');
-
-		this.sketcher = new wmk.Sketcher();
-		this.sketcher.lowerCommandBank = true;
-		this.sketcher.lowerTemplateBank = true;
-		this.sketcher.setSize(skw, skh);
-		if (this.component.molfile)
-		{
-			try
-			{
-				let mol = wmk.MoleculeStream.readUnknown(this.component.molfile);
-				if (mol) this.sketcher.defineMolecule(mol);
-			}
-			catch (e) {}
-		}
-		this.sketcher.setup(() => this.sketcher.render(skdiv));*/
-
 		// second batch of fields
 
 		let grid2 = this.fieldGrid().appendTo(vertical);
@@ -320,7 +298,7 @@ export class EditComponent extends wmk.Dialog
 		let div = $('<div/>').appendTo(parent);
 		div.css('grid-column', 'value');
 		div.css('grid-row', row.toString());
-		let input = $('<input></input>').appendTo(div);
+		let input = $('<input/>').appendTo(div);
 		input.css({'width': '100%', 'font': 'inherit'});
 		//...
 		return input;
