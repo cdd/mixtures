@@ -104,7 +104,9 @@ export class EditMixture extends wmk.Widget
 		this.content.mouseover((event:JQueryEventObject) => this.mouseOver(event));
 		this.content.mouseout((event:JQueryEventObject) => this.mouseOut(event));
 		this.content.mousemove((event:JQueryEventObject) => this.mouseMove(event));
-		this.content.on('mousewheel', (event:JQueryEventObject) => this.mouseWheel(event));
+		// (maybe have mousewheel as an option: in Electron mode it makes some sense, but embedded
+		// on a web page it' not good...)
+		//this.content.on('mousewheel', (event:JQueryEventObject) => this.mouseWheel(event));
 		this.content.keypress((event:JQueryEventObject) => this.keyPressed(event));
 		this.content.keydown((event:JQueryEventObject) => this.keyDown(event));
 		this.content.keyup((event:JQueryEventObject) => this.keyUp(event));
