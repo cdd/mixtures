@@ -332,6 +332,11 @@ export class EditComponent extends wmk.Dialog
 			event.preventDefault();
 			this.close();
 		}
+		else if (event.keyCode == 13)
+		{
+			event.preventDefault();
+			this.saveAndClose();
+		}
 	}
 
 	// creates the quantity data entry objects, which are somewhat fiddly and multistate
