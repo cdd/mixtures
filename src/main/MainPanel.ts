@@ -50,7 +50,7 @@ export abstract class MainPanel
 	}
 
 	// optionally override this to pre-empt menu actions
-	public menuAction(cmd:MenuBannerCommand):void
+	public menuAction(cmd:string):void
 	{
 		if (cmd == MenuBannerCommand.NewMixture) openNewWindow('MixturePanel');
 		else if (cmd == MenuBannerCommand.NewCollection) openNewWindow('CollectionPanel');
@@ -61,7 +61,7 @@ export abstract class MainPanel
 	}
 
 	// override this to interpret menu non-default menu actions
-	public customMenuAction(cmd:MenuBannerCommand):void
+	public customMenuAction(cmd:string):void
 	{
 		console.log('MENU:' + cmd);
 	}

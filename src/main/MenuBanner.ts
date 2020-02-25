@@ -55,18 +55,21 @@ export interface MenuBannerButton
 {
 	icon:string; // filename
 	tip:string; // popup tooltip
-	cmd:MenuBannerCommand;
+	cmd:string;
+	width?:number; // optional width override
 }
 
 export class MenuBanner
 {
 	private divFlex:JQuery;
+	private mapDiv:Record<string, JQuery> = {};
 	private mapSVG:Record<string, JQuery> = {};
 	private mapActive:Record<string, boolean> = {};
+	private selected = new Set<string>();
 
 	// ------------ public methods ------------
 
-	constructor(private commands:MenuBannerButton[][], private onAction:(cmd:MenuBannerCommand) => void)
+	constructor(private commands:MenuBannerButton[][], private onAction:(cmd:string) => void)
 	{
 	}
 
@@ -85,6 +88,7 @@ export class MenuBanner
 			{
 				let [div, svg] = this.createCommand(btn);
 				divBlk.append(div);
+				this.mapDiv[btn.cmd] = div;
 				this.mapSVG[btn.cmd] = svg;
 				this.mapActive[btn.cmd] = true;
 			}
@@ -101,17 +105,43 @@ export class MenuBanner
 		}
 	}
 
+	// control over which button(s) are selected
+	public addSelected(cmd:string):void
+	{	
+		if (this.selected.has(cmd)) return;
+		this.selected.add(cmd);
+		this.mapDiv[cmd].css({'background-color': '#D0D0D0'});
+	}
+	public removeSelected(cmd:string):void
+	{
+		if (!this.selected.has(cmd)) return;
+		this.selected.delete(cmd);
+		this.mapDiv[cmd].css({'background-color': 'transparent'});
+	}
+
 	// ------------ private methods ------------
 
 	private createCommand(btn:MenuBannerButton):JQuery[]
 	{
 		let div = $('<div/>').css({'display': 'inline-block'});
-		div.css({'width': '20px', 'height': '20px', 'margin': '2px', 'padding': '5px'});
+		let width = btn.width ? btn.width : 20;
+		div.css({'width': `${width}px`, 'height': '20px', 'margin': '2px', 'padding': '5px'});
 		div.css({'border-radius': '4px'});
+		if (this.selected.has(btn.cmd)) div.css('background-color', '#D0D0D0');
+
 		let svg = $('<img/>').appendTo(div).attr({'src': 'res/img/icons/' + btn.icon});
 
-		div.hover(() => div.css('background-color', this.mapActive[btn.cmd] ? '#C0C0C0' : 'transparent'),
-				  () => div.css('background-color', 'transparent'));
+		div.hover(
+			() => 
+			{
+				let col = this.selected.has(btn.cmd) ? '#D0D0D0' : this.mapActive[btn.cmd] ? '#C0C0C0' : 'transparent';
+				div.css('background-color', col);
+			},
+			() => 
+			{
+				let col = this.selected.has(btn.cmd) ? '#D0D0D0' : 'transparent';
+				div.css('background-color', col);
+			});
 		div.click(() =>
 		{
 			if (!this.mapActive[btn.cmd]) return;
