@@ -51,9 +51,17 @@ export class MixtureCollection
 	{
 		return this.mixtures[idx].clone();
 	}
+	public getMixtureDirect(idx:number):Mixture
+	{
+		return this.mixtures[idx];
+	}
 	public setMixture(idx:number, mixture:Mixture):void
 	{
 		this.mixtures[idx] = mixture.clone();
+	}
+	public setMixtureDirect(idx:number, mixture:Mixture):void
+	{
+		this.mixtures[idx] = mixture;
 	}
 	public deleteMixture(idx:number):void
 	{
