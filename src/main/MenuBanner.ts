@@ -107,7 +107,7 @@ export class MenuBanner
 
 	// control over which button(s) are selected
 	public addSelected(cmd:string):void
-	{	
+	{
 		if (this.selected.has(cmd)) return;
 		this.selected.add(cmd);
 		this.mapDiv[cmd].css({'background-color': '#D0D0D0'});
@@ -132,12 +132,12 @@ export class MenuBanner
 		let svg = $('<img/>').appendTo(div).attr({'src': 'res/img/icons/' + btn.icon});
 
 		div.hover(
-			() => 
+			() =>
 			{
 				let col = this.selected.has(btn.cmd) ? '#D0D0D0' : this.mapActive[btn.cmd] ? '#C0C0C0' : 'transparent';
 				div.css('background-color', col);
 			},
-			() => 
+			() =>
 			{
 				let col = this.selected.has(btn.cmd) ? '#D0D0D0' : 'transparent';
 				div.css('background-color', col);

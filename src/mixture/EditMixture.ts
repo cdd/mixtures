@@ -503,7 +503,7 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// mouse has moved: see if we need to update the hover
-	protected updateHoverCursor(event:JQueryEventObject):void
+	protected updateHoverCursor(event:JQueryMouseEventObject):void
 	{
 		let [x, y] = eventCoords(event, this.content);
 		let comp = this.activeIndex >= 0 ? -1 : this.pickComponent(x, y);
@@ -563,11 +563,11 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// interactivity
-	protected mouseClick(event:JQueryEventObject):void
+	protected mouseClick(event:JQueryMouseEventObject):void
 	{
 		this.content.focus(); // just in case it wasn't already
 	}
-	protected mouseDoubleClick(event:JQueryEventObject):void
+	protected mouseDoubleClick(event:JQueryMouseEventObject):void
 	{
 		event.stopImmediatePropagation();
 
@@ -582,9 +582,16 @@ export class EditMixture extends wmk.Widget
 			this.editDetails();
 		}
 	}
-	protected mouseDown(event:JQueryEventObject):void
+	protected mouseDown(event:JQueryMouseEventObject):void
 	{
 		event.preventDefault();
+
+		if (event.which != 1) return;
+		if (event.ctrlKey)
+		{
+			this.contextMenu(event);
+			return;
+		}
 
 		let [x, y] = eventCoords(event, this.content);
 		let comp = this.pickComponent(x, y);
@@ -600,7 +607,7 @@ export class EditMixture extends wmk.Widget
 			this.delayedRedraw();
 		}
 	}
-	protected mouseUp(event:JQueryEventObject):void
+	protected mouseUp(event:JQueryMouseEventObject):void
 	{
 		let [x, y] = eventCoords(event, this.content);
 		let comp = this.pickComponent(x, y);
@@ -610,16 +617,16 @@ export class EditMixture extends wmk.Widget
 
 		this.dragReason = DragReason.None;
 	}
-	protected mouseOver(event:JQueryEventObject):void
+	protected mouseOver(event:JQueryMouseEventObject):void
 	{
 		this.updateHoverCursor(event);
 	}
-	protected mouseOut(event:JQueryEventObject):void
+	protected mouseOut(event:JQueryMouseEventObject):void
 	{
 		this.updateHoverCursor(event);
 		this.dragReason = DragReason.None;
 	}
-	protected mouseMove(event:JQueryEventObject):void
+	protected mouseMove(event:JQueryMouseEventObject):void
 	{
 		this.updateHoverCursor(event);
 
@@ -682,11 +689,16 @@ export class EditMixture extends wmk.Widget
 		this.delayedRedraw();
 		event.preventDefault();
 	}
-	protected contextMenu(event:JQueryEventObject):void
+	protected contextMenu(event:JQueryMouseEventObject):void
 	{
 		event.preventDefault();
 
-		let comp = this.pickComponent(event.clientX, event.clientY);
+		let [x, y] = eventCoords(event, this.content);
+		let comp = this.pickComponent(x, y);
+
+		this.selectedIndex = comp;
+		this.activeIndex = -1;
+		this.delayedRedraw();
 
 		let electron = require('electron');
 		let menu = new electron.remote.Menu();
