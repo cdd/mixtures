@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017 Collaborative Drug Discovery, Inc
+    (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
     
@@ -15,6 +15,7 @@ const {app, BrowserWindow} = electron;
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
 
+app.allowRendererProcessReuse = true;
 app.on('window-all-closed', function() 
 {
 	if (process.platform != 'darwin') app.quit();
