@@ -79,8 +79,7 @@ function setupMenu()
 	{
 		let browser = BrowserWindow.getFocusedWindow();
 		if (!browser) return;
-		let js = '$("#root").trigger("menuAction", "' + cmd + '")';
-		browser.webContents.executeJavaScript(js);
+		browser.webContents.send('menuAction', cmd);
 	}
 
 	let template = 

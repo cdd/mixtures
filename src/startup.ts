@@ -91,18 +91,22 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 	proxyClip.canSetHTML = ():boolean => true;
 	proxyClip.canAlwaysGet = ():boolean => true;
 
+	let main:MainPanel;
 	if (!panelClass)
 	{
-		let dw = new MixturePanel(root, proxyClip);
-		if (filename) dw.loadFile(filename);
+		let dw = main = new MixturePanel(root, proxyClip);
 	}
 	else
 	{
 		let proto = (Mixtures as any)[panelClass];
 		if (!proto) throw 'Unknown class: ' + panelClass;
-		let dw:MainPanel = new (proto as any)(root, proxyClip);
-		if (filename) dw.loadFile(filename);
+		main = new (proto as any)(root, proxyClip);
 	}
+
+	if (filename) main.loadFile(filename);
+
+	const {ipcRenderer} = electron;
+	ipcRenderer.on('menuAction', (event, args) => main.menuAction(args));	
 }
 
 // high level functionality for opening a window, with a given panel as content
