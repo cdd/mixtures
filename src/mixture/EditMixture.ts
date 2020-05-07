@@ -24,6 +24,7 @@
 ///<reference path='../startup.ts'/>
 ///<reference path='../data/Mixfile.ts'/>
 ///<reference path='../lookup/LookupCompoundDialog.ts'/>
+///<reference path='../lookup/ExtractCTABComponent.ts'/>
 ///<reference path='ArrangeMixture.ts'/>
 ///<reference path='DrawMixture.ts'/>
 ///<reference path='EditComponent.ts'/>
@@ -391,6 +392,20 @@ export class EditMixture extends wmk.Widget
 		let origin:number[] = [];
 		if (this.selectedIndex >= 0) origin = this.layout.components[this.selectedIndex].origin;
 
+		// see if it's a Molfile CTAB that has enumeration flags set
+		if (!json)
+		{
+			let ctab = new ExtractCTABComponent(str);
+			if (ctab.extract())
+			{
+				let comp:MixfileComponent = {'contents': []};
+				if (ctab.name) comp.name = ctab.name;
+				for (let mol of ctab.molecules) comp.contents.push({'molfile': new wmk.MDLMOLWriter(mol).write()});
+				json = comp;
+			}
+		}
+		
+		// see if it's just a regular singular molecule
 		if (!json)
 		{
 			let mol = wmk.MoleculeStream.readUnknown(str);
@@ -407,12 +422,12 @@ export class EditMixture extends wmk.Widget
 			else alert('Clipboard does not contain a mixture component.');
 			return;
 		}
+
 		if (!json.name && !json.molfile && !json.quantity && Vec.isBlank(json.contents))
 		{
 			alert('Clipboard content is either not a component, or has no interesting content.');
 			return;
 		}
-		//json.contents = []; // (should we allow whole branches? -- yes!)
 
 		// special deal when pasting into nothing: just replace it
 		if (this.selectedIndex < 0 && this.mixture.isEmpty())
