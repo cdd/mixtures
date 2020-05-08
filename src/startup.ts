@@ -103,7 +103,7 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 		main = new (proto as any)(root, proxyClip);
 	}
 
-	if (filename) main.loadFile(filename);
+	main.loadFile(filename);
 
 	const {ipcRenderer} = electron;
 	ipcRenderer.on('menuAction', (event, args) => main.menuAction(args));	

@@ -156,7 +156,7 @@ export class EditMixture extends wmk.Widget
 	// appends the current state to the undo-stack
 	public stashUndo():void
 	{
-		if (this.undoStack.length == 0 && this.mixture.isEmpty()) return; // don't put empty stuff at the beginning
+		//if (this.undoStack.length == 0 && this.mixture.isEmpty()) return; // don't put empty stuff at the beginning
 		this.undoStack.push(this.mixture.clone());
 		while (this.undoStack.length > UNDO_SIZE) this.undoStack.splice(0, 1);
 		this.redoStack = [];
@@ -392,19 +392,9 @@ export class EditMixture extends wmk.Widget
 		let origin:number[] = [];
 		if (this.selectedIndex >= 0) origin = this.layout.components[this.selectedIndex].origin;
 
-		// see if it's a Molfile CTAB that has enumeration flags set
-		if (!json)
-		{
-			let ctab = new ExtractCTABComponent(str);
-			if (ctab.extract())
-			{
-				let comp:MixfileComponent = {'contents': []};
-				if (ctab.name) comp.name = ctab.name;
-				for (let mol of ctab.molecules) comp.contents.push({'molfile': new wmk.MDLMOLWriter(mol).write()});
-				json = comp;
-			}
-		}
-		
+		// see if it's a Molfile CTAB that has enumeration flags set (stays null if nothing component-ish)
+		if (!json) json = new ExtractCTABComponent(str).extract();
+
 		// see if it's just a regular singular molecule
 		if (!json)
 		{

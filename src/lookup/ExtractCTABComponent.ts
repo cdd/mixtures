@@ -34,6 +34,7 @@ namespace Mixtures /* BOF */ {
 interface ProtoMolecule
 {
 	mol:wmk.Molecule;
+	children:ProtoMolecule[];
 	attachAny:Map<number, number[]>; // bond -> list of atom indices
 	stereoRacemic:number[][]; // blocks of atoms which are racemic
 	stereoRelative:number[][]; // blocks of atoms which exist in their drawn configuration OR the opposite
@@ -43,8 +44,6 @@ interface ProtoMolecule
 
 export class ExtractCTABComponent
 {
-	public name:string = null;
-	public molecules:wmk.Molecule[] = [];
 
 	// ------------ public methods ------------
 
@@ -52,13 +51,13 @@ export class ExtractCTABComponent
 	{
 	}
 
-	public extract():boolean
+	public extract():MixfileComponent
 	{
 		let ctab = new wmk.MDLMOLReader(this.text);
 		try {ctab.parse();}
 		catch (ex) {return null;}
 
-		if (!ctab.mol) return false;
+		if (!ctab.mol) return null;
 
 		let seed:Partial<ProtoMolecule> = {'mol': ctab.mol};
 		if (ctab.groupAttachAny.size > 0) seed.attachAny = ctab.groupAttachAny;
@@ -68,7 +67,7 @@ export class ExtractCTABComponent
 		if (ctab.groupMixtures.length > 0) seed.mixtures = ctab.groupMixtures;
 
 		if (!seed.attachAny && !seed.stereoRacemic && !seed.stereoRelative &&
-			!seed.linkNodes && !seed.mixtures) return false;
+			!seed.linkNodes && !seed.mixtures) return null;
 
 		const SANITY = 100; // stop enumerating after this many
 
@@ -92,11 +91,26 @@ export class ExtractCTABComponent
 			if (prototypes.length > SANITY) break;
 		}
 
-		if (prototypes.length <= 1) return false;
+		if (prototypes.length == 0) return null;
+		if (prototypes.length == 1 && Vec.isBlank(prototypes[0].children)) return null;
 
-		this.name = ctab.molName;
-		this.molecules = prototypes.map((p) => p.mol);
-		return true;
+		let emit = (comp:MixfileComponent, proto:ProtoMolecule):void =>
+		{
+			let subComp:MixfileComponent = {};
+			if (proto.mol) subComp.molfile = new wmk.MDLMOLWriter(proto.mol).write();
+			comp.contents.push(subComp);
+			if (proto.children)
+			{
+				subComp.contents = [];
+				for (let child of proto.children) emit(subComp, child);
+			}
+		};
+
+		let comp:MixfileComponent = {'contents': []};
+		if (ctab.molName) comp.name = ctab.molName;
+		for (let proto of prototypes) emit(comp, proto);
+
+		return comp;
 	}
 
 	// ------------ private methods ------------
@@ -135,7 +149,7 @@ export class ExtractCTABComponent
 			let cmol = mol.clone();
 			if (atomChop == cmol.bondFrom(bond)) cmol.setBondFrom(bond, connAtom); else cmol.setBondTo(bond, connAtom);
 			cmol.deleteAtomAndBonds(atomChop);
-			// TODO: ideally a little redepiction of the connecting bond would be in order, but the connectivity is right, and 
+			// TODO: ideally a little redepiction of the connecting bond would be in order, but the connectivity is right, and
 			// in most cases it will be possible to see what it is
 			list.push(this.protoClone(proto, cmol));
 		}
@@ -206,11 +220,6 @@ export class ExtractCTABComponent
 
 		let link = proto.linkNodes.shift();
 
-/*	atom:number;
-	nbrs:number[];
-	minRep:number;
-	maxRep:number;
-*/
 		let mol = proto.mol, a1 = link.atom;
 		let nbr1 = link.nbrs.length >= 1 ? link.nbrs[0] : 0;
 
@@ -224,6 +233,7 @@ export class ExtractCTABComponent
 			}
 
 			let rmol = mol.clone();
+			let addedAtoms:number[] = [];
 			for (let i = 2; i <= n; i++)
 			{
 				let a2 = rmol.addAtom(rmol.atomElement(a1), rmol.atomX(a1), rmol.atomY(a1));
@@ -240,18 +250,71 @@ export class ExtractCTABComponent
 						if (rmol.bondFrom(b) == a1) rmol.setBondFrom(b, a2); else rmol.setBondTo(b, a2);
 					}
 				}
+				addedAtoms.push(a1);
+			}
+			// TODO: depiction would be nice; the atoms are just overlayed on top of each other
+
+			let rproto = this.protoClone(proto, rmol);
+			if (rproto.mixtures) for (let mix of rproto.mixtures)
+			{
+				if (mix.atoms.includes(a1)) mix.atoms.push(...addedAtoms);
 			}
 
-			list.push(this.protoClone(proto, rmol));
+			list.push();
 		}
 
-		return list;	
-
-		return null;
+		return list;
 	}
 	private enumerateMixtures(proto:ProtoMolecule):ProtoMolecule[]
 	{
-		return null;
+		if (Vec.isBlank(proto.mixtures)) return null;
+
+		// NOTE: currently assuming that this enumeration step happens last, and is done in one fell swoop; the protomolecule hierarchy
+		// that gets returned discards any remaining enumeration materials
+
+		let mol = proto.mol, mixtures = proto.mixtures;
+
+		let identity = mixtures.map((mix) => mix.index);
+		let leafmask = Vec.booleanArray(true, mixtures.length);
+		for (let mix of mixtures) if (mix.parent > 0)
+		{
+			let i = identity.indexOf(mix.parent);
+			if (i >= 0) leafmask[i] = false;
+		}
+
+		let root = {'children': []} as ProtoMolecule;
+		let mapTree = new Map<number, ProtoMolecule>();
+		mapTree.set(0, root);
+		while (true)
+		{
+			let anything = false;
+			for (let n = 0; n < mixtures.length; n++) if (!leafmask[n] && !mapTree.has(mixtures[n].index))
+			{
+				let parent = mapTree.get(mixtures[n].parent);
+				if (!parent) continue;
+				let node = {'children': []} as ProtoMolecule;
+				parent.children.push(node);
+				mapTree.set(mixtures[n].index, node);
+				anything = true;
+			}
+			if (!anything) break;
+		}
+
+		let nonemask = Vec.booleanArray(true, mol.numAtoms); // atoms not mentioned in any mixture block
+		for (let mix of mixtures) for (let a of mix.atoms) nonemask[a - 1] = false;
+
+		for (let n = 0; n < mixtures.length; n++) if (leafmask[n])
+		{
+			let atommask = nonemask.slice(0);
+			for (let a of mixtures[n].atoms) atommask[a - 1] = true;
+
+			let mixmol = wmk.MolUtil.subgraphMask(mol, atommask);
+			let node = {'mol': mixmol} as ProtoMolecule;
+			mapTree.get(mixtures[n].parent).children.push(node);
+		}
+
+		if (root.children.length == 1) root = root.children[0];
+		return root.children;
 	}
 
 	// makes a copy of the prototype's fields, and copies over the replacement molecule
@@ -260,6 +323,7 @@ export class ExtractCTABComponent
 		let dup:ProtoMolecule =
 		{
 			'mol': mol,
+			'children': [],
 			'attachAny': proto.attachAny ? new Map(proto.attachAny) : null,
 			'stereoRacemic': deepClone(proto.stereoRacemic),
 			'stereoRelative': deepClone(proto.stereoRelative),

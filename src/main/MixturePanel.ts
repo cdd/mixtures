@@ -106,6 +106,15 @@ export class MixturePanel extends MainPanel
 
 	public loadFile(filename:string):void
 	{
+		if (!filename)
+		{
+			this.editor.clearHistory();
+			this.editor.setMixture(new Mixture(), true, true);
+			this.updateTitle();
+			this.filename = null;
+			return;
+		}
+
 		const fs = require('fs');
 		fs.readFile(filename, 'utf-8', (err:any, data:string):void =>
 		{
