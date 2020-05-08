@@ -90,6 +90,19 @@ export class WebWidget extends wmk.Widget
 
 		this.editor = new EditMixtureWeb(this.proxyClip);
 		this.editor.callbackUpdateTitle = () => {};
+
+		let handler = new wmk.ClipboardProxyHandler();
+		handler.copyEvent = (andCut:boolean, proxy:wmk.ClipboardProxy):boolean =>
+		{
+			this.menuAction(andCut ? MenuBannerCommand.Cut : MenuBannerCommand.Copy);
+			return true;
+		};
+		handler.pasteEvent = (proxy:wmk.ClipboardProxy):boolean =>
+		{
+			this.menuAction(MenuBannerCommand.Paste);
+			return true;
+		};
+		this.proxyClip.pushHandler(handler);		
 	}
 
 	public render(parent:any, width?:number, height?:number):void
@@ -133,7 +146,7 @@ export class WebWidget extends wmk.Widget
 		{
 			if (cmd == MenuBannerCommand.Cut) dlg.actionCut();
 			else if (cmd == MenuBannerCommand.Copy) dlg.actionCopy();
-			//else if (cmd == MenuBannerCommand.Paste) dlg.actionPaste();
+			else if (cmd == MenuBannerCommand.Paste) dlg.actionPaste();
 			else if (cmd == MenuBannerCommand.Undo) dlg.actionUndo();
 			else if (cmd == MenuBannerCommand.Redo) dlg.actionRedo();
 			return;
@@ -154,7 +167,7 @@ export class WebWidget extends wmk.Widget
 		else if (cmd == MenuBannerCommand.Cut) this.editor.clipboardCopy(true);
 		else if (cmd == MenuBannerCommand.Copy) this.editor.clipboardCopy(false);
 		else if (cmd == MenuBannerCommand.CopyBranch) this.editor.clipboardCopy(false, true);
-		//else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
+		else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
 		else if (cmd == MenuBannerCommand.EditStructure) this.editor.editStructure();
 		else if (cmd == MenuBannerCommand.EditDetails) this.editor.editDetails();
 		else if (cmd == MenuBannerCommand.Lookup) this.editor.lookupCurrent();
