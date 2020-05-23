@@ -97,12 +97,13 @@ export class MixtureCollection
 		return new MixtureCollection(mixtures);
 	}
 
-	// converts the entire underlying JSON mixfile into a prettyprinted string
-	public serialise():string
+	// converts the entire underlying JSON mixfile into a prettyprinted string; note the optional beautification parameter:
+	// if not specified, small collections will get nice whitespace, whereas large ones will be densely packed for efficiency
+	public serialise(beautify?:boolean):string
 	{
 		let list:any[] = [];
 		for (let mixture of this.mixtures) list.push(mixture.mixfile);
-		return Mixture.beautify(list);
+		return list.length <= 1000 ? Mixture.beautify(list) : JSON.stringify(list);
 	}
 
 	// ------------ private methods ------------

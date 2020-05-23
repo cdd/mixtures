@@ -49,6 +49,23 @@ export class PubChemSearch
 
 	// ------------ public methods ------------
 
+	public static async find(searchText:string):Promise<PubChemSearchResult[]>
+	{
+		return new Promise((resolve, reject) =>
+		{
+			let results:PubChemSearchResult[] = [];
+			let callbackResult = (result:PubChemSearchResult):void => 
+			{
+				results.push(result);
+			};
+			let callbackFinished = (err?:string):void =>
+			{
+				if (err) reject(err); else resolve(results);
+			};
+			new PubChemSearch(searchText, callbackResult, callbackFinished).start();
+		});
+	}
+
 	constructor(private searchText:string, private callbackResult:(result:PubChemSearchResult) => void, private callbackFinished:(err?:string) => void)
 	{
 	}
