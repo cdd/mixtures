@@ -41,7 +41,7 @@ for (let n = 0; n < argv.length; n++)
 if (files.length == 0) files.push(null);
 
 const WEBPREF = {'nodeIntegration': true};
-const BROWSER_PARAMS = {'width': 900, 'height': 800, 'icon': 'app/img/icon.png', 'webPreferences': WEBPREF};
+const BROWSER_PARAMS = {'width': 900, 'height': 800, 'icon': __dirname + '/img/icon.png', 'webPreferences': WEBPREF};
 const INIT_URL = 'file://' + __dirname + '/index.html';
 
 let mainWindows = [];
