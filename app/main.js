@@ -40,7 +40,7 @@ for (let n = 0; n < argv.length; n++)
 }
 if (files.length == 0) files.push(null);
 
-const WEBPREF = {'nodeIntegration': true};
+const WEBPREF = {'nodeIntegration': true, 'enableRemoteModule': true};
 const BROWSER_PARAMS = {'width': 900, 'height': 800, 'icon': __dirname + '/img/icon.png', 'webPreferences': WEBPREF};
 const INIT_URL = 'file://' + __dirname + '/index.html';
 

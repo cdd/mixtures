@@ -37,8 +37,6 @@ import newElement = WebMolKit.newElement;
 
 namespace Mixtures /* BOF */ {
 
-$ = (window as any)['$'] || require('./jquery.js');
-
 export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally
 							   // executed window version
 
@@ -50,6 +48,7 @@ let BASE_APP = ''; // base URL location for the app's program files (could be UR
 
 export function runMixfileEditor(resURL:string, rootID:string):void
 {
+	$ = (window as any)['$'] || require('./jquery.js');
 	let root = $('#' + rootID);
 
 	ON_DESKTOP = true;

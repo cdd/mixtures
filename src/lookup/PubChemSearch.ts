@@ -51,7 +51,7 @@ export class PubChemSearch
 
 	public static async find(searchText:string):Promise<PubChemSearchResult[]>
 	{
-		return new Promise((resolve, reject) =>
+		return new Promise<PubChemSearchResult[]>((resolve, reject) =>
 		{
 			let results:PubChemSearchResult[] = [];
 			let callbackResult = (result:PubChemSearchResult):void => 
