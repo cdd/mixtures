@@ -11,7 +11,7 @@
 */
 
 ///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
-///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
+///<reference path='../../../WebMolKit/src/decl/jquery/index.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
 ///<reference path='../../../WebMolKit/src/sketcher/Sketcher.ts'/>
 ///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
@@ -171,7 +171,7 @@ export class LookupCompoundDialog extends wmk.Dialog
 
 		this.spanStatus.text('Searching...');
 
-		let text = this.searchInput.val();
+		let text = this.searchInput.val().toString();
 		if (!text) return;
 		this.pubchem = new PubChemSearch(text,
 			(result:PubChemSearchResult):void => this.gotResult(result),

@@ -11,7 +11,7 @@
 */
 
 ///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
-///<reference path='../../../WebMolKit/src/decl/jquery.d.ts'/>
+///<reference path='../../../WebMolKit/src/decl/jquery/index.d.ts'/>
 ///<reference path='../../../WebMolKit/src/util/util.ts'/>
 ///<reference path='../../../WebMolKit/src/sketcher/Sketcher.ts'/>
 ///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
@@ -222,11 +222,11 @@ export class EditComponent extends wmk.Dialog
 			return dict;
 		};
 
-		this.component.name = nullifyBlank(this.lineName.val());
+		this.component.name = nullifyBlank(this.lineName.val().toString());
 
 		let qtype = this.optQuantType.getSelectedValue();
 		[this.component.ratio, this.component.quantity, this.component.error] = [null, null, null];
-		let strQuant1 = this.lineQuantVal1.val().trim(), strQuant2 = this.lineQuantVal2.val().trim();
+		let strQuant1 = this.lineQuantVal1.val().toString().trim(), strQuant2 = this.lineQuantVal2.val().toString().trim();
 		if (qtype == QuantityType.Value)
 		{
 			if (strQuant1) this.component.quantity = parseFloat(strQuant1);
@@ -244,16 +244,16 @@ export class EditComponent extends wmk.Dialog
 			this.component.units = null;
 		}
 
-		if (this.areaDescr) this.component.description = nullifyBlank(this.areaDescr.val());
+		if (this.areaDescr) this.component.description = nullifyBlank(this.areaDescr.val().toString());
 
-		this.component.synonyms = splitLines(this.areaSyn.val());
+		this.component.synonyms = splitLines(this.areaSyn.val().toString());
 
-		this.component.formula = nullifyBlank(this.lineFormula.val());
-		this.component.inchi = nullifyBlank(this.lineInChI.val());
-		this.component.smiles = nullifyBlank(this.lineSMILES.val());
+		this.component.formula = nullifyBlank(this.lineFormula.val().toString());
+		this.component.inchi = nullifyBlank(this.lineInChI.val().toString());
+		this.component.smiles = nullifyBlank(this.lineSMILES.val().toString());
 
-		this.component.identifiers = splitKeys(this.areaIdent.val());
-		this.component.links = splitKeys(this.areaLinks.val());
+		this.component.identifiers = splitKeys(this.areaIdent.val().toString());
+		this.component.links = splitKeys(this.areaLinks.val().toString());
 
 		// remove explicit nulls, for clarity
 		//Object.keys(this.component).forEach((key:string) => {if ((<any>this.component)[key] == null) delete (<any>this.component)[key];});
@@ -427,9 +427,9 @@ export class EditComponent extends wmk.Dialog
 			let opt = $('<option/>').appendTo(drop);
 			opt.attr('value', n.toString());
 			opt.html(labels[n]);
-			if (current == values[n] || current == labels[n]) opt.attr('selected', true);
+			if (current == values[n] || current == labels[n]) opt.attr('selected', 'true');
 		}
-		drop.change(() => {let idx = parseInt(drop.val()); changeFunc(values[idx], labels[idx]);});
+		drop.change(() => {let idx = parseInt(drop.val().toString()); changeFunc(values[idx], labels[idx]);});
 		return drop;
 	}
 
