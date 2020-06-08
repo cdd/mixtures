@@ -45,6 +45,9 @@
 	import molfileToInChI from './inchi-run.js';
 	Mixtures.InChI.nativeMolfileToInChI = molfileToInChI;
 
+	//import {Mixtures, WebMolKit} from './mixfile.js';
+	let wmk = WebMolKit;
+
 	wmk.initWebMolKit('res');
 	var widget = new Mixtures.WebWidget();
 	var mixture = new Mixtures.Mixture(JSON.parse($('#data').text()));
