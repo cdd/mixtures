@@ -74,6 +74,8 @@ const BANNER:MenuBannerButton[][] =
 
 export class WebWidget extends wmk.Widget
 {
+	public onGoBack:() => void = null; // optional: gets an icon if defined
+
 	private proxyClip = new wmk.ClipboardProxyWeb();
 	private banner:MenuBanner;
 	private editor:EditMixtureWeb = null;
@@ -83,13 +85,6 @@ export class WebWidget extends wmk.Widget
 	constructor()
 	{
 		super();
-
-		// proxyClip:wmk.ClipboardProxy
-
-		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.menuAction(cmd));
-
-		this.editor = new EditMixtureWeb(this.proxyClip);
-		this.editor.callbackUpdateTitle = () => {};
 
 		let handler = new wmk.ClipboardProxyHandler();
 		handler.copyEvent = (andCut:boolean, proxy:wmk.ClipboardProxy):boolean =>
@@ -108,6 +103,17 @@ export class WebWidget extends wmk.Widget
 	public render(parent:any, width?:number, height?:number):void
 	{
 		super.render(parent);
+
+		let bannerContent = BANNER.slice(0);
+		if (this.onGoBack)
+		{
+			let back:MenuBannerButton = {'icon': 'CommandBack.svg', 'tip': null/*'Back'*/, 'cmd': MenuBannerCommand.Back};
+			bannerContent.unshift([back]);
+		}
+		this.banner = new MenuBanner(bannerContent, (cmd:MenuBannerCommand) => this.menuAction(cmd));
+
+		this.editor = new EditMixtureWeb(this.proxyClip);
+		this.editor.callbackUpdateTitle = () => {};
 
 		this.content.css({'width': width, 'height': height});
 		this.content.css('border', '1px solid black');
@@ -179,7 +185,7 @@ export class WebWidget extends wmk.Widget
 		else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
 		else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
 		else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
-
+		else if (cmd == MenuBannerCommand.Back) this.onGoBack();
 	}
 
 	// ------------ private methods ------------

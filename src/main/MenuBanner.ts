@@ -49,6 +49,7 @@ export enum MenuBannerCommand
 	ZoomOut = 'zoomOut',
 	ViewDetail = 'viewDetail',
 	ViewCard = 'viewCard',
+	Back = 'back',
 }
 
 export interface MenuBannerButton
@@ -129,7 +130,8 @@ export class MenuBanner
 		div.css({'border-radius': '4px'});
 		if (this.selected.has(btn.cmd)) div.css('background-color', '#D0D0D0');
 
-		let svg = $('<img/>').appendTo(div).attr({'src': 'res/img/icons/' + btn.icon});
+		let imgURL = wmk.Theme.RESOURCE_URL + '/img/icons/' + btn.icon;
+		let svg = $('<img/>').appendTo(div).attr({'src': imgURL});
 
 		div.hover(
 			() =>
@@ -147,7 +149,7 @@ export class MenuBanner
 			if (!this.mapActive[btn.cmd]) return;
 			this.onAction(btn.cmd);
 		});
-		wmk.addTooltip(div, escapeHTML(btn.tip));
+		if (btn.tip) wmk.addTooltip(div, escapeHTML(btn.tip));
 
 		return [div, svg];
 	}
