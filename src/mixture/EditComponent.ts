@@ -74,9 +74,9 @@ export class EditComponent extends wmk.Dialog
 
 	// ------------ public methods ------------
 
-	constructor(private component:MixfileComponent, private parentSize:[number, number])
+	constructor(private component:MixfileComponent, private parentSize:[number, number], parent:JQuery = null)
 	{
-		super();
+		super(parent);
 
 		this.title = 'Edit Component';
 		this.minPortionWidth = 20;
@@ -147,11 +147,11 @@ export class EditComponent extends wmk.Dialog
 
 		this.createFieldName(grid1, 3, 'Description');
 		this.areaDescr = this.createValueMultiline(grid1, 3);
-		this.areaDescr.keydown((event:JQueryEventObject) => this.trapEscape(event));
+		//this.areaDescr.keydown((event:JQueryEventObject) => this.trapEscape(event));
 
 		this.createFieldName(grid1, 4, 'Synonyms');
 		this.areaSyn = this.createValueMultiline(grid1, 4);
-		this.areaSyn.keydown((event:JQueryEventObject) => this.trapEscape(event));
+		//this.areaSyn.keydown((event:JQueryEventObject) => this.trapEscape(event));
 
 		this.areaDescr.val(this.component.description);
 		if (this.component.synonyms) this.areaSyn.val(this.component.synonyms.join('\n'));

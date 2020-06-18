@@ -234,7 +234,7 @@ export class EditMixture extends wmk.Widget
 		proxy.setString = (str:string):void => clipboard.writeText(str);
 		proxy.canAlwaysGet = ():boolean => true;*/
 
-		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule());
+		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule(), this.content);
 		this.dlgCompound.onSave(() =>
 		{
 			let molfile = wmk.MoleculeStream.writeMDLMOL(this.dlgCompound.getMolecule());
@@ -263,8 +263,11 @@ export class EditMixture extends wmk.Widget
 		if (this.selectedIndex < 0) return;
 		let origin = this.layout.components[this.selectedIndex].origin;
 		let comp = this.mixture.getComponent(origin);
-		let curX = this.content.width(), curY = this.content.height();
-		let dlg = new EditComponent(deepClone(comp), [curX, curY]);
+		
+		//let w = this.content.width(), h = this.content.height();
+		let w = $(window).width() * 0.8, h = $(window).height() * 0.8;
+
+		let dlg = new EditComponent(deepClone(comp), [w, h], this.content);
 		dlg.onSave(() =>
 		{
 			let modmix = this.mixture.clone();
