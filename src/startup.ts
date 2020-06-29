@@ -33,7 +33,7 @@ import norm_xy = WebMolKit.norm_xy; // eslint-disable-line
 import newElement = WebMolKit.newElement;
 
 ///<reference path='../decl/node.d.ts'/>
-///<reference path='MixturePanel.ts'/>
+///<reference path='main/MixturePanel.ts'/>
 
 namespace Mixtures /* BOF */ {
 

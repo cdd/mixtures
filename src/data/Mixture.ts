@@ -18,6 +18,9 @@ namespace Mixtures /* BOF */ {
 
 /*
 	Data container for mixtures: basically wraps the Mixfile interface, with additional functionality.
+
+	Note that functionality should be assumed to be using shallow pointers to the underlying dictionary, unless
+	specified otherwise (e.g. clone).
 */
 
 export class Mixture

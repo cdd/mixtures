@@ -44,6 +44,7 @@ export class ArrangeMixtureComponent
 export class ArrangeMixture
 {
 	public scale:number;
+	public nameFontSize:number;
 	public width = 0;
 	public height = 0;
 
@@ -64,6 +65,7 @@ export class ArrangeMixture
 	constructor(public mixture:Mixture, public measure:wmk.ArrangeMeasurement, public policy:wmk.RenderPolicy)
 	{
 		this.scale = policy.data.pointScale;
+		this.nameFontSize = 0.5 * policy.data.pointScale;
 		this.limitStructW = this.limitStructH = this.scale * 10;
 	}
 
@@ -187,7 +189,7 @@ export class ArrangeMixture
 			}
 
 			comp.nameBox = new wmk.Box(padding, padding);
-			comp.fontSize = 0.5 * this.scale;
+			comp.fontSize = this.nameFontSize;
 			for (let n = 0; n < comp.nameLines.length; n++)
 			{
 				let wad = this.measure.measureText(comp.nameLines[n], comp.fontSize);

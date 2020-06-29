@@ -50,15 +50,16 @@ const PAIR_UNIT_NAMES:any[] =
 	[StandardUnits.pcMM, 'mol/mol%'],
 	[StandardUnits.ratio, 'ratio'],
 	[StandardUnits.mol_L, 'mol/L'],
-	[StandardUnits.mmol_L, 'mmol/L', 1E-3],
-	[StandardUnits.umol_L, '\u{03BC}mol/L', 1E-6],
-	[StandardUnits.pmol_L, 'pmol/L', 1E-9],
+	[StandardUnits.mmol_L, 'mmol/L'],
+	[StandardUnits.umol_L, '\u{03BC}mol/L'],
+	[StandardUnits.nmol_L, 'nmol/L'],
+	[StandardUnits.pmol_L, 'pmol/L'],
 	/*[StandardUnits.logM, ''],
 	[StandardUnits.perM, ''],*/
-	[StandardUnits.g_L, 'g/L', 1],
-	[StandardUnits.mg_L, 'mg/L', 1E-3],
-	[StandardUnits.ug_L, '\u{03BC}g/L', 1E-6],
-	[StandardUnits.mol_kg, 'mol/kg', 1],
+	[StandardUnits.g_L, 'g/L'],
+	[StandardUnits.mg_L, 'mg/L'],
+	[StandardUnits.ug_L, '\u{03BC}g/L'],
+	[StandardUnits.mol_kg, 'mol/kg'],
 ];
 
 const PAIR_UNIT_MINCHI:any[] =
