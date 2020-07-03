@@ -51,6 +51,8 @@ export class ExtractCTABComponent
 	{
 	}
 
+	// returns a component instance if and only when the underlying CTAB has something mixture-esque; if it's not a molecule,
+	// or is just a plain ordinary single molecule, returns null
 	public extract():MixfileComponent
 	{
 		let ctab = new wmk.MDLMOLReader(this.text);
@@ -259,8 +261,7 @@ export class ExtractCTABComponent
 			{
 				if (mix.atoms.includes(a1)) mix.atoms.push(...addedAtoms);
 			}
-
-			list.push();
+			list.push(rproto);
 		}
 
 		return list;

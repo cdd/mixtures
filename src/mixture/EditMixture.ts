@@ -88,8 +88,7 @@ export class EditMixture extends wmk.Widget
 
 		this.content.css({'width': '100%', 'height': '100%'});
 		this.content.css('background-color', '#F0F0F0');
-		this.content.css('position', 'relative');
-		this.content.css('outline-width', '0');
+		this.content.css({'position': 'relative', 'outline-width': '0'});
 
 		let canvasStyle = 'position: absolute; left: 0; top: 0; pointer-events: none;';
 		this.canvasMixture = newElement(this.content, 'canvas', {'style': canvasStyle}) as HTMLCanvasElement;

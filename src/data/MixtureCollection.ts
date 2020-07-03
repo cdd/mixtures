@@ -20,28 +20,22 @@ namespace Mixtures /* BOF */ {
 
 /*
 	Collection of mixtures: convenience methods for handling an array thereof, including serialisation.
+
+	Most of the methods that fetch or modify the mixture content one item at a time make deep clones, so it is safe to
+	assume that there are no dangling pointers. Exceptions include the constructor, bulk modifications, and methods marked
+	as providing direct access.
 */
 
 export class MixtureCollection
 {
+	private mixtures:Mixture[] = [];
+
 	// ------------ public methods ------------
 
-	constructor(private mixtures:Mixture[] = [])
+	constructor(mixtures?:Mixture[])
 	{
+		if (mixtures) this.mixtures = mixtures.slice(0);
 	}
-
-/*	// makes a deep copy of self
-	public clone():Mixture
-	{
-		return new Mixture(deepClone(this.mixfile));
-	}
-
-	// returns true if the two mixtures are identical at all parts of their branch structure
-	public equals(other:Mixture):boolean
-	{
-		if (other == null) return false;
-		return this.recursiveEqual(this.mixfile, other.mixfile);
-	}*/
 
 	public get count():number
 	{
@@ -69,7 +63,7 @@ export class MixtureCollection
 	}
 	public appendMixture(mixture:Mixture):number
 	{
-		this.mixtures.push(mixture);
+		this.mixtures.push(mixture.clone());
 		return this.mixtures.length - 1;
 	}
 	public appendCollection(collection:MixtureCollection):void
@@ -78,7 +72,7 @@ export class MixtureCollection
 	}
 	public insertMixture(idx:number, mixture:Mixture):void
 	{
-		this.mixtures.splice(idx, 0, mixture);
+		this.mixtures.splice(idx, 0, mixture.clone());
 	}
 	public swapMixtures(idx1:number, idx2:number):void
 	{

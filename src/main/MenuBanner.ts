@@ -81,6 +81,7 @@ export class MenuBanner
 		this.divFlex.css({'flex-direction': 'row', 'flex-wrap': 'nowrap', 'justify-content': 'space-around', 'align-items': 'center'});
 		//this.divFlex.css({'linear-gradient': '90deg, #F0F0F0, #808080'});
 		this.divFlex.css({'background': 'linear-gradient(to bottom, #FFFFFF, #C0C0C0)'});
+		this.divFlex.css({'user-select': 'none'});
 
 		for (let blk of this.commands)
 		{

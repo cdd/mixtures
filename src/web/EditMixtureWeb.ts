@@ -19,6 +19,8 @@
 ///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
 ///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
+///<reference path='../../../WebMolKit/src/ui/MenuProxy.ts'/>
+///<reference path='../../../WebMolKit/src/ui/Popup.ts'/>
 ///<reference path='../../../WebMolKit/src/dialog/EditCompound.ts'/>
 
 ///<reference path='../decl/node.d.ts'/>
@@ -53,7 +55,66 @@ export class EditMixtureWeb extends EditMixture
 	
 	protected contextMenu(event:JQueryEventObject):void
 	{
-		// ...
+		event.preventDefault();
+
+		let [x, y] = eventCoords(event, this.content);
+		let comp = this.pickComponent(x, y);
+
+		this.selectedIndex = comp;
+		this.activeIndex = -1;
+		this.delayedRedraw();
+
+		let menu:wmk.MenuProxyContext[] = [];
+
+		if (comp >= 0)
+		{
+			let compObj = this.layout.components[comp].content, origin = this.layout.components[comp].origin;
+			menu.push({'label': 'Edit Structure', 'click': () => {this.selectComponent(comp); this.editStructure();}});
+			menu.push({'label': 'Edit Details', 'click': () => {this.selectComponent(comp); this.editDetails();}});
+			menu.push({'label': 'Append', 'click': () => {this.selectComponent(comp); this.appendToCurrent();}});
+			if (origin.length > 0)
+			{
+				menu.push({'label': 'Prepend', 'click': () => {this.selectComponent(comp); this.prependBeforeCurrent();}});
+				menu.push({'label': 'Delete', 'click': () => {this.selectComponent(comp); this.deleteCurrent();}});
+
+				if (origin[origin.length - 1] > 0)
+					menu.push({'label': 'Move Up', 'click': () => {this.selectComponent(comp); this.reorderCurrent(-1);}});
+				if (origin[origin.length - 1] < Vec.arrayLength(this.mixture.getParentComponent(origin).contents) - 1)
+					menu.push({'label': 'Move Down', 'click': () => {this.selectComponent(comp); this.reorderCurrent(1);}});
+			}
+
+			menu.push({'label': 'Copy', 'click': () => {this.selectComponent(comp); this.clipboardCopy(false);}});
+			if (Vec.arrayLength(compObj.contents) > 0)
+				menu.push({'label': 'Copy Branch', 'click': () => {this.selectComponent(comp); this.clipboardCopy(false, true);}});
+			if (origin.length > 0)
+				menu.push({'label': 'Cut', 'click': () => {this.selectComponent(comp); this.clipboardCopy(true);}});
+		}
+		else
+		{
+			menu.push({'label': 'Zoom In', 'click': () => this.zoom(1.25)});
+			menu.push({'label': 'Zoom Out', 'click': () => this.zoom(0.8)});
+		}
+
+		let divCursor = $('<div/>').appendTo(this.content).css({'position': 'absolute'});
+		wmk.setBoundaryPixels(divCursor, x - 5, y - 5, 10, 10);
+		let popup = new wmk.Popup(divCursor);
+ 		popup.callbackPopulate = () =>
+		{
+			for (let menuItem of menu)
+			{
+				let div = $('<div/>').appendTo(popup.body());
+				div.text(menuItem.label);
+				div.hover(() => div.css({'background-color': '#D0D0D0'}), () => div.css({'background-color': 'transparent'}));
+				div.css({'cursor': 'pointer'});
+				div.click(() => 
+				{
+					popup.close();
+					menuItem.click();
+				});
+			}
+		};
+		popup.callbackClose = () => divCursor.remove();
+		popup.open();
 	}
 }
 

@@ -116,9 +116,7 @@ export class WebWidget extends wmk.Widget
 		this.editor.callbackUpdateTitle = () => {};
 
 		this.content.css({'width': width, 'height': height});
-		this.content.css('border', '1px solid black');
-		this.content.css('display', 'flex');
-		this.content.css('flex-direction', 'column');
+		this.content.css({'border': '1px solid black', 'display': 'flex', 'flex-direction': 'column'});
 
 		let divMenu = $('<div style="width: 100%; flex-grow: 0;"/>').appendTo(this.content);
 		let divMain = $('<div style="width: 100%; flex: 1 1 0; height: 100%; position: relative;"/>').appendTo(this.content);
