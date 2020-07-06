@@ -103,17 +103,11 @@ export class EditComponent extends wmk.Dialog
 
 		// top section
 
-		//this.btnClear = $('<button class="wmk-button wmk-button-default">Clear</button>').appendTo(buttons);
-		//this.btnClear.click(() => this.sketcher.clearMolecule());
 		if (this.callbackSketch)
 		{
 			this.btnSketch = $('<button class="wmk-button wmk-button-default">Sketch</button>').appendTo(buttons);
 			this.btnSketch.click(() => this.invokeSketcher());
 		}
-
-		/*buttons.append(' ');
-		this.btnCopy = $('<button class="wmk-button wmk-button-default">Copy</button>').appendTo(buttons);
-		this.btnCopy.click(() => this.copyComponent());*/
 
 		buttons.append(' ');
 		buttons.append(this.btnClose); // easy way to reorder

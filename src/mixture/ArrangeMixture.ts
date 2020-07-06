@@ -132,6 +132,63 @@ export class ArrangeMixture
 		return -1;
 	}
 
+	// turn quantity info into a readable string
+	public static formatQuantity(mixcomp:MixfileComponent):string
+	{
+		let prec = (val:number):string =>
+		{
+			if (val > 10000) return Math.round(val).toString();
+			let str = val.toPrecision(6);
+			if (str.indexOf('e') >= 0 || str.indexOf('.') < 0) return str;
+			while (true)
+			{
+				if (str.endsWith('0')) str = str.substring(0, str.length - 1);
+				else if (str.endsWith('.')) {str = str.substring(0, str.length - 1); break;}
+				else break;
+			}
+			return str;
+		};
+
+		if (mixcomp.ratio)
+		{
+			if (mixcomp.ratio.length == 2) return prec(mixcomp.ratio[0]) + '/' + prec(mixcomp.ratio[1]);
+			return null; // invalid ratio
+		}
+
+		if (mixcomp.quantity == null) return null;
+
+		let str = '';
+		if (mixcomp.relation)
+		{
+			let rel = mixcomp.relation;
+			if (rel == '>=') rel = '\u{2265}'; else if (rel == '<=') rel = '\u{2264}';
+			str += rel /*+ ' '*/;
+		}
+		if (mixcomp.quantity instanceof Array)
+		{
+			if (mixcomp.quantity.length == 0) return;
+			str += prec(mixcomp.quantity[0]);
+			if (mixcomp.quantity.length >= 2) str += ' - ' + prec(mixcomp.quantity[1]);
+		}
+		else
+		{
+			str += prec(mixcomp.quantity); // is presumed to be scalar
+			if (mixcomp.error)
+			{
+				// TODO: match the significant figures more carefully
+				str += ' \u{00B1} ' + prec(mixcomp.error);
+			}
+		}
+
+		if (mixcomp.units) 
+		{
+			if (!mixcomp.units.startsWith('%')) str += ' ';
+			str += mixcomp.units;
+		}
+
+		return str;
+	}	
+
 	// --------------------- private methods ---------------------
 
 	// instantiate each component in the diagram (which includes pluses and arrows)
@@ -174,7 +231,7 @@ export class ArrangeMixture
 			comp.nameLines = [];
 			if (mixcomp.name) comp.nameLines.push(mixcomp.name);
 			// (... synonyms, and linewrapping ...)
-			let qline = this.formatQuantity(mixcomp);
+			let qline = ArrangeMixture.formatQuantity(mixcomp);
 			if (qline) comp.nameLines.push(qline);
 			if (mixcomp.identifiers) for (let key in mixcomp.identifiers)
 			{
@@ -265,59 +322,6 @@ export class ArrangeMixture
 		}
 
 		return wholeBranch;
-	}
-
-	// turn quantity info into a readable string
-	private formatQuantity(mixcomp:MixfileComponent):string
-	{
-		let prec = (val:number):string =>
-		{
-			if (val > 10000) return Math.round(val).toString();
-			let str = val.toPrecision(6);
-			if (str.indexOf('e') >= 0 || str.indexOf('.') < 0) return str;
-			while (true)
-			{
-				if (str.endsWith('0')) str = str.substring(0, str.length - 1);
-				else if (str.endsWith('.')) {str = str.substring(0, str.length - 1); break;}
-				else break;
-			}
-			return str;
-		};
-
-		if (mixcomp.ratio)
-		{
-			if (mixcomp.ratio.length == 2) return prec(mixcomp.ratio[0]) + '/' + prec(mixcomp.ratio[1]);
-			return null; // invalid ratio
-		}
-
-		if (mixcomp.quantity == null) return null;
-
-		let str = '';
-		if (mixcomp.relation)
-		{
-			let rel = mixcomp.relation;
-			if (rel == '>=') rel = '\u{2265}'; else if (rel == '<=') rel = '\u{2264}';
-			str += rel + ' ';
-		}
-		if (mixcomp.quantity instanceof Array)
-		{
-			if (mixcomp.quantity.length == 0) return;
-			str += prec(mixcomp.quantity[0]);
-			if (mixcomp.quantity.length >= 2) str += ' - ' + prec(mixcomp.quantity[1]);
-		}
-		else
-		{
-			str += prec(mixcomp.quantity); // is presumed to be scalar
-			if (mixcomp.error)
-			{
-				// TODO: match the significant figures more carefully
-				str += ' \u{00B1} ' + prec(mixcomp.error);
-			}
-		}
-
-		if (mixcomp.units) str += ' ' + mixcomp.units;
-
-		return str;
 	}
 }
 

@@ -250,6 +250,7 @@ export class EditMixture extends wmk.Widget
 		{
 			this.isEditing = false;
 			this.dlgCompound = null;
+			this.content.focus();
 		});
 		this.dlgCompound.defineClipboard(this.proxyClip);
 		this.isEditing = true;
@@ -279,7 +280,11 @@ export class EditMixture extends wmk.Widget
 				if (Vec.equals(origin, this.layout.components[n].origin)) {this.selectedIndex = n; break;}
 			this.editStructure();
 		});
-		dlg.onClose(() => this.isEditing = false);
+		dlg.onClose(() => 
+		{
+			this.isEditing = false;
+			this.content.focus();
+		});
 		this.isEditing = true;
 		dlg.open();
 	}
@@ -301,6 +306,11 @@ export class EditMixture extends wmk.Widget
 			if (mol != null) comp.molfile = new wmk.MDLMOLWriter(mol).write();
 			if (modmix.setComponent(origin, comp)) this.setMixture(modmix);
 			dlg.close();
+		});
+		dlg.onClose(() => 
+		{
+			this.isEditing = false;
+			this.content.focus();
 		});
 		dlg.open();
 	}
@@ -572,7 +582,7 @@ export class EditMixture extends wmk.Widget
 	// interactivity
 	protected mouseClick(event:JQueryMouseEventObject):void
 	{
-		this.content.focus(); // just in case it wasn't already
+		//this.content.focus(); // just in case it wasn't already		
 	}
 	protected mouseDoubleClick(event:JQueryMouseEventObject):void
 	{
@@ -591,7 +601,7 @@ export class EditMixture extends wmk.Widget
 	}
 	protected mouseDown(event:JQueryMouseEventObject):void
 	{
-		event.preventDefault();
+		//event.preventDefault();
 
 		if (event.which != 1) return;
 		if (event.ctrlKey)
