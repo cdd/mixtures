@@ -238,6 +238,15 @@ export class EditComponent extends wmk.Dialog
 			this.component.units = null;
 		}
 
+		if (!Mixture.hasQuantity(this.component))
+		{
+			this.component.quantity = null;
+			this.component.error = null;
+			this.component.ratio = null;
+			this.component.units = null;
+			this.component.relation = null;
+		}
+
 		if (this.areaDescr) this.component.description = nullifyBlank(this.areaDescr.val().toString());
 
 		this.component.synonyms = splitLines(this.areaSyn.val().toString());

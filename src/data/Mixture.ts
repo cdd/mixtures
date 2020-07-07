@@ -54,6 +54,12 @@ export class Mixture
 		return true;
 	}
 
+	// returns true if there's something to put in the quantity section
+	public static hasQuantity(comp:MixfileComponent):boolean
+	{
+		return comp.quantity != null || comp.ratio != null;
+	}
+
 	// makes a deep copy of self
 	public clone():Mixture
 	{
