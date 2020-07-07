@@ -145,6 +145,14 @@ export class EditMixture extends wmk.Widget
 		if (this.callbackUpdateTitle) this.callbackUpdateTitle();
 	}
 
+	// returns the selected origin indices & component, or null if nothing selected
+	public getSelected():[number[], MixfileComponent]
+	{
+		if (this.selectedIndex < 0 || this.layout == null) return [null, null];
+		let comp = this.layout.components[this.selectedIndex];
+		return [comp.origin, comp.content];
+	}
+
 	// wipes the undo & redo stacks
 	public clearHistory():void
 	{

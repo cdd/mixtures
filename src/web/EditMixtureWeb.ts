@@ -38,6 +38,7 @@ namespace Mixtures /* BOF */ {
 
 export class EditMixtureWeb extends EditMixture
 {
+	public onLookup:(editor:EditMixtureWeb) => void = null; // optional: added to context menu if defined
 
 	// ------------ public methods ------------
 
@@ -71,6 +72,10 @@ export class EditMixtureWeb extends EditMixture
 			let compObj = this.layout.components[comp].content, origin = this.layout.components[comp].origin;
 			menu.push({'label': 'Edit Structure', 'click': () => {this.selectComponent(comp); this.editStructure();}});
 			menu.push({'label': 'Edit Details', 'click': () => {this.selectComponent(comp); this.editDetails();}});
+			if (this.onLookup)
+			{
+				menu.push({'label': 'Lookup', 'click': () => this.onLookup(this)});
+			}
 			menu.push({'label': 'Append', 'click': () => {this.selectComponent(comp); this.appendToCurrent();}});
 			if (origin.length > 0)
 			{

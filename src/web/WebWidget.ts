@@ -47,7 +47,7 @@ const BANNER:MenuBannerButton[][] =
 	[
 		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
 		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
-		//{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
+		{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
 		//{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'cmd': MenuBannerCommand.ExportSVG},
 	],
 	[
@@ -75,10 +75,11 @@ const BANNER:MenuBannerButton[][] =
 export class WebWidget extends wmk.Widget
 {
 	public onGoBack:() => void = null; // optional: gets an icon if defined
+	public onLookup:(editor:EditMixtureWeb) => void = null; // optional: gets an icon if defined
 
-	private proxyClip = new wmk.ClipboardProxyWeb();
-	private banner:MenuBanner;
-	private editor:EditMixtureWeb = null;
+	public proxyClip = new wmk.ClipboardProxyWeb();
+	public banner:MenuBanner;
+	public editor:EditMixtureWeb = null;
 
 	// ------------ public methods ------------
 
@@ -104,16 +105,22 @@ export class WebWidget extends wmk.Widget
 	{
 		super.render(parent);
 
-		let bannerContent = BANNER.slice(0);
+		let bannerContent = deepClone(BANNER);
 		if (this.onGoBack)
 		{
 			let back:MenuBannerButton = {'icon': 'CommandBack.svg', 'tip': null/*'Back'*/, 'cmd': MenuBannerCommand.Back};
 			bannerContent.unshift([back]);
 		}
+		if (!this.onLookup)
+		{
+			outer: for (let blk of bannerContent) for (let n = 0; n < blk.length; n++)
+				if (blk[n].cmd == MenuBannerCommand.Lookup) {blk.splice(n, 1); break outer;}
+		}
 		this.banner = new MenuBanner(bannerContent, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
 		this.editor = new EditMixtureWeb(this.proxyClip);
 		this.editor.callbackUpdateTitle = () => {};
+		this.editor.onLookup = this.onLookup;
 
 		this.content.css({'width': width, 'height': height});
 		this.content.css({'border': '1px solid black', 'display': 'flex', 'flex-direction': 'column'});
@@ -174,7 +181,7 @@ export class WebWidget extends wmk.Widget
 		else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
 		else if (cmd == MenuBannerCommand.EditStructure) this.editor.editStructure();
 		else if (cmd == MenuBannerCommand.EditDetails) this.editor.editDetails();
-		else if (cmd == MenuBannerCommand.Lookup) this.editor.lookupCurrent();
+		else if (cmd == MenuBannerCommand.Lookup) this.onLookup(this.editor);
 		else if (cmd == MenuBannerCommand.Delete) this.editor.deleteCurrent();
 		else if (cmd == MenuBannerCommand.Append) this.editor.appendToCurrent();
 		else if (cmd == MenuBannerCommand.Prepend) this.editor.prependBeforeCurrent();
