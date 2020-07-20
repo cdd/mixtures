@@ -77,15 +77,17 @@ export class WebWidget extends wmk.Widget
 	public onGoBack:() => void = null; // optional: gets an icon if defined
 	public onLookup:(editor:EditMixtureWeb) => void = null; // optional: gets an icon if defined
 
-	public proxyClip = new wmk.ClipboardProxyWeb();
+	//public proxyClip = new wmk.ClipboardProxyWeb();
 	public banner:MenuBanner;
 	public editor:EditMixtureWeb = null;
 
 	// ------------ public methods ------------
 
-	constructor()
+	constructor(public proxyClip?:wmk.ClipboardProxy)
 	{
 		super();
+
+		if (!this.proxyClip) this.proxyClip = new wmk.ClipboardProxyWeb()
 
 		let handler = new wmk.ClipboardProxyHandler();
 		handler.copyEvent = (andCut:boolean, proxy:wmk.ClipboardProxy):boolean =>
@@ -131,6 +133,11 @@ export class WebWidget extends wmk.Widget
 
 		this.banner.render(divMenu);
 		this.editor.render(divMainX);
+	}
+
+	public cleanup():void
+	{
+		this.proxyClip.popHandler();
 	}
 
 	public isBlank():boolean
