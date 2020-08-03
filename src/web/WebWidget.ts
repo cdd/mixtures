@@ -87,7 +87,7 @@ export class WebWidget extends wmk.Widget
 	{
 		super();
 
-		if (!this.proxyClip) this.proxyClip = new wmk.ClipboardProxyWeb()
+		if (!this.proxyClip) this.proxyClip = new wmk.ClipboardProxyWeb();
 
 		let handler = new wmk.ClipboardProxyHandler();
 		handler.copyEvent = (andCut:boolean, proxy:wmk.ClipboardProxy):boolean =>

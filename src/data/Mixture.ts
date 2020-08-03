@@ -92,8 +92,8 @@ export class Mixture
 		return Mixture.beautify(comp);
 	}
 
-	// uses the "origin vector" to fetch a particular component; this is an array of indices, where [] indicates the root; its first component is [0],
-	// the second child of its first component is [0,1], etc.
+	// uses the "origin vector" to fetch a particular component; this is an array of indices, where [] indicates the root; its first
+	// component is [0], the second child of its first component is [0,1], etc.
 	public getComponent(origin:number[]):MixfileComponent
 	{
 		if (origin.length == 0) return this.mixfile;
@@ -125,6 +125,21 @@ export class Mixture
 			if (comp.contents) for (let sub of comp.contents) stack.push(sub);
 		}
 		return list;
+	}
+
+	// returns an array that is equal in size to the number of nodes; each entry contains origin of that node
+	public getOrigins():number[][]
+	{
+		let origins:number[][] = [];
+
+		let nodeEnum = (origin:number[], comp:MixfileComponent) =>
+		{
+			origins.push(origin);
+			for (let n = 0; n < Vec.arrayLength(comp.contents); n++) nodeEnum(Vec.append(origin, n), comp.contents[n]);
+		};
+
+		nodeEnum([], this.mixfile);
+		return origins;
 	}
 
 	// replaces a component at a given position; returns true if the new component was different to the old one
@@ -176,7 +191,21 @@ export class Mixture
 	// insert a new component "above" the existing one, and handle the reparenting
 	public prependBefore(origin:number[], comp:MixfileComponent):void
 	{
-		if (origin.length == 0) return;
+		// slightly different when prepending before the root element
+		if (origin.length == 0)
+		{
+			let mixfile = this.mixfile;
+			let subcomp:MixfileComponent = {};
+			const SKIP = ['mixfileVersion', 'contents'];
+			for (let key in (mixfile as any)) if (!SKIP.includes(key))
+			{
+				(subcomp as any)[key] = (mixfile as any)[key];
+				delete (mixfile as any)[key];
+			}
+			mixfile.contents = [subcomp];
+
+			return;
+		}
 
 		let find:MixfileComponent = this.mixfile, look = this.mixfile.contents, parent = look;
 		for (let o of origin)
