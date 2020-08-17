@@ -733,8 +733,8 @@ export class EditMixture extends wmk.Widget
 			menu.append(new electron.remote.MenuItem({'label': 'Edit Structure', 'click': () => {this.selectComponent(comp); this.editStructure();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Edit Details', 'click': () => {this.selectComponent(comp); this.editDetails();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Lookup Name', 'click': () => {this.selectComponent(comp); this.lookupCurrent();}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Prepend', 'click': () => {this.selectComponent(comp); this.prependBeforeCurrent();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Append', 'click': () => {this.selectComponent(comp); this.appendToCurrent();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Prepend', 'click': () => {this.selectComponent(comp); this.prependBeforeCurrent();}}));
 			if (origin.length > 0)
 			{
 				menu.append(new electron.remote.MenuItem({'label': 'Delete', 'click': () => {this.selectComponent(comp); this.deleteCurrent();}}));

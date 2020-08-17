@@ -67,6 +67,9 @@ export class EditComponent extends wmk.Dialog
 	private areaIdent:JQuery;
 	private areaLinks:JQuery;
 
+	private unitValues:string[];
+	private unitLabels:string[];
+
 	private fakeTextArea:HTMLTextAreaElement = null; // for temporarily bogarting the clipboard
 
 	private callbackSave:(source?:EditComponent) => void = null;
@@ -346,8 +349,7 @@ export class EditComponent extends wmk.Dialog
 	private createQuantity(parent:JQuery):void
 	{
 		let flex = $('<div/>').appendTo(parent);
-		flex.css('display', 'flex');
-		flex.css('align-items', 'center');
+		flex.css({'display': 'flex', 'align-items': 'center'});
 		let box = ():JQuery => $('<div style="padding-left: 0.5em;"/>').appendTo(flex);
 
 		this.optQuantType = new wmk.OptionList([QuantityType.Value, QuantityType.Range, QuantityType.Ratio]);
@@ -359,6 +361,7 @@ export class EditComponent extends wmk.Dialog
 		this.lineQuantVal1 = $('<input/>').appendTo(box());
 		this.lineQuantVal1.attr('size', '10');
 		this.lineQuantVal1.css('font', 'inherit');
+		this.lineQuantVal1.change(() => this.interpretQuantString());
 
 		let spanGap = $('<span/>').appendTo(flex);
 		spanGap.css('padding', '0 0.5em 0 0.5em');
@@ -367,8 +370,9 @@ export class EditComponent extends wmk.Dialog
 		this.lineQuantVal2.attr('size', '10');
 		this.lineQuantVal2.css('font', 'inherit');
 
-		let unitValues = Vec.prepend(Units.standardList(), ''), unitLabels = Vec.prepend(Units.commonNames(), '');
-		this.dropQuantUnits = this.makeDropdownGroup(box(), this.component.units, unitValues, unitLabels,
+		this.unitValues = Vec.prepend(Units.standardList(), '');
+		this.unitLabels = Vec.prepend(Units.commonNames(), '');
+		this.dropQuantUnits = this.makeDropdownGroup(box(), this.component.units, this.unitValues, this.unitLabels,
 									(value:string, label:string) => {this.component.units = label;});
 
 		let changeToValue = ():void =>
@@ -434,6 +438,81 @@ export class EditComponent extends wmk.Dialog
 		}
 		drop.change(() => {let idx = parseInt(drop.val().toString()); changeFunc(values[idx], labels[idx]);});
 		return drop;
+	}
+
+	// special deal: when typing in extended content to the regular value entry box, optionally break up strings that contain
+	// a more complete description, e.g. quantity *and* units
+	private interpretQuantString():void
+	{
+		let qstr = (this.lineQuantVal1.val() as string).trim();
+
+		// scrape out any "relation" properties from the beginning first of all
+		let rel = '';
+		for (let pfx of RELATION_VALUES) if (qstr.startsWith(pfx) && pfx.length > rel.length) rel = pfx;
+		if (rel) qstr = qstr.substring(rel.length);
+		else if (qstr.startsWith('\u{2264}')) [rel, qstr] = ['<=', qstr.substring(1)];
+		else if (qstr.startsWith('\u{2265}')) [rel, qstr] = ['>=', qstr.substring(1)];
+
+		// scrape off units from the end
+		let units = '';
+		for (let [name, uri] of Object.entries(Units.NAME_TO_URI))
+		{
+			let regname = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // regexify the unit name
+			let regex = new RegExp(`^(.*[\\d\\s\)])(${regname})$`);
+			let match = regex.exec(qstr);
+			if (!match) continue;
+			qstr = match[1];
+			units = uri;
+			break;
+		}
+
+		let isNum = (str:string):boolean =>
+		{
+			if (str.startsWith('.')) str = '0' + str;
+			if (!/^-?[0-9]+\.?[0-9eE]*$/.test(str)) return;
+			return !isNaN(parseFloat(str));
+		};
+
+		qstr = qstr.trim();
+		let qtype:QuantityType = null;
+		let qnum1 = '', qnum2 = '';
+		let match = /^([0-9\-\.eE]+)-([0-9\-\.eE]+)$/.exec(qstr); // A-B
+		if (match)
+		{
+			[qtype, qnum1, qnum2] = [QuantityType.Range, match[1], match[2]];
+			if (!isNum(qnum1) || !isNum(qnum2)) return;
+		}
+		else if (match = /^([0-9\-\.eE]+)\.\.([0-9\-\.eE]+)$/.exec(qstr)) // A..B
+		{
+			[qtype, qnum1, qnum2] = [QuantityType.Range, match[1], match[2]];
+			if (!isNum(qnum1) || !isNum(qnum2)) return;
+		}
+		else if (match = /^([0-9\-\.eE]+)\(([0-9\-\.eE]+)\)$/.exec(qstr)) // A(B)
+		{
+			[qtype, qnum1, qnum2] = [QuantityType.Value, match[1], match[2]];
+			if (!isNum(qnum1) || !isNum(qnum2)) return;
+		}
+		else if (match = /^([0-9\-\.eE]+)\:([0-9\-\.eE]+)$/.exec(qstr)) // A:B
+		{
+			[qtype, qnum1, qnum2] = [QuantityType.Ratio, match[1], match[2]];
+			if (!isNum(qnum1) || !isNum(qnum2)) return;
+		}
+		else if (match = /^([0-9\-\.eE]+)\/([0-9\-\.eE]+)$/.exec(qstr)) // A/B
+		{
+			[qtype, qnum1, qnum2] = [QuantityType.Ratio, match[1], match[2]];
+			if (!isNum(qnum1) || !isNum(qnum2)) return;
+		}
+		else
+		{
+			if (!isNum(qstr)) return;
+			[qtype, qnum1] = [QuantityType.Value, qstr];
+		}
+
+		this.optQuantType.setSelectedValue(qtype);
+		this.dropQuantRel.val(Math.max(0, RELATION_VALUES.indexOf(rel)).toString());
+		this.lineQuantVal1.val(qnum1);
+		this.lineQuantVal2.val(qnum2);
+		this.dropQuantUnits.val(Math.max(this.unitValues.indexOf(units)).toString());
 	}
 
 	// uses the structure (if any) to calculate the InChI, and fill in the field value

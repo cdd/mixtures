@@ -21,6 +21,7 @@ namespace Mixtures /* BOF */ {
 
 export enum StandardUnits
 {
+	// concentration units (these are favoured for most purposes)
 	pc = 'http://purl.obolibrary.org/obo/UO_0000187', // percent (of arbitrary type)
 	pcWV = 'http://purl.obolibrary.org/obo/UO_0000164', // percent (weight per volume),
 	pcWW = 'http://purl.obolibrary.org/obo/UO_0000163', // percent (weight per weight),
@@ -39,27 +40,58 @@ export enum StandardUnits
 	mg_L = 'http://purl.obolibrary.org/obo/UO_0000273', // milligrams per litre (aka micrograms per mL)
 	ug_L = 'http://purl.obolibrary.org/obo/UO_0000275', // micrograms per litre (aka nanograms per mL)
 	mol_kg = 'http://purl.obolibrary.org/obo/UO_0000068', // moles per kilogram
+
+	// absolute units (these are often converted to concentrations when possible)
+	kg = 'http://purl.obolibrary.org/obo/UO_0000009', // kilogram
+	g = 'http://purl.obolibrary.org/obo/UO_0000021', // gram
+	mg = 'http://purl.obolibrary.org/obo/UO_0000022', // milligram
+	ug = 'http://purl.obolibrary.org/obo/UO_0000023', // microgram
+	ng = 'http://purl.obolibrary.org/obo/UO_0000024', // nanogram
+	L = 'http://purl.obolibrary.org/obo/UO_0000099', // litre
+	mL = 'http://purl.obolibrary.org/obo/UO_0000098', // millilitre
+	uL = 'http://purl.obolibrary.org/obo/UO_0000101', // microlitre
+	nL = 'http://purl.obolibrary.org/obo/UO_0000102', // nanolitre
+	mol = 'http://purl.obolibrary.org/obo/UO_0000013', // mole
+	mmol = 'http://purl.obolibrary.org/obo/UO_0000040', // millimole
+	umol = 'http://purl.obolibrary.org/obo/UO_0000039', // micromole
+	nmol = 'http://purl.obolibrary.org/obo/UO_0000041', // nanomole
 }
 
 const PAIR_UNIT_NAMES:any[] =
 [
+	// form: [reference URI, primary display name, ...optional alternative names]
+
 	[StandardUnits.pc, '%'],
 	[StandardUnits.pcWV, 'w/v%'],
 	[StandardUnits.pcWW, 'w/w%'],
 	[StandardUnits.pcVV, 'v/v%'],
 	[StandardUnits.pcMM, 'mol/mol%'],
 	[StandardUnits.ratio, 'ratio'],
-	[StandardUnits.mol_L, 'mol/L'],
-	[StandardUnits.mmol_L, 'mmol/L'],
-	[StandardUnits.umol_L, '\u{03BC}mol/L'],
-	[StandardUnits.nmol_L, 'nmol/L'],
-	[StandardUnits.pmol_L, 'pmol/L'],
+	[StandardUnits.mol_L, 'mol/L', 'M'],
+	[StandardUnits.mmol_L, 'mmol/L', 'mM'],
+	[StandardUnits.umol_L, '\u{03BC}mol/L', 'umol/L', 'uM'],
+	[StandardUnits.nmol_L, 'nmol/L', 'nM'],
+	[StandardUnits.pmol_L, 'pmol/L', 'pM'],
 	/*[StandardUnits.logM, ''],
 	[StandardUnits.perM, ''],*/
 	[StandardUnits.g_L, 'g/L'],
 	[StandardUnits.mg_L, 'mg/L'],
-	[StandardUnits.ug_L, '\u{03BC}g/L'],
+	[StandardUnits.ug_L, '\u{03BC}g/L', 'ug/L'],
 	[StandardUnits.mol_kg, 'mol/kg'],
+
+	[StandardUnits.kg, 'kg'],
+	[StandardUnits.g, 'g'],
+	[StandardUnits.mg, 'mg'],
+	[StandardUnits.ug, '\u{03BC}g', 'ug'],
+	[StandardUnits.ng, 'ng'],
+	[StandardUnits.L, 'L'],
+	[StandardUnits.mL, 'mL'],
+	[StandardUnits.uL, '\u{03BC}L', 'uL'],
+	[StandardUnits.nL, 'nL'],
+	[StandardUnits.mol, 'mol'],
+	[StandardUnits.mmol, 'mmol'],
+	[StandardUnits.umol, '\u{03BC}mol', 'umol'],
+	[StandardUnits.nmol, 'nmol'],
 ];
 
 const PAIR_UNIT_MINCHI:any[] =
@@ -82,15 +114,17 @@ const PAIR_UNIT_MINCHI:any[] =
 	[StandardUnits.mg_L, 'wv', 1E-6],
 	[StandardUnits.ug_L, 'wv', 1E-9],
 	[StandardUnits.mol_kg, 'mb', 1],
+
 ];
 
 export class Units
 {
-	private static STANDARD_LIST:string[] = [];
-	private static COMMON_NAMES:string[] = [];
-	private static URI_TO_NAME:Record<string, string> = {};
-	private static NAME_TO_URI:Record<string, string> = {};
-	private static URI_TO_MINCHI:Record<string, [string, number]> = {};
+	public static STANDARD_LIST:string[] = []; // all of the applicable unit URIs
+	public static COMMON_NAMES:string[] = []; // all of the preferred names (same order as above)
+	public static URI_TO_NAME:Record<string, string> = {}; // each URI has one preferred display name
+	public static NAME_TO_URI:Record<string, string> = {}; // multiple unit forms can point to the same URI
+	public static URI_TO_MINCHI:Record<string, [string, number]> = {}; // URI to MInChI, when applicable
+
 	public static setup():void
 	{
 		for (let pair of PAIR_UNIT_NAMES)
@@ -99,7 +133,9 @@ export class Units
 			this.STANDARD_LIST.push(uri);
 			this.COMMON_NAMES.push(name);
 			this.URI_TO_NAME[uri] = name;
-			this.NAME_TO_URI[name] = uri;
+			
+			//this.NAME_TO_URI[name] = uri; (some of them have alternate names)
+			for (let n = 1; n <= pair.length; n++) this.NAME_TO_URI[pair[n]] = uri;
 		}
 		for (let pair of PAIR_UNIT_MINCHI)
 		{

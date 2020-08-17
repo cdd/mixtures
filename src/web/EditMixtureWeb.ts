@@ -77,9 +77,9 @@ export class EditMixtureWeb extends EditMixture
 				menu.push({'label': 'Lookup', 'click': () => this.onLookup(this)});
 			}
 			menu.push({'label': 'Append', 'click': () => {this.selectComponent(comp); this.appendToCurrent();}});
+			menu.push({'label': 'Prepend', 'click': () => {this.selectComponent(comp); this.prependBeforeCurrent();}});
 			if (origin.length > 0)
 			{
-				menu.push({'label': 'Prepend', 'click': () => {this.selectComponent(comp); this.prependBeforeCurrent();}});
 				menu.push({'label': 'Delete', 'click': () => {this.selectComponent(comp); this.deleteCurrent();}});
 
 				if (origin[origin.length - 1] > 0)
