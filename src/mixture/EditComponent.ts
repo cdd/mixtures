@@ -85,7 +85,7 @@ export class EditComponent extends wmk.Dialog
 		this.minPortionWidth = 20;
 		this.maxPortionWidth = 95;
 		//this.maximumWidth = parentSize[0];
-		this.maximumHeight = parentSize[1];
+		//this.maximumHeight = parentSize[1];
 	}
 
 	public onSave(callback:(source?:EditComponent) => void):void
@@ -123,32 +123,28 @@ export class EditComponent extends wmk.Dialog
 
 		body.css('padding', '0 0 0 1em');
 		let vertical = $('<div/>').appendTo(body);
-		vertical.css('overflow-y', 'scroll');
-		vertical.css('height', '100%');
-		vertical.css('max-height', (this.parentSize[1] - 200) + 'px');
-		vertical.css('padding-right', '18px');
-		vertical.css('padding-bottom', '10px');
+		vertical.css({'overflow-y': 'scroll', 'height': '100%'});
+		vertical.css('max-height', this.parentSize[1] + 'px');
+		vertical.css({'padding-right': '18px', 'padding-bottom': '10px'});
 
 		// first batch of fields
 
 		let grid1 = this.fieldGrid().appendTo(vertical);
 
-		this.createFieldName(grid1, 1, 'Name');
+		this.createFieldName(grid1, 1, 'Name', false);
 		this.lineName = this.createValueLine(grid1, 1);
 		this.lineName.val(this.component.name);
 
-		this.createFieldName(grid1, 2, 'Quantity');
+		this.createFieldName(grid1, 2, 'Quantity', false);
 		let divQuant = $('<div/>').appendTo(grid1);
 		divQuant.css({'grid-column': 'value', 'grid-row': '2'});
 		this.createQuantity(divQuant);
 
-		this.createFieldName(grid1, 3, 'Description');
+		this.createFieldName(grid1, 3, 'Description', true);
 		this.areaDescr = this.createValueMultiline(grid1, 3);
-		//this.areaDescr.keydown((event:JQueryEventObject) => this.trapEscape(event));
 
-		this.createFieldName(grid1, 4, 'Synonyms');
+		this.createFieldName(grid1, 4, 'Synonyms', true);
 		this.areaSyn = this.createValueMultiline(grid1, 4);
-		//this.areaSyn.keydown((event:JQueryEventObject) => this.trapEscape(event));
 
 		this.areaDescr.val(this.component.description);
 		if (this.component.synonyms) this.areaSyn.val(this.component.synonyms.join('\n'));
@@ -158,11 +154,11 @@ export class EditComponent extends wmk.Dialog
 		let grid2 = this.fieldGrid().appendTo(vertical);
 		let line = 0;
 
-		this.createFieldName(grid2, ++line, 'Formula');
+		this.createFieldName(grid2, ++line, 'Formula', false);
 		this.lineFormula = this.createValueLine(grid2, line);
 		this.lineFormula.val(this.component.formula);
 
-		this.createFieldName(grid2, ++line, 'InChI');
+		this.createFieldName(grid2, ++line, 'InChI', false);
 		this.lineInChI = this.createValueLine(grid2, line);
 		this.lineInChI.val(this.component.inchi);
 
@@ -173,17 +169,17 @@ export class EditComponent extends wmk.Dialog
 			btn.click(() => this.calculateInChI().then());
 		}
 
-		this.createFieldName(grid2, ++line, 'SMILES');
+		this.createFieldName(grid2, ++line, 'SMILES', false);
 		this.lineSMILES = this.createValueLine(grid2, line);
 		this.lineSMILES.val(this.component.smiles);
 
-		this.createFieldName(grid2, ++line, 'Identifiers');
+		this.createFieldName(grid2, ++line, 'Identifiers', true);
 		this.areaIdent = this.createValueMultiline(grid2, line);
 		let listID:string[] = [];
 		if (this.component.identifiers) for (let key in this.component.identifiers) listID.push(key + '=' + this.component.identifiers[key]);
 		this.areaIdent.val(listID.join('\n'));
 
-		this.createFieldName(grid2, ++line, 'Links');
+		this.createFieldName(grid2, ++line, 'Links', true);
 		this.areaLinks = this.createValueMultiline(grid2, line);
 		let listLinks:string[] = [];
 		if (this.component.links) for (let key in this.component.links) listLinks.push(key + '=' + this.component.links[key]);
@@ -192,7 +188,8 @@ export class EditComponent extends wmk.Dialog
 		this.lineName.focus();
 
 		// trap the escape key, for easy closing
-		body.find('input,textarea').keydown((event:JQueryEventObject) => this.trapEscape(event));
+		body.find('input').keydown((event:JQueryEventObject) => this.trapEscape(event, true));
+		body.find('textarea').keydown((event:JQueryEventObject) => this.trapEscape(event, false));
 	}
 
 	// ------------ private methods ------------
@@ -287,11 +284,13 @@ export class EditComponent extends wmk.Dialog
 	}
 
 	// creates a field name for inclusion in the grid
-	private createFieldName(parent:JQuery, row:number, text:string):JQuery
+	private createFieldName(parent:JQuery, row:number, text:string, topAlign:boolean):JQuery
 	{
 		let div = $('<div/>').appendTo(parent);
 		div.css('grid-column', 'field');
 		div.css('grid-row', row.toString());
+		div.css('align-self', topAlign ? 'baseline' : 'center');
+		if (topAlign) div.css('padding-top', '0.2em'); // baseline fudge
 		div.css('padding-right', '0.5em');
 		div.css('font-weight', 'bold');
 		div.text(text);
@@ -331,14 +330,14 @@ export class EditComponent extends wmk.Dialog
 	}
 
 	// make it so that line/text entry boxes trap the escape key to close the dialog box
-	private trapEscape(event:JQueryEventObject):void
+	private trapEscape(event:JQueryEventObject, andEnter:boolean):void
 	{
 		if (event.keyCode == 27)
 		{
 			event.preventDefault();
 			this.close();
 		}
-		else if (event.keyCode == 13)
+		else if (andEnter && event.keyCode == 13)
 		{
 			event.preventDefault();
 			this.saveAndClose();
@@ -480,17 +479,17 @@ export class EditComponent extends wmk.Dialog
 		if (match)
 		{
 			[qtype, qnum1, qnum2] = [QuantityType.Range, match[1], match[2]];
-			if (!isNum(qnum1) || !isNum(qnum2)) return;
+			if (!isNum(qnum1) || !isNum(qnum2) || !units) return;
 		}
 		else if (match = /^([0-9\-\.eE]+)\.\.([0-9\-\.eE]+)$/.exec(qstr)) // A..B
 		{
 			[qtype, qnum1, qnum2] = [QuantityType.Range, match[1], match[2]];
-			if (!isNum(qnum1) || !isNum(qnum2)) return;
+			if (!isNum(qnum1) || !isNum(qnum2) || !units) return;
 		}
 		else if (match = /^([0-9\-\.eE]+)\(([0-9\-\.eE]+)\)$/.exec(qstr)) // A(B)
 		{
 			[qtype, qnum1, qnum2] = [QuantityType.Value, match[1], match[2]];
-			if (!isNum(qnum1) || !isNum(qnum2)) return;
+			if (!isNum(qnum1) || !isNum(qnum2) || !units) return;
 		}
 		else if (match = /^([0-9\-\.eE]+)\:([0-9\-\.eE]+)$/.exec(qstr)) // A:B
 		{
@@ -504,7 +503,7 @@ export class EditComponent extends wmk.Dialog
 		}
 		else
 		{
-			if (!isNum(qstr)) return;
+			if (!isNum(qstr) || !units) return;
 			[qtype, qnum1] = [QuantityType.Value, qstr];
 		}
 
