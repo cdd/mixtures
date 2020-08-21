@@ -18,6 +18,9 @@
 ///<reference path='../../../WebMolKit/src/gfx/FontData.ts'/>
 ///<reference path='../../../WebMolKit/src/util/Geom.ts'/>
 
+///<reference path='../data/Mixture.ts'/>
+///<reference path='../data/NormMixture.ts'/>
+
 namespace Mixtures /* BOF */ {
 
 /*
@@ -43,6 +46,8 @@ export class ArrangeMixtureComponent
 
 export class ArrangeMixture
 {
+	public norm:NormMixture = null; // optional: contents may be used for additional decoration
+
 	public scale:number;
 	public nameFontSize:number;
 	public width = 0;
@@ -180,14 +185,31 @@ export class ArrangeMixture
 			}
 		}
 
-		if (mixcomp.units) 
+		if (mixcomp.units)
 		{
 			if (!mixcomp.units.startsWith('%')) str += ' ';
 			str += mixcomp.units;
 		}
 
 		return str;
-	}	
+	}
+
+	// if the component has a "standardised" quantity, format and return
+	private formatNormQuantity(origin:number[]):string
+	{
+		if (!this.norm) return;
+		let note = this.norm.findNote(origin);
+		if (!note || !note.concQuantity) return;
+
+		let comp:MixfileComponent =
+		{
+			'quantity': note.concQuantity,
+			'error': note.concError,
+			'units': note.concUnits,
+			'relation': note.concRelation,
+		};
+		return ArrangeMixture.formatQuantity(comp);
+	}
 
 	// --------------------- private methods ---------------------
 
@@ -233,6 +255,10 @@ export class ArrangeMixture
 			// (... synonyms, and linewrapping ...)
 			let qline = ArrangeMixture.formatQuantity(mixcomp);
 			if (qline) comp.nameLines.push(qline);
+
+			qline = this.formatNormQuantity(comp.origin);
+			if (qline) comp.nameLines.push(`(${qline})`);
+
 			if (mixcomp.identifiers) for (let key in mixcomp.identifiers)
 			{
 				let line = key + ' ';

@@ -31,8 +31,10 @@ export interface NormMixtureNote
 	stereoEnum?:string[]; // if defined, contains stereo-enumerated versions of current
 
 	// units converted into concentration, if both possible & necessary
-	concQuantity?:number; // a concentration numeric which is associated with the units below (two numbers in case of a range)
+	concQuantity?:number | number[]; // a concentration numeric which is associated with the units below (two numbers in case of a range)
+	concError?:number; // optional standard error (applies to quantity when it's a scalar)
 	concUnits?:string; // units for quantity (e.g. %, mol/L, g, etc.)
+	concRelation?:string;
 }
 
 enum AbsType
@@ -86,19 +88,20 @@ export class NormMixture
 
 		// conversion of "absolute units" to concentrations, where possible
 		let sumType = new Array(origins.length).fill(AbsType.None);
-		let sumAmount = Vec.numberArray(null, origins.length);
+		let sumAmount1 = Vec.numberArray(null, origins.length);
+		let sumAmount2 = Vec.numberArray(null, origins.length);
+		let sumError = Vec.numberArray(null, origins.length);
 		while (true)
 		{
 			let modified = false;
 
-console.log('CYCLE...');
 			for (let n = 0; n < origins.length; n++)
 			{
 				let comp = compList[n], note = this.notes[n];
 
 				if (sumType[n] == AbsType.None)
 				{
-					[sumAmount[n], sumType[n]] = this.toAbsoluteUnits(comp);
+					[sumType[n], sumAmount1[n], sumAmount2[n], sumError[n]] = this.toAbsoluteUnits(comp);
 					if (sumType[n] != AbsType.None) modified = true;
 				}
 
@@ -110,25 +113,26 @@ console.log('CYCLE...');
 					let amount = 0, childType = AbsType.None;
 					for (let i of childIndexes[n])
 					{
-						if (sumType[i] == AbsType.None || (childType != AbsType.None && sumType[i] != childType))
+						if (sumType[i] == AbsType.None || sumAmount2[i] != null || 
+							(childType != AbsType.None && sumType[i] != childType))
 						{
 							childType = AbsType.None;
 							break;
 						}
 						childType = sumType[i];
-						amount += sumAmount[i];
+						amount += sumAmount1[i];
 					}
 
 					if (childType != AbsType.None)
 					{
 						sumType[n] = childType;
-						sumAmount[n] = amount;
+						sumAmount1[n] = amount;
 						modified = true;
 					}
 				}
 
 				// if current type is an absolute unit, see if all-but-one of the children have that same type
-				if (sumType[n] != AbsType.None)
+				if (sumType[n] != AbsType.None && childIndexes[n].length >= 2)
 				{
 					let idxOne = -1, sum = 0;
 					for (let i of childIndexes[n])
@@ -139,20 +143,18 @@ console.log('CYCLE...');
 							idxOne = i;
 						}
 						else if (sumType[i] != sumType[n]) {idxOne = -1; break;} // can't be defined-but-different
+						else if (sumAmount2[i] != null) {idxOne = -1; break;} // ranges disqualify
+						else sum += sumAmount1[i];
 					}
 
 					if (idxOne >= 0)
 					{
 						sumType[idxOne] = sumType[n];
-						sumAmount[idxOne] = sumAmount[n] - sum;
+						sumAmount1[idxOne] = sumAmount1[n] - sum;
 						modified = true;
 					}
 				}
 			}
-
-console.log('    modified='+modified);
-console.log('    sumType='+sumType);
-console.log('    sumAmount='+sumAmount);
 
 			if (!modified) break;
 		}
@@ -162,33 +164,48 @@ console.log('    sumAmount='+sumAmount);
 		{
 			for (let i of childIndexes[n]) if (sumType[i] != AbsType.None)
 			{
-				let numer = sumAmount[i], denom = sumAmount[n];
-				let value:number = null, uri:string = null;
+				let scale = 0, denom = sumAmount1[n], uri:string = null;
 				if (sumType[i] == AbsType.Mass)
 				{
-					if (sumType[n] == AbsType.Mass) [value, uri] = [100 * numer / denom, StandardUnits.pcWW];
-					else if (sumType[n] == AbsType.Volume) [100 * numer / denom, StandardUnits.pcWV];
+					if (sumType[n] == AbsType.Mass) [scale, uri] = [100 / denom, StandardUnits.pcWW];
+					else if (sumType[n] == AbsType.Volume) [scale, uri] = [100 / denom, StandardUnits.pcWV];
 					else if (sumType[n] == AbsType.Moles) {}
 				}
 				else if (sumType[i] == AbsType.Volume)
 				{
 					if (sumType[n] == AbsType.Mass) {}
-					else if (sumType[n] == AbsType.Volume) [100 * numer / denom, StandardUnits.pcVV];
+					else if (sumType[n] == AbsType.Volume) [scale, uri] = [100 / denom, StandardUnits.pcVV];
 					else if (sumType[n] == AbsType.Moles) {}
 				}
 				else if (sumType[i] == AbsType.Moles)
 				{
 					if (sumType[n] == AbsType.Mass) {}
-					else if (sumType[n] == AbsType.Volume) [value, uri] = [numer / denom, StandardUnits.mol_L];
-					else if (sumType[n] == AbsType.Moles) [value, uri] = [100 * numer / denom, StandardUnits.pcMM];
+					else if (sumType[n] == AbsType.Volume) [scale, uri] = [1.0 / denom, StandardUnits.mol_L];
+					else if (sumType[n] == AbsType.Moles) [scale, uri] = [100 / denom, StandardUnits.pcMM];
 				}
+
 				if (uri != null)
 				{
-					this.notes[i].concQuantity = value;
+					if (sumAmount2[i] == null)
+					{
+						this.notes[i].concQuantity = sumAmount1[i] * scale;
+						this.notes[i].concError = sumError[i] == null ? null : sumError[i] * scale;
+					}
+					else
+					{
+						this.notes[i].concQuantity = [sumAmount1[i] * scale, sumAmount2[i] * scale];
+					}
 					this.notes[i].concUnits = Units.uriToName(uri);
+					this.notes[i].concRelation = compList[n].relation;
 				}
 			}
 		}
+	}
+
+	public findNote(origin:number[]):NormMixtureNote
+	{
+		for (let note of this.notes) if (Vec.equals(origin, note.origin)) return note;
+		return null;
 	}
 
 	// ------------ private methods ------------
@@ -243,14 +260,44 @@ console.log('    sumAmount='+sumAmount);
 		return list.length > 1 ? list : null;
 	}
 
-	// converts the units within the component to "absolute" form, at a singular scale
-	private toAbsoluteUnits(comp:MixfileComponent):[number, AbsType]
+	// converts the units within the component to "absolute" form, at a singular scale; return is type followed by
+	// quantity1, quantity2, error (to capture ranges & errors, where applicable)
+	private toAbsoluteUnits(comp:MixfileComponent):[AbsType, number, number, number]
 	{
-		if (!comp.units || typeof comp.quantity != 'number') return [null, AbsType.None];
-		let uri = Units.nameToURI(comp.units), value = comp.quantity as number;
-		if (!uri) return [null, AbsType.None];
+		if (!comp.units || comp.quantity == null /*|| typeof comp.quantity != 'number'*/) return [AbsType.None, null, null, null];
+		let uri = Units.nameToURI(comp.units);
+		if (!uri) return [AbsType.None, null, null, null];
 
-		if (uri == StandardUnits.kg) return [value * 1E3, AbsType.Mass];
+		let scale = 0, type = AbsType.None;
+
+		if (uri == StandardUnits.kg) [scale, type] = [1E3, AbsType.Mass];
+		else if (uri == StandardUnits.g) [scale, type] = [1, AbsType.Mass];
+		else if (uri == StandardUnits.mg) [scale, type] = [1E-3, AbsType.Mass];
+		else if (uri == StandardUnits.ug) [scale, type] = [1E-6, AbsType.Mass];
+		else if (uri == StandardUnits.ng) [scale, type] = [1E-9, AbsType.Mass];
+		else if (uri == StandardUnits.L) [scale, type] = [1, AbsType.Volume];
+		else if (uri == StandardUnits.mL) [scale, type] = [1E-3, AbsType.Volume];
+		else if (uri == StandardUnits.uL) [scale, type] = [1E-6, AbsType.Volume];
+		else if (uri == StandardUnits.nL) [scale, type] = [1E-9, AbsType.Volume];
+		else if (uri == StandardUnits.mol) [scale, type] = [1, AbsType.Moles];
+		else if (uri == StandardUnits.mmol) [scale, type] = [1E-3, AbsType.Moles];
+		else if (uri == StandardUnits.umol) [scale, type] = [1E-6, AbsType.Moles];
+		else if (uri == StandardUnits.nmol) [scale, type] = [1E-9, AbsType.Moles];
+		else return [AbsType.None, null, null, null];
+
+		if (typeof comp.quantity == 'number')
+		{
+			let error = comp.error == null ? null : comp.error * scale;
+			return [type, (comp.quantity as number) * scale, null, error];
+		}
+		else
+		{
+			let [lo, hi] = comp.quantity as number[];
+			return [type, lo * scale, hi * scale, null];
+		}
+
+
+		/*if (uri == StandardUnits.kg) return [value * 1E3, AbsType.Mass];
 		else if (uri == StandardUnits.g) return [value, AbsType.Mass];
 		else if (uri == StandardUnits.mg) return [value * 1E-3, AbsType.Mass];
 		else if (uri == StandardUnits.ug) return [value * 1E-6, AbsType.Mass];
@@ -262,9 +309,7 @@ console.log('    sumAmount='+sumAmount);
 		else if (uri == StandardUnits.mol) return [value, AbsType.Moles];
 		else if (uri == StandardUnits.mmol) return [value * 1E-3, AbsType.Moles];
 		else if (uri == StandardUnits.umol) return [value * 1E-6, AbsType.Moles];
-		else if (uri == StandardUnits.nmol) return [value * 1E-9, AbsType.Moles];
-
-		return [null, AbsType.None];
+		else if (uri == StandardUnits.nmol) return [value * 1E-9, AbsType.Moles];*/
 	}
 }
 

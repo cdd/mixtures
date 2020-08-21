@@ -22,7 +22,8 @@
 ///<reference path='../../../WebMolKit/src/dialog/EditCompound.ts'/>
 
 ///<reference path='../startup.ts'/>
-///<reference path='../data/Mixfile.ts'/>
+///<reference path='../data/Mixture.ts'/>
+///<reference path='../data/NormMixture.ts'/>
 ///<reference path='../lookup/LookupCompoundDialog.ts'/>
 ///<reference path='../lookup/ExtractCTABComponent.ts'/>
 ///<reference path='ArrangeMixture.ts'/>
@@ -352,11 +353,9 @@ export class EditMixture extends wmk.Widget
 		this.setMixture(modmix);
 
 		origin = origin.slice(0);
-console.log('THEN:'+origin);		
 		if (modmix.getComponent(origin)) {}
 		else if (Vec.last(origin) > 0) origin[origin.length - 1]--;
 		else origin.pop();
-console.log(' now:'+origin);		
 		this.selectOrigin(origin);
 	}
 
@@ -510,6 +509,8 @@ console.log(' now:'+origin);
 			let policy = new wmk.RenderPolicy(deepClone(this.policy.data));
 			policy.data.pointScale = this.pointScale;
 			this.layout = new ArrangeMixture(this.mixture, measure, policy);
+			this.layout.norm = new NormMixture(this.mixture);
+			this.layout.norm.analyse();
 			this.layout.arrange();
 			if (rescale) this.scaleToFit();
 		}
