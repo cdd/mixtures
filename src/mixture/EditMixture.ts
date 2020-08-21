@@ -226,6 +226,17 @@ export class EditMixture extends wmk.Widget
 		this.delayedRedraw();
 	}
 
+	// convenient overload for selecting whichever numbered component matches the origin sequence
+	public selectOrigin(origin:number[]):void
+	{
+		let complist = this.layout.components;
+		for (let n = 0; n < complist.length; n++) if (Vec.equals(complist[n].origin, origin))
+		{
+			this.selectComponent(n);
+			return;
+		}
+	}
+
 	// bring up the structure-editing panel, which uses the generic sketching dialog
 	public editStructure():void
 	{
@@ -234,12 +245,6 @@ export class EditMixture extends wmk.Widget
 		let comp = this.mixture.getComponent(origin);
 
 		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
-
-		/*const {clipboard} = require('electron');
-		let proxy = new wmk.ClipboardProxy();
-		proxy.getString = ():string => clipboard.readText();
-		proxy.setString = (str:string):void => clipboard.writeText(str);
-		proxy.canAlwaysGet = ():boolean => true;*/
 
 		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule(), this.content);
 		this.dlgCompound.onSave(() =>
@@ -250,7 +255,11 @@ export class EditMixture extends wmk.Widget
 			comp = deepClone(comp);
 			comp.molfile = molfile;
 			let modmix = this.mixture.clone();
-			if (modmix.setComponent(origin, comp)) this.setMixture(modmix);
+			if (modmix.setComponent(origin, comp)) 
+			{
+				this.setMixture(modmix);
+				this.selectOrigin(origin);
+			}
 
 			this.dlgCompound.close();
 		});
@@ -279,13 +288,16 @@ export class EditMixture extends wmk.Widget
 		dlg.onSave(() =>
 		{
 			let modmix = this.mixture.clone();
-			if (modmix.setComponent(origin, dlg.getComponent())) this.setMixture(modmix);
+			if (modmix.setComponent(origin, dlg.getComponent())) 
+			{
+				this.setMixture(modmix);
+				this.selectOrigin(origin);
+			}
 			dlg.close();
 		});
 		dlg.onSketch(() =>
 		{
-			for (let n = 0; n < this.layout.components.length; n++)
-				if (Vec.equals(origin, this.layout.components[n].origin)) {this.selectedIndex = n; break;}
+			this.selectOrigin(origin);
 			this.editStructure();
 		});
 		dlg.onClose(() => 
@@ -312,7 +324,11 @@ export class EditMixture extends wmk.Widget
 			let name = dlg.getName(), mol = dlg.getMolecule();
 			if (name != null) comp.name = name;
 			if (mol != null) comp.molfile = new wmk.MDLMOLWriter(mol).write();
-			if (modmix.setComponent(origin, comp)) this.setMixture(modmix);
+			if (modmix.setComponent(origin, comp)) 
+			{
+				this.setMixture(modmix);
+				this.selectOrigin(origin);
+			}
 			dlg.close();
 		});
 		dlg.onClose(() => 
@@ -331,12 +347,17 @@ export class EditMixture extends wmk.Widget
 		if (origin.length == 0) return;
 
 		let modmix = this.mixture.clone();
-		//let [parent, idx] = Mixture.splitOrigin(origin);
-		//modmix.getComponent(parent).contents.splice(idx, 1);
 		modmix.deleteComponent(origin);
 		this.delayedSelect = null;
-		//this.delayedSelect = parent;
 		this.setMixture(modmix);
+
+		origin = origin.slice(0);
+console.log('THEN:'+origin);		
+		if (modmix.getComponent(origin)) {}
+		else if (Vec.last(origin) > 0) origin[origin.length - 1]--;
+		else origin.pop();
+console.log(' now:'+origin);		
+		this.selectOrigin(origin);
 	}
 
 	// append a new sub-item to the end of the current component's list

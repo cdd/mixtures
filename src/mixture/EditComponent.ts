@@ -339,6 +339,7 @@ export class EditComponent extends wmk.Dialog
 		}
 		else if (andEnter && event.keyCode == 13)
 		{
+			if (this.interpretQuantString()) return;
 			event.preventDefault();
 			this.saveAndClose();
 		}
@@ -420,7 +421,12 @@ export class EditComponent extends wmk.Dialog
 			changeToValue();
 		}
 
-		this.optQuantType.callbackSelect = (idx:number) => {if (idx == 0) changeToValue(); else if (idx == 1) changeToRange(); else if (idx == 2) changeToRatio();};
+		this.optQuantType.callbackSelect = (idx:number) =>
+		{
+			if (idx == 0) changeToValue();
+			else if (idx == 1) changeToRange();
+			else if (idx == 2) changeToRatio();
+		};
 	}
 
 	// creates a dropdown list with a prescribed list of choices; the first one will be selected if current matches nothing
@@ -440,8 +446,8 @@ export class EditComponent extends wmk.Dialog
 	}
 
 	// special deal: when typing in extended content to the regular value entry box, optionally break up strings that contain
-	// a more complete description, e.g. quantity *and* units
-	private interpretQuantString():void
+	// a more complete description, e.g. quantity *and* units; returns true if it did something interesting
+	private interpretQuantString():boolean
 	{
 		let qstr = (this.lineQuantVal1.val() as string).trim();
 
@@ -468,7 +474,7 @@ export class EditComponent extends wmk.Dialog
 		let isNum = (str:string):boolean =>
 		{
 			if (str.startsWith('.')) str = '0' + str;
-			if (!/^-?[0-9]+\.?[0-9eE]*$/.test(str)) return;
+			if (!/^-?[0-9]+\.?[0-9eE]*$/.test(str)) return false;
 			return !isNaN(parseFloat(str));
 		};
 
@@ -479,31 +485,31 @@ export class EditComponent extends wmk.Dialog
 		if (match)
 		{
 			[qtype, qnum1, qnum2] = [QuantityType.Range, match[1], match[2]];
-			if (!isNum(qnum1) || !isNum(qnum2) || !units) return;
+			if (!isNum(qnum1) || !isNum(qnum2) || !units) return false;
 		}
 		else if (match = /^([0-9\-\.eE]+)\.\.([0-9\-\.eE]+)$/.exec(qstr)) // A..B
 		{
 			[qtype, qnum1, qnum2] = [QuantityType.Range, match[1], match[2]];
-			if (!isNum(qnum1) || !isNum(qnum2) || !units) return;
+			if (!isNum(qnum1) || !isNum(qnum2) || !units) return false;
 		}
 		else if (match = /^([0-9\-\.eE]+)\(([0-9\-\.eE]+)\)$/.exec(qstr)) // A(B)
 		{
 			[qtype, qnum1, qnum2] = [QuantityType.Value, match[1], match[2]];
-			if (!isNum(qnum1) || !isNum(qnum2) || !units) return;
+			if (!isNum(qnum1) || !isNum(qnum2) || !units) return false;
 		}
 		else if (match = /^([0-9\-\.eE]+)\:([0-9\-\.eE]+)$/.exec(qstr)) // A:B
 		{
 			[qtype, qnum1, qnum2] = [QuantityType.Ratio, match[1], match[2]];
-			if (!isNum(qnum1) || !isNum(qnum2)) return;
+			if (!isNum(qnum1) || !isNum(qnum2)) return false;
 		}
 		else if (match = /^([0-9\-\.eE]+)\/([0-9\-\.eE]+)$/.exec(qstr)) // A/B
 		{
 			[qtype, qnum1, qnum2] = [QuantityType.Ratio, match[1], match[2]];
-			if (!isNum(qnum1) || !isNum(qnum2)) return;
+			if (!isNum(qnum1) || !isNum(qnum2)) return false;
 		}
 		else
 		{
-			if (!isNum(qstr) || !units) return;
+			if (!isNum(qstr) || !units) return false;
 			[qtype, qnum1] = [QuantityType.Value, qstr];
 		}
 
@@ -511,7 +517,10 @@ export class EditComponent extends wmk.Dialog
 		this.dropQuantRel.val(Math.max(0, RELATION_VALUES.indexOf(rel)).toString());
 		this.lineQuantVal1.val(qnum1);
 		this.lineQuantVal2.val(qnum2);
-		this.dropQuantUnits.val(Math.max(this.unitValues.indexOf(units)).toString());
+		let uidx = Math.max(this.unitValues.indexOf(units), 0);
+		this.dropQuantUnits.val(uidx.toString());
+		this.component.units = this.unitLabels[uidx];
+		return true;
 	}
 
 	// uses the structure (if any) to calculate the InChI, and fill in the field value

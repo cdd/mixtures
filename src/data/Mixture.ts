@@ -101,6 +101,7 @@ export class Mixture
 		for (let o of origin)
 		{
 			find = look[o];
+			if (!find) return null;
 			look = find.contents;
 		}
 		return find;
