@@ -74,7 +74,8 @@ export class DrawMixture
 	{
 		let comp = this.layout.components[idx];
 
-		let box = comp.boundary;
+		let box = comp.outline.clone();
+		box.offsetBy(comp.boundary.x, comp.boundary.y);
 		let bg = 0xF8F8F8;
 		if (idx == this.activeIndex) bg = 0x8296E4;
 		else if (idx == this.selectedIndex) bg = 0xA9BBFF;
@@ -93,6 +94,16 @@ export class DrawMixture
 				this.vg.drawText(x, y, line, comp.fontSize, 0x000000, wmk.TextAlign.Centre | wmk.TextAlign.Top);
 				y += wad[1] + 2 * wad[2];
 			}
+		}
+
+		if (comp.collapseBox)
+		{
+			let cbox = comp.collapseBox.clone();
+			cbox.offsetBy(comp.boundary.x, comp.boundary.y);
+			this.vg.drawRect(cbox.x, cbox.y, cbox.w, cbox.h, 0x808080, 1, 0xF8F8F8);
+			let cx = cbox.midX(), cy = cbox.midY(), d = Math.min(cbox.w, cbox.h) * 0.4, sz = d * 0.2;
+			this.vg.drawLine(cx - d, cy, cx + d, cy, 0x000000, sz);
+			if (comp.isCollapsed) this.vg.drawLine(cx, cy - d, cx, cy + d, 0x000000, sz);
 		}
 	}
 }

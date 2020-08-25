@@ -23,6 +23,7 @@
 ///<reference path='../data/Mixfile.ts'/>
 ///<reference path='../data/Mixture.ts'/>
 ///<reference path='../data/Units.ts'/>
+///<reference path='../data/NormMixture.ts'/>
 
 namespace Mixtures /* BOF */ {
 
@@ -48,6 +49,8 @@ interface MInChIComponent extends MixfileComponent
 {
 	inchiFrag:string;
 	placeName:string;
+	useRatio:number;
+	note:NormMixtureNote;
 }
 
 /*
@@ -57,6 +60,7 @@ interface MInChIComponent extends MixfileComponent
 export class ExportMInChI
 {
 	private mixture:Mixture;
+	private norm:NormMixture;
 	private minchi = '?';
 	private segment:MInChISegment[] = null;
 
@@ -65,6 +69,8 @@ export class ExportMInChI
 	constructor(mixfile:Mixfile)
 	{
 		this.mixture = new Mixture(deepClone(mixfile));
+		this.norm = new NormMixture(this.mixture);
+		this.norm.analyse();
 	}
 
 	// this should generally be called first: any component that has a structure but not an InChI string gets one calculated,
@@ -94,6 +100,12 @@ export class ExportMInChI
 		let modmix = this.mixture.clone();
 		//this.sortContents(sortmix.contents);
 
+		for (let origin of modmix.getOrigins())
+		{
+			let note = this.norm.findNote(origin);
+			if (note) (modmix.getComponent(origin) as MInChIComponent).note = note;
+		}
+
 		// special deal: any component with >2 mixtures that has a consistent ratio definition needs to be marked
 		// at the parent-component level
 		skip: for (let comp of modmix.getComponents()) if (Vec.arrayLength(comp.contents) >= 2)
@@ -107,21 +119,22 @@ export class ExportMInChI
 				numer += ratio[0];
 			}
 			if (numer != denom) continue;
-			for (let sub of comp.contents) (sub as any).useRatio = sub.ratio[0];
+			for (let sub of comp.contents) (sub as MInChIComponent).useRatio = sub.ratio[0];
 		}
 
 		// assemble the InChI fragments - which is sorted and unique and devoid of blanks; same for "placenames", which are
 		// terminal components that have name and concentration information, but no InChI
 		let inchiList:string[] = [], placeList:string[] = [];
 		const PFX = 'InChI=1S/'; // if it doesn't start with this, we don't consider it a valid InChI
-		for (let comp of modmix.getComponents())
+		for (let origin of modmix.getOrigins())
 		{
-			const mcomp = comp as MInChIComponent;
-			if (comp.inchi && mcomp.inchi.startsWith(PFX))
+			let mcomp = modmix.getComponent(origin) as MInChIComponent;
+			if (mcomp.inchi && mcomp.inchi.startsWith(PFX))
 			{
 				mcomp.inchiFrag = mcomp.inchi.substring(PFX.length);
 				if (inchiList.indexOf(mcomp.inchiFrag) < 0) inchiList.push(mcomp.inchiFrag);
 			}
+
 			/* NOTE: name placeholders disabled for now; could be reinstated later if the MInChI spec supports
 					 something like this
 			else if (mcomp.name && this.hasConcentration(mcomp)(?) && Vec.arrayLength(mcomp.contents) == 0)
@@ -206,7 +219,12 @@ export class ExportMInChI
 				  mcomp.placeName ? componentList.indexOf(mcomp.placeName) + 1 : 0;
 		if (idx > 0) builder.layerN += idx.toString();
 
-		let conc = this.formatConcentration(mcomp);
+		let conc = this.formatConcentration(mcomp.quantity, mcomp.error, mcomp.useRatio, mcomp.units, mcomp.relation);
+		if (!conc && mcomp.note)
+		{
+			let {concQuantity, concError, concUnits, concRelation} = mcomp.note;
+			conc = this.formatConcentration(concQuantity, concError, null, concUnits, concRelation);
+		}
 		if (conc) builder.layerG += conc;
 
 		if (tree.layerN.length > 0 || tree.layerG.length > 0)
@@ -236,32 +254,31 @@ export class ExportMInChI
 	}
 
 	// turns a concentration into a suitable precursor string, or null otherwise
-	private formatConcentration(comp:MixfileComponent):string
+	private formatConcentration(quantity:number | number[], error:number, useRatio:number, units:string, relation:string):string
 	{
 		let mantissa = (value:number, exp:number):string => Math.round(value * Math.pow(10, -exp)).toString();
 
 		// check for special deal: the "useRatio" property is defined if everything in this peer group has a ratio with
 		// the same denominator and they add up correctly; when this isn't the case, it will fall through and convert to
 		// a percentage
-		let useRatio:number = (comp as any).useRatio;
 		if (useRatio != null)
 		{
 			let exp = this.determineExponent([useRatio], 4);
 			return mantissa(useRatio, exp) + 'vp' + exp;
 		}
 
-		if (comp.ratio && comp.ratio.length >= 2)
+		/*if (comp.ratio && comp.ratio.length >= 2)
 		{
 			let numer = comp.ratio[0], denom = comp.ratio[1];
 			if (!(denom > 0)) return null;
 			let value = 100 * numer / denom, exp = this.determineExponent([value], 4);
 			return mantissa(value, exp) + 'pp' + exp;
-		}
+		}*/
 
-		if (comp.quantity == null || comp.units == null) return null;
+		if (quantity == null || units == null) return null;
 
 		// special deal (maybe temporary): units that are written with common names that map to a URI are converted automatically
-		let unitURI = comp.units;
+		let unitURI = units;
 		if (!unitURI.startsWith('http://')) unitURI = Units.nameToURI(unitURI);
 		if (!unitURI) return;
 
@@ -270,9 +287,9 @@ export class ExportMInChI
 
 		let bits:string[] = [];
 
-		if (comp.relation != null) bits.push(comp.relation);
+		if (relation != null) bits.push(relation);
 
-		let values:number[] = typeof comp.quantity == 'number' ? [comp.quantity as number] : comp.quantity;
+		let values:number[] = typeof quantity == 'number' ? [quantity as number] : quantity;
 
 		let [mnemonic, scaled] = Units.convertToMInChI(unitURI, values);
 		if (!mnemonic) return;

@@ -329,6 +329,7 @@ export class MixturePanel extends MainPanel
 			let policy = wmk.RenderPolicy.defaultColourOnWhite();
 			let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
 			let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
+			layout.collapsedBranches = this.editor.getCollapsedBranches();
 			layout.arrange();
 
 			let gfx = new wmk.MetaVector();

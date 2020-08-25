@@ -27,22 +27,33 @@ namespace Mixtures /* BOF */ {
 	Arranging a Mixfile: will create a tree layout for all of the components, according to parameters.
 */
 
-export class ArrangeMixtureComponent
+export interface ArrangeMixtureComponent
 {
-	public boundary:wmk.Box = null; // outer boundary (position on canvas)
+	origin:number[];
+	content:MixfileComponent;
+	parentIdx:number;
 
-	public mol:wmk.Molecule = null;
-	public molLayout:wmk.ArrangeMolecule = null;
-	public molBox:wmk.Box = null;
+	boundary?:wmk.Box; // outer boundary (position on canvas)
 
-	public nameBox:wmk.Box = null;
-	public nameLines:string[] = null;
-	public fontSize:number = null;
+	mol?:wmk.Molecule;
+	molLayout?:wmk.ArrangeMolecule;
+	molBox?:wmk.Box;
 
-	constructor(public origin:number[], public content:MixfileComponent, public parentIdx:number)
-	{
-	}
+	nameBox?:wmk.Box;
+	nameLines?:string[];
+	fontSize?:number;
+	
+	outline?:wmk.Box; // inner boundary (surrounds molecule, names, etc.)
+
+	isCollapsed?:boolean;
+	collapseBox?:wmk.Box;
 }
+
+const PADDING = 0.25;
+const VSPACE = 0.5;
+const HSPACE = 1;
+const COLLAPSE_SIZE = 0.3;
+const COLLAPSE_GAP = 0.05;
 
 export class ArrangeMixture
 {
@@ -58,11 +69,8 @@ export class ArrangeMixture
 	// parameters to influence the drawing
 	public limitStructW = 0;
 	public limitStructH = 0;
-	// ... other stuff...
-
-	private PADDING = 0.25;
-	private VSPACE = 0.5;
-	private HSPACE = 1;
+	public showCollapsors = false; // if true, boxes for [+]/[-] will be created for interactive use
+	public collapsedBranches:number[][] = []; // any origin specified in this list will not display its children
 
 	// --------------------- public methods ---------------------
 
@@ -78,14 +86,7 @@ export class ArrangeMixture
 	public arrange():void
 	{
 		this.createComponents();
-
-		//console.log('COMPONENTS:'+this.components.length);
-		//for (let comp of this.components) console.log('BOX:'+JSON.stringify(comp.boundary)+"/"+JSON.stringify(comp.molBox));
-
 		this.layoutSubComponents(0);
-
-		//console.log('POSITIONS:');
-		//for (let comp of this.components) console.log('BOX:'+JSON.stringify(comp.boundary));
 
 		// normalize boundaries
 		let outline:wmk.Box = null;
@@ -123,9 +124,14 @@ export class ArrangeMixture
 			if (comp.molBox)
 			{
 				comp.molBox.scaleBy(modScale);
-				if (comp.molLayout) comp.molLayout.squeezeInto(comp.boundary.x + comp.molBox.x, comp.boundary.y + comp.molBox.y, comp.molBox.w, comp.molBox.h);
+				if (comp.molLayout) 
+				{
+					let mx = comp.boundary.x + comp.molBox.x, my = comp.boundary.y + comp.molBox.y;
+					comp.molLayout.squeezeInto(mx, my, comp.molBox.w, comp.molBox.h);
+				}
 			}
 			if (comp.nameBox) comp.nameBox.scaleBy(modScale);
+			if (comp.collapseBox) comp.collapseBox.scaleBy(modScale);
 			comp.fontSize *= modScale;
 		}
 	}
@@ -219,10 +225,14 @@ export class ArrangeMixture
 		// assemble the components into a flat hierarchy
 		let examineBranch = (origin:number[], mixcomp:MixfileComponent, idx:number):void =>
 		{
-			let comp = new ArrangeMixtureComponent(origin, mixcomp, idx);
+			let comp:ArrangeMixtureComponent = {'origin': origin, 'content': mixcomp, 'parentIdx': idx};
 			let parentIdx = this.components.push(comp) - 1;
-			//if (mixcomp.contents) for (let subComp of mixcomp.contents) examineBranch(subComp, parentIdx);
-			if (mixcomp.contents) for (let n = 0; n < mixcomp.contents.length; n++)
+
+			// see if it's been indicated as collapsed
+			comp.isCollapsed = false;
+			for (let origin of this.collapsedBranches) if (Vec.equals(origin, comp.origin)) comp.isCollapsed = true;
+
+			if (mixcomp.contents && !comp.isCollapsed) for (let n = 0; n < mixcomp.contents.length; n++)
 			{
 				let subOrigin = Vec.append(origin, n);
 				examineBranch(subOrigin, mixcomp.contents[n], parentIdx);
@@ -230,7 +240,7 @@ export class ArrangeMixture
 		};
 		examineBranch([], this.mixture.mixfile, -1);
 
-		let padding = this.PADDING * this.scale;
+		let padding = PADDING * this.scale;
 
 		// do the sizing for each component
 		for (let comp of this.components)
@@ -280,14 +290,23 @@ export class ArrangeMixture
 				comp.nameBox.h += wad[1] + (n > 0 ? wad[2] * 2 : 0);
 			}
 
-			comp.boundary = wmk.Box.zero();
-			comp.boundary.w = Math.max(comp.molBox.w, comp.nameBox.w) + 2 * padding;
-			comp.boundary.h = comp.molBox.h + comp.nameBox.h + 2 * padding;
+			comp.outline = wmk.Box.zero();
+			comp.outline.w = Math.max(comp.molBox.w, comp.nameBox.w) + 2 * padding;
+			comp.outline.h = comp.molBox.h + comp.nameBox.h + 2 * padding;
 			if (comp.molBox.notEmpty() && comp.nameBox.notEmpty())
 			{
-				comp.boundary.h += padding;
+				comp.outline.h += padding;
 				comp.nameBox.y += comp.molBox.h + padding;
 				comp.molBox.w = comp.nameBox.w = Math.max(comp.molBox.w, comp.nameBox.w);
+			}
+
+			comp.boundary = comp.outline.clone();
+
+			if ((this.showCollapsors || comp.isCollapsed) && Vec.notBlank(comp.content.contents))
+			{
+				let gap = COLLAPSE_GAP * this.scale, wh = COLLAPSE_SIZE * this.scale;
+				comp.collapseBox = new wmk.Box(comp.boundary.maxX() + gap, comp.boundary.midY() - 0.5 * wh, wh, wh);
+				comp.boundary.w += gap + wh;
 			}
 		}
 	}
@@ -297,7 +316,7 @@ export class ArrangeMixture
 	private layoutSubComponents(idx:number):number[]
 	{
 		let wholeBranch:number[] = [idx];
-		let branchSet:number[][] = [];
+		let branchBlock:number[][] = [];
 		let branchBox:wmk.Box[] = [];
 
 		let totalWidth = 0, totalHeight = 0;
@@ -318,17 +337,17 @@ export class ArrangeMixture
 				if (box) box = box.union(bound); else box = bound;
 			}
 
-			branchSet.push(branch);
+			branchBlock.push(branch);
 			branchBox.push(box);
 
 			totalWidth = Math.max(totalWidth, box.w);
 			totalHeight += box.h;
 		}
-		if (branchSet.length == 0) return wholeBranch;
+		if (branchBlock.length == 0) return wholeBranch;
 
-		let hspace = this.HSPACE * this.scale, vspace = this.VSPACE * this.scale;
+		let hspace = HSPACE * this.scale, vspace = VSPACE * this.scale;
 
-		totalHeight += vspace * (branchSet.length - 1);
+		totalHeight += vspace * (branchBlock.length - 1);
 
 		let cbox = this.components[idx].boundary;
 		let x = cbox.maxX() + hspace;
@@ -336,10 +355,10 @@ export class ArrangeMixture
 		// !! note: not guaranteed that x is high enough to not interfere with other boxes; will need a post-check of some kind, maybe here,
 		//    maybe further down the line
 
-		for (let n = 0; n < branchSet.length; n++)
+		for (let n = 0; n < branchBlock.length; n++)
 		{
 			let dx = x - branchBox[n].x, dy = y - branchBox[n].y;
-			for (let i of branchSet[n])
+			for (let i of branchBlock[n])
 			{
 				this.components[i].boundary.x += dx;
 				this.components[i].boundary.y += dy;

@@ -170,7 +170,7 @@ export class Units
 	// things that can be converted, returns nulls
 	public static convertToMInChI(uri:string, values:number[]):[string, number[]]
 	{
-		let [mnemonic, scale] = this.URI_TO_MINCHI[uri];
+		let [mnemonic, scale] = this.URI_TO_MINCHI[uri] || [null, null];
 		if (!mnemonic) return [null, null];
 		return [mnemonic, Vec.mul(values, scale)];
 	}

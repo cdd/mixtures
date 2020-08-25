@@ -64,6 +64,7 @@ export class EditMixture extends wmk.Widget
 	protected filthy = true; // filthy: screen is out of date, needs to be redrawn
 	protected dirty = false; // dirty: data has changed since last save
 	protected layout:ArrangeMixture = null;
+	protected collapsedBranches:number[][] = [];
 	protected hoverIndex = -1; // component over which the mouse is hovering
 	protected activeIndex = -1; // component that is currently being clicked upon
 	protected selectedIndex = -1; // selected component (having been previously clicked)
@@ -154,6 +155,8 @@ export class EditMixture extends wmk.Widget
 		return [comp.origin, comp.content];
 	}
 
+	public getCollapsedBranches():number[][] {return this.collapsedBranches;}
+
 	// wipes the undo & redo stacks
 	public clearHistory():void
 	{
@@ -219,10 +222,10 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// select the given component index (programmatically)
-	public selectComponent(comp:number):void
+	public selectComponent(idx:number):void
 	{
-		if (this.selectedIndex == comp) return;
-		this.selectedIndex = comp;
+		if (this.selectedIndex == idx) return;
+		this.selectedIndex = idx;
 		this.activeIndex = -1;
 		this.delayedRedraw();
 	}
@@ -509,6 +512,8 @@ export class EditMixture extends wmk.Widget
 			let policy = new wmk.RenderPolicy(deepClone(this.policy.data));
 			policy.data.pointScale = this.pointScale;
 			this.layout = new ArrangeMixture(this.mixture, measure, policy);
+			this.layout.showCollapsors = true;
+			this.layout.collapsedBranches = this.collapsedBranches;
 			this.layout.norm = new NormMixture(this.mixture);
 			this.layout.norm.analyse();
 			this.layout.arrange();
@@ -553,10 +558,10 @@ export class EditMixture extends wmk.Widget
 	protected updateHoverCursor(event:JQueryMouseEventObject):void
 	{
 		let [x, y] = eventCoords(event, this.content);
-		let comp = this.activeIndex >= 0 ? -1 : this.pickComponent(x, y);
-		if (comp != this.hoverIndex)
+		let idx = this.activeIndex >= 0 ? -1 : this.pickComponent(x, y);
+		if (idx != this.hoverIndex)
 		{
-			this.hoverIndex = comp;
+			this.hoverIndex = idx;
 			this.delayedRedraw();
 		}
 	}
@@ -564,13 +569,22 @@ export class EditMixture extends wmk.Widget
 	// finds the index of a component at a given position, or -1 if none
 	protected pickComponent(x:number, y:number):number
 	{
-		if (!this.layout) return -1;
+		let pick = this.pickComponentSection(x, y);
+		return pick == null || pick[1] ? -1 : pick[0];
+	}
+
+	// more detailed pick: nothing = null, something = [compidx, collapsebox]
+	protected pickComponentSection(x:number, y:number):[number, boolean]
+	{
+		if (!this.layout) return null;
 		for (let n = 0; n < this.layout.components.length; n++)
 		{
 			let comp = this.layout.components[n];
-			if (comp.boundary.contains(x - this.offsetX, y - this.offsetY)) return n;
+			let ux = x - this.offsetX - comp.boundary.x, uy = y - this.offsetY - comp.boundary.y;
+			if (comp.outline.contains(ux, uy)) return [n, false];
+			if (comp.collapseBox && comp.collapseBox.contains(ux, uy)) return [n, true];
 		}
-		return -1;
+		return null;
 	}
 
 	// cursor key wandering
@@ -612,19 +626,35 @@ export class EditMixture extends wmk.Widget
 	// interactivity
 	protected mouseClick(event:JQueryMouseEventObject):void
 	{
-		//this.content.focus(); // just in case it wasn't already		
+		let [x, y] = eventCoords(event, this.content);
+		let picked = this.pickComponentSection(x, y);
+		if (picked && picked[1])
+		{
+			let idx = picked[0];
+			let origin = this.layout.components[idx].origin;
+			let got = false;
+			for (let n = 0; n < this.collapsedBranches.length; n++) if (Vec.equals(origin, this.collapsedBranches[n]))
+			{
+				this.collapsedBranches.splice(n, 1);
+				got = true;
+				break;
+			}
+			if (!got) this.collapsedBranches.push(origin);
+			this.layout = null;
+			this.redraw();
+		}
 	}
 	protected mouseDoubleClick(event:JQueryMouseEventObject):void
 	{
 		event.stopImmediatePropagation();
 
 		let [x, y] = eventCoords(event, this.content);
-		let comp = this.pickComponent(x, y);
-		if (comp >= 0)
+		let idx = this.pickComponent(x, y);
+		if (idx >= 0)
 		{
 			this.hoverIndex = -1;
 			this.activeIndex = -1;
-			this.selectedIndex = comp;
+			this.selectedIndex = idx;
 			this.delayedRedraw();
 			this.editDetails();
 		}
@@ -641,24 +671,24 @@ export class EditMixture extends wmk.Widget
 		}
 
 		let [x, y] = eventCoords(event, this.content);
-		let comp = this.pickComponent(x, y);
+		let idx = this.pickComponent(x, y);
 
 		this.dragReason = DragReason.Any;
-		this.dragIndex = comp;
+		this.dragIndex = idx;
 		this.dragX = x;
 		this.dragY = y;
 
-		if (comp != this.activeIndex)
+		if (idx != this.activeIndex)
 		{
-			this.activeIndex = comp;
+			this.activeIndex = idx;
 			this.delayedRedraw();
 		}
 	}
 	protected mouseUp(event:JQueryMouseEventObject):void
 	{
 		let [x, y] = eventCoords(event, this.content);
-		let comp = this.pickComponent(x, y);
-		if (comp == this.activeIndex) this.selectedIndex = comp;
+		let idx = this.pickComponent(x, y);
+		if (idx == this.activeIndex) this.selectedIndex = idx;
 		this.activeIndex = -1;
 		this.delayedRedraw();
 
@@ -741,38 +771,38 @@ export class EditMixture extends wmk.Widget
 		event.preventDefault();
 
 		let [x, y] = eventCoords(event, this.content);
-		let comp = this.pickComponent(x, y);
+		let idx = this.pickComponent(x, y);
 
-		this.selectedIndex = comp;
+		this.selectedIndex = idx;
 		this.activeIndex = -1;
 		this.delayedRedraw();
 
 		let electron = require('electron');
 		let menu = new electron.remote.Menu();
-		if (comp >= 0)
+		if (idx >= 0)
 		{
-			let compObj = this.layout.components[comp].content, origin = this.layout.components[comp].origin;
-			menu.append(new electron.remote.MenuItem({'label': 'Edit Structure', 'click': () => {this.selectComponent(comp); this.editStructure();}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Edit Details', 'click': () => {this.selectComponent(comp); this.editDetails();}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Lookup Name', 'click': () => {this.selectComponent(comp); this.lookupCurrent();}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Append', 'click': () => {this.selectComponent(comp); this.appendToCurrent();}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Prepend', 'click': () => {this.selectComponent(comp); this.prependBeforeCurrent();}}));
+			let compObj = this.layout.components[idx].content, origin = this.layout.components[idx].origin;
+			menu.append(new electron.remote.MenuItem({'label': 'Edit Structure', 'click': () => {this.selectComponent(idx); this.editStructure();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Edit Details', 'click': () => {this.selectComponent(idx); this.editDetails();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Lookup Name', 'click': () => {this.selectComponent(idx); this.lookupCurrent();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Append', 'click': () => {this.selectComponent(idx); this.appendToCurrent();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Prepend', 'click': () => {this.selectComponent(idx); this.prependBeforeCurrent();}}));
 			if (origin.length > 0)
 			{
-				menu.append(new electron.remote.MenuItem({'label': 'Delete', 'click': () => {this.selectComponent(comp); this.deleteCurrent();}}));
+				menu.append(new electron.remote.MenuItem({'label': 'Delete', 'click': () => {this.selectComponent(idx); this.deleteCurrent();}}));
 
 				if (origin[origin.length - 1] > 0)
-					menu.append(new electron.remote.MenuItem({'label': 'Move Up', 'click': () => {this.selectComponent(comp); this.reorderCurrent(-1);}}));
+					menu.append(new electron.remote.MenuItem({'label': 'Move Up', 'click': () => {this.selectComponent(idx); this.reorderCurrent(-1);}}));
 				if (origin[origin.length - 1] < Vec.arrayLength(this.mixture.getParentComponent(origin).contents) - 1)
-					menu.append(new electron.remote.MenuItem({'label': 'Move Down', 'click': () => {this.selectComponent(comp); this.reorderCurrent(1);}}));
+					menu.append(new electron.remote.MenuItem({'label': 'Move Down', 'click': () => {this.selectComponent(idx); this.reorderCurrent(1);}}));
 			}
 
-			menu.append(new electron.remote.MenuItem({'label': 'Copy', 'click': () => {this.selectComponent(comp); this.clipboardCopy(false);}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Copy', 'click': () => {this.selectComponent(idx); this.clipboardCopy(false);}}));
 			if (Vec.arrayLength(compObj.contents) > 0)
-				menu.append(new electron.remote.MenuItem({'label': 'Copy Branch', 'click': () => {this.selectComponent(comp); this.clipboardCopy(false, true);}}));
+				menu.append(new electron.remote.MenuItem({'label': 'Copy Branch', 'click': () => {this.selectComponent(idx); this.clipboardCopy(false, true);}}));
 			if (origin.length > 0)
-				menu.append(new electron.remote.MenuItem({'label': 'Cut', 'click': () => {this.selectComponent(comp); this.clipboardCopy(true);}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Paste', 'click': () => {this.selectComponent(comp); this.clipboardPaste();}}));
+				menu.append(new electron.remote.MenuItem({'label': 'Cut', 'click': () => {this.selectComponent(idx); this.clipboardCopy(true);}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Paste', 'click': () => {this.selectComponent(idx); this.clipboardPaste();}}));
 		}
 		else
 		{
