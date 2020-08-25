@@ -119,7 +119,9 @@ export class EditMixtureWeb extends EditMixture
 			}
 		};
 		popup.callbackClose = () => divCursor.remove();
-		popup.open();
+
+		// (timeout is necessary, otherwise the default popup menu reasserts itself for some bizarre reason)
+		setTimeout(() => popup.open(), 50);
 	}
 }
 

@@ -626,6 +626,13 @@ export class EditMixture extends wmk.Widget
 	// interactivity
 	protected mouseClick(event:JQueryMouseEventObject):void
 	{
+		if (event.ctrlKey)
+		{
+console.log('CLICK!');		
+			event.preventDefault();
+			return;
+		}
+
 		let [x, y] = eventCoords(event, this.content);
 		let picked = this.pickComponentSection(x, y);
 		if (picked && picked[1])
@@ -666,7 +673,9 @@ export class EditMixture extends wmk.Widget
 		if (event.which != 1) return;
 		if (event.ctrlKey)
 		{
+console.log('DOWN!');
 			this.contextMenu(event);
+			event.preventDefault();
 			return;
 		}
 
@@ -686,6 +695,13 @@ export class EditMixture extends wmk.Widget
 	}
 	protected mouseUp(event:JQueryMouseEventObject):void
 	{
+		if (event.ctrlKey)
+		{
+console.log('UP!');		
+			event.preventDefault();
+			return;
+		}
+
 		let [x, y] = eventCoords(event, this.content);
 		let idx = this.pickComponent(x, y);
 		if (idx == this.activeIndex) this.selectedIndex = idx;

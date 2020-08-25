@@ -121,6 +121,7 @@ export class ArrangeMixture
 		for (let comp of this.components)
 		{
 			comp.boundary.scaleBy(modScale);
+			comp.outline.scaleBy(modScale);
 			if (comp.molBox)
 			{
 				comp.molBox.scaleBy(modScale);
