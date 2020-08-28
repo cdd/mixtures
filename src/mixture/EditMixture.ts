@@ -623,33 +623,34 @@ export class EditMixture extends wmk.Widget
 		if (newIndex >= 0 && newIndex < this.layout.components.length) this.selectComponent(newIndex);
 	}
 
+	// collapses or un-collapses the indicated position
+	protected toggleCollapsed(idx:number):void
+	{
+		let origin = this.layout.components[idx].origin;
+		let got = false;
+		for (let n = 0; n < this.collapsedBranches.length; n++) if (Vec.equals(origin, this.collapsedBranches[n]))
+		{
+			this.collapsedBranches.splice(n, 1);
+			got = true;
+			break;
+		}
+		if (!got) this.collapsedBranches.push(origin);
+		this.layout = null;
+		this.redraw();
+	}
+
 	// interactivity
 	protected mouseClick(event:JQueryMouseEventObject):void
 	{
 		if (event.ctrlKey)
 		{
-console.log('CLICK!');		
 			event.preventDefault();
 			return;
 		}
 
 		let [x, y] = eventCoords(event, this.content);
 		let picked = this.pickComponentSection(x, y);
-		if (picked && picked[1])
-		{
-			let idx = picked[0];
-			let origin = this.layout.components[idx].origin;
-			let got = false;
-			for (let n = 0; n < this.collapsedBranches.length; n++) if (Vec.equals(origin, this.collapsedBranches[n]))
-			{
-				this.collapsedBranches.splice(n, 1);
-				got = true;
-				break;
-			}
-			if (!got) this.collapsedBranches.push(origin);
-			this.layout = null;
-			this.redraw();
-		}
+		if (picked && picked[1]) this.toggleCollapsed(picked[0]);
 	}
 	protected mouseDoubleClick(event:JQueryMouseEventObject):void
 	{
@@ -673,7 +674,6 @@ console.log('CLICK!');
 		if (event.which != 1) return;
 		if (event.ctrlKey)
 		{
-console.log('DOWN!');
 			this.contextMenu(event);
 			event.preventDefault();
 			return;
@@ -697,7 +697,6 @@ console.log('DOWN!');
 	{
 		if (event.ctrlKey)
 		{
-console.log('UP!');		
 			event.preventDefault();
 			return;
 		}
@@ -797,28 +796,35 @@ console.log('UP!');
 		let menu = new electron.remote.Menu();
 		if (idx >= 0)
 		{
-			let compObj = this.layout.components[idx].content, origin = this.layout.components[idx].origin;
-			menu.append(new electron.remote.MenuItem({'label': 'Edit Structure', 'click': () => {this.selectComponent(idx); this.editStructure();}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Edit Details', 'click': () => {this.selectComponent(idx); this.editDetails();}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Lookup Name', 'click': () => {this.selectComponent(idx); this.lookupCurrent();}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Append', 'click': () => {this.selectComponent(idx); this.appendToCurrent();}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Prepend', 'click': () => {this.selectComponent(idx); this.prependBeforeCurrent();}}));
+			let comp = this.layout.components[idx].content, origin = this.layout.components[idx].origin;
+			let sel = () => this.selectComponent(idx);
+			menu.append(new electron.remote.MenuItem({'label': 'Edit Structure', 'click': () => {sel(); this.editStructure();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Edit Details', 'click': () => {sel(); this.editDetails();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Lookup Name', 'click': () => {sel(); this.lookupCurrent();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Append', 'click': () => {sel(); this.appendToCurrent();}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Prepend', 'click': () => {sel(); this.prependBeforeCurrent();}}));
 			if (origin.length > 0)
 			{
 				menu.append(new electron.remote.MenuItem({'label': 'Delete', 'click': () => {this.selectComponent(idx); this.deleteCurrent();}}));
 
 				if (origin[origin.length - 1] > 0)
-					menu.append(new electron.remote.MenuItem({'label': 'Move Up', 'click': () => {this.selectComponent(idx); this.reorderCurrent(-1);}}));
+					menu.append(new electron.remote.MenuItem({'label': 'Move Up', 'click': () => {sel(); this.reorderCurrent(-1);}}));
 				if (origin[origin.length - 1] < Vec.arrayLength(this.mixture.getParentComponent(origin).contents) - 1)
-					menu.append(new electron.remote.MenuItem({'label': 'Move Down', 'click': () => {this.selectComponent(idx); this.reorderCurrent(1);}}));
+					menu.append(new electron.remote.MenuItem({'label': 'Move Down', 'click': () => {sel(); this.reorderCurrent(1);}}));
 			}
 
-			menu.append(new electron.remote.MenuItem({'label': 'Copy', 'click': () => {this.selectComponent(idx); this.clipboardCopy(false);}}));
-			if (Vec.arrayLength(compObj.contents) > 0)
-				menu.append(new electron.remote.MenuItem({'label': 'Copy Branch', 'click': () => {this.selectComponent(idx); this.clipboardCopy(false, true);}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Copy', 'click': () => {sel(); this.clipboardCopy(false);}}));
+			if (Vec.arrayLength(comp.contents) > 0)
+				menu.append(new electron.remote.MenuItem({'label': 'Copy Branch', 'click': () => {sel(); this.clipboardCopy(false, true);}}));
 			if (origin.length > 0)
-				menu.append(new electron.remote.MenuItem({'label': 'Cut', 'click': () => {this.selectComponent(idx); this.clipboardCopy(true);}}));
-			menu.append(new electron.remote.MenuItem({'label': 'Paste', 'click': () => {this.selectComponent(idx); this.clipboardPaste();}}));
+				menu.append(new electron.remote.MenuItem({'label': 'Cut', 'click': () => {sel(); this.clipboardCopy(true);}}));
+			menu.append(new electron.remote.MenuItem({'label': 'Paste', 'click': () => {sel(); this.clipboardPaste();}}));
+
+			if (Vec.notBlank(comp.contents))
+			{
+				let label = this.layout.components[idx].isCollapsed ? 'Expand Branch' : 'Collapse Branch';
+				menu.append(new electron.remote.MenuItem({'label': label, 'click': () => this.toggleCollapsed(idx)}));
+			}
 		}
 		else
 		{

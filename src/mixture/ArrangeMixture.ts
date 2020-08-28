@@ -67,10 +67,12 @@ export class ArrangeMixture
 	public components:ArrangeMixtureComponent[] = [];
 
 	// parameters to influence the drawing
-	public limitStructW = 0;
-	public limitStructH = 0;
+	public limitStructW:number;
+	public limitStructH:number;
 	public showCollapsors = false; // if true, boxes for [+]/[-] will be created for interactive use
 	public collapsedBranches:number[][] = []; // any origin specified in this list will not display its children
+	public hardwrapName:number; // name width guaranteed not longer than this
+	public softwrapName:number; // name wrapping at selected characters kicks in after this width
 
 	// --------------------- public methods ---------------------
 
@@ -78,8 +80,10 @@ export class ArrangeMixture
 	constructor(public mixture:Mixture, public measure:wmk.ArrangeMeasurement, public policy:wmk.RenderPolicy)
 	{
 		this.scale = policy.data.pointScale;
-		this.nameFontSize = 0.5 * policy.data.pointScale;
+		this.nameFontSize = 0.5 * this.scale;
 		this.limitStructW = this.limitStructH = this.scale * 10;
+		this.hardwrapName = 12 * this.scale;
+		this.softwrapName = 8 * this.scale;
 	}
 
 	// carries out the arrangement
@@ -262,7 +266,8 @@ export class ArrangeMixture
 
 			// handle name, or other content needing representation
 			comp.nameLines = [];
-			if (mixcomp.name) comp.nameLines.push(mixcomp.name);
+			if (mixcomp.name) this.wrapSplitName(comp.nameLines, mixcomp.name);
+
 			// (... synonyms, and linewrapping ...)
 			let qline = ArrangeMixture.formatQuantity(mixcomp);
 			if (qline) comp.nameLines.push(qline);
@@ -369,6 +374,34 @@ export class ArrangeMixture
 
 		return wholeBranch;
 	}
+
+	// if the given string is longer than the soft/hard limit, looks to break it up into smaller pieces; each of them is
+	// appended to the list parameter
+	private wrapSplitName(list:string[], txt:string):void
+	{
+		let xpos = wmk.FontData.measureWidths(txt, this.nameFontSize);
+		if (Vec.last(xpos) <= this.softwrapName)
+		{
+			list.push(txt);
+			return;
+		}
+
+		let p = 0;
+		for (; xpos[p] < this.softwrapName; p++) {}
+		for (; xpos[p] < this.hardwrapName; p++)
+		{
+			let ch = txt.charAt(p);
+			if (' ,;-/'.includes(ch)) 
+			{
+				p++; 
+				break;
+			}
+		}
+
+		list.push(txt.substring(0, p).trim());
+		this.wrapSplitName(list, txt.substring(p).trim());
+	}
+
 }
 
 /* EOF */ }

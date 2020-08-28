@@ -29,7 +29,7 @@ let files = [];
 while (argv.length > 0)
 {
 	let arg = argv.shift();
-	if (arg == 'app/main.js') break; // anything after this is fair game
+	if (arg.endsWith('app/main.js')) break; // anything after this is fair game
 }
 for (let n = 0; n < argv.length; n++)
 {

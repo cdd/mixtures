@@ -295,21 +295,6 @@ export class NormMixture
 			let [lo, hi] = comp.quantity as number[];
 			return [type, lo * scale, hi * scale, null];
 		}
-
-
-		/*if (uri == StandardUnits.kg) return [value * 1E3, AbsType.Mass];
-		else if (uri == StandardUnits.g) return [value, AbsType.Mass];
-		else if (uri == StandardUnits.mg) return [value * 1E-3, AbsType.Mass];
-		else if (uri == StandardUnits.ug) return [value * 1E-6, AbsType.Mass];
-		else if (uri == StandardUnits.ng) return [value * 1E-9, AbsType.Mass];
-		else if (uri == StandardUnits.L) return [value, AbsType.Volume];
-		else if (uri == StandardUnits.mL) return [value * 1E-3, AbsType.Volume];
-		else if (uri == StandardUnits.uL) return [value * 1E-6, AbsType.Volume];
-		else if (uri == StandardUnits.nL) return [value * 1E-9, AbsType.Volume];
-		else if (uri == StandardUnits.mol) return [value, AbsType.Moles];
-		else if (uri == StandardUnits.mmol) return [value * 1E-3, AbsType.Moles];
-		else if (uri == StandardUnits.umol) return [value * 1E-6, AbsType.Moles];
-		else if (uri == StandardUnits.nmol) return [value * 1E-9, AbsType.Moles];*/
 	}
 }
 

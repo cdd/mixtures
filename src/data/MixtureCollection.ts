@@ -66,6 +66,11 @@ export class MixtureCollection
 		this.mixtures.push(mixture.clone());
 		return this.mixtures.length - 1;
 	}
+	public appendMixtureDirect(mixture:Mixture):number
+	{
+		this.mixtures.push(mixture);
+		return this.mixtures.length - 1;
+	}
 	public appendCollection(collection:MixtureCollection):void
 	{
 		this.mixtures = this.mixtures.concat(collection.mixtures);
