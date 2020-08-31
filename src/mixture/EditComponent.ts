@@ -46,6 +46,8 @@ const RELATION_LABELS:string[] = ['=', '~', '&lt;', '&le;', '&gt;', '&ge;'];
 
 export class EditComponent extends wmk.Dialog
 {
+	public proxyClip:wmk.ClipboardProxy = null;
+
 	//private btnClear:JQuery;
 	private btnSketch:JQuery;
 	private btnPaste:JQuery;
@@ -102,6 +104,8 @@ export class EditComponent extends wmk.Dialog
 	// builds the dialog content
 	protected populate():void
 	{
+		if (this.proxyClip) this.proxyClip.pushHandler(new wmk.ClipboardProxyHandler());
+
 		let buttons = this.buttons(), body = this.body();
 
 		// top section
@@ -190,6 +194,12 @@ export class EditComponent extends wmk.Dialog
 		// trap the escape key, for easy closing
 		body.find('input').keydown((event:JQueryEventObject) => this.trapEscape(event, true));
 		body.find('textarea').keydown((event:JQueryEventObject) => this.trapEscape(event, false));
+	}
+
+	public close():void
+	{
+		if (this.proxyClip) this.proxyClip.popHandler();
+		super.close();
 	}
 
 	// ------------ private methods ------------

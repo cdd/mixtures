@@ -289,6 +289,7 @@ export class EditMixture extends wmk.Widget
 		let w = $(window).width() * 0.8, h = $(window).height() * 0.8;
 
 		let dlg = new EditComponent(deepClone(comp), [w, h], this.content);
+		dlg.proxyClip = this.proxyClip;
 		dlg.onSave(() =>
 		{
 			let modmix = this.mixture.clone();
@@ -674,7 +675,7 @@ export class EditMixture extends wmk.Widget
 		if (event.which != 1) return;
 		if (event.ctrlKey)
 		{
-			this.contextMenu(event);
+			//this.contextMenu(event);
 			event.preventDefault();
 			return;
 		}

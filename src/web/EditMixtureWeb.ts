@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -53,7 +53,7 @@ export class EditMixtureWeb extends EditMixture
 	}
 
 	// ------------ private methods ------------
-	
+
 	protected contextMenu(event:JQueryEventObject):void
 	{
 		event.preventDefault();
@@ -119,8 +119,9 @@ export class EditMixtureWeb extends EditMixture
 				div.text(menuItem.label);
 				div.hover(() => div.css({'background-color': '#D0D0D0'}), () => div.css({'background-color': 'transparent'}));
 				div.css({'cursor': 'pointer'});
-				div.click(() => 
-				{				
+				div.click(() =>
+				{
+					popup.close();
 					setTimeout(() => popup.close(), 50);
 					menuItem.click();
 				});
