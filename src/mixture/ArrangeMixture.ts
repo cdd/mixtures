@@ -284,7 +284,7 @@ export class ArrangeMixture
 					for (let n = 0; n < val.length; n++) line += (n == 0 ? '' : ', ') + val[n];
 				}
 				else line += val;
-				comp.nameLines.push(line);
+				comp.nameLines.push(this.truncateEllipsis(line));
 			}
 
 			comp.nameBox = new wmk.Box(padding, padding);
@@ -402,6 +402,16 @@ export class ArrangeMixture
 		this.wrapSplitName(list, txt.substring(p).trim());
 	}
 
+	// if the line is longer than the hard wrap limit, just truncate with ellipsis
+	private truncateEllipsis(txt:string):string
+	{
+		let xpos = wmk.FontData.measureWidths(txt, this.nameFontSize);
+		if (Vec.last(xpos) <= this.hardwrapName) return txt;
+		let ellipsis = '...', ellw = wmk.FontData.measureText(ellipsis, this.nameFontSize)[0];
+		let keep = 1;
+		for(; keep < txt.length; keep++) if (xpos[keep] + ellw > this.hardwrapName) break;
+		return txt.substring(0, keep) + ellipsis;
+	}
 }
 
 /* EOF */ }
