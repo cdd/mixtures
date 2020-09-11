@@ -76,6 +76,7 @@ export class WebWidget extends wmk.Widget
 {
 	public onGoBack:() => void = null; // optional: gets an icon if defined
 	public onLookup:(editor:EditMixtureWeb) => void = null; // optional: gets an icon if defined
+	public onEditStructure:(molfile:string, onSuccess:(molfile:string) => void) => void = null;
 
 	//public proxyClip = new wmk.ClipboardProxyWeb();
 	public banner:MenuBanner;
@@ -100,7 +101,7 @@ export class WebWidget extends wmk.Widget
 			this.menuAction(MenuBannerCommand.Paste);
 			return true;
 		};
-		this.proxyClip.pushHandler(handler);		
+		this.proxyClip.pushHandler(handler);
 	}
 
 	public render(parent:any, width?:number, height?:number):void
@@ -123,6 +124,20 @@ export class WebWidget extends wmk.Widget
 		this.editor = new EditMixtureWeb(this.proxyClip);
 		this.editor.callbackUpdateTitle = () => {};
 		this.editor.onLookup = this.onLookup;
+
+		if (this.onEditStructure)
+		{
+			this.editor.proxyStructureEditor = (mol, onSuccess:(mol:wmk.Molecule) => void) =>
+			{
+				if (!mol) mol = new wmk.Molecule();
+				let molfile = new wmk.MDLMOLWriter(mol).write();
+				this.onEditStructure(molfile, (molfile:string):void =>
+				{
+					mol = molfile ? new wmk.MDLMOLReader(molfile).parse() : mol;
+					onSuccess(mol);
+				});
+			};
+		}
 
 		this.content.css({'width': width, 'height': height});
 		this.content.css({'border': '1px solid black', 'display': 'flex', 'flex-direction': 'column'});

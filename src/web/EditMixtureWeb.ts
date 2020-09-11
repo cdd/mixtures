@@ -39,6 +39,7 @@ namespace Mixtures /* BOF */ {
 export class EditMixtureWeb extends EditMixture
 {
 	public onLookup:(editor:EditMixtureWeb) => void = null; // optional: added to context menu if defined
+	public proxyStructureEditor:(mol:wmk.Molecule, onSuccess:(mol:wmk.Molecule) => void) => void = null; // optional editor replacement
 
 	// ------------ public methods ------------
 
@@ -70,7 +71,7 @@ export class EditMixtureWeb extends EditMixture
 		if (idx >= 0)
 		{
 			let comp = this.layout.components[idx].content, origin = this.layout.components[idx].origin;
-			let sel = () => this.selectComponent(idx);
+			let sel = ():void => this.selectComponent(idx);
 
 			menu.push({'label': 'Edit Structure', 'click': () => {sel(); this.editStructure();}});
 			menu.push({'label': 'Edit Details', 'click': () => {sel(); this.editDetails();}});
@@ -131,6 +132,36 @@ export class EditMixtureWeb extends EditMixture
 
 		// (timeout is necessary, otherwise the default popup menu reasserts itself for some bizarre reason)
 		setTimeout(() => popup.open(), 50);
+	}
+
+	public editStructure():void
+	{
+		if (!this.proxyStructureEditor)
+		{
+			super.editStructure();
+			return;
+		}
+
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		let comp = this.mixture.getComponent(origin);
+		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
+
+		this.proxyStructureEditor(mol, (mol) =>
+		{
+			wmk.CoordUtil.normaliseBondDistances(mol);
+			let molfile = mol && mol.numAtoms > 0 ? wmk.MoleculeStream.writeMDLMOL(mol) : undefined;
+			if (!molfile) molfile = null;
+
+			comp = deepClone(comp);
+			comp.molfile = molfile;
+			let modmix = this.mixture.clone();
+			if (modmix.setComponent(origin, comp))
+			{
+				this.setMixture(modmix);
+				this.selectOrigin(origin);
+			}
+		});
 	}
 }
 

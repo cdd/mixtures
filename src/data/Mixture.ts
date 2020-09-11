@@ -133,7 +133,7 @@ export class Mixture
 	{
 		let origins:number[][] = [];
 
-		let nodeEnum = (origin:number[], comp:MixfileComponent) =>
+		let nodeEnum = (origin:number[], comp:MixfileComponent):void =>
 		{
 			origins.push(origin);
 			for (let n = 0; n < Vec.arrayLength(comp.contents); n++) nodeEnum(Vec.append(origin, n), comp.contents[n]);

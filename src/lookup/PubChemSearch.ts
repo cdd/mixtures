@@ -54,7 +54,7 @@ export class PubChemSearch
 		return new Promise<PubChemSearchResult[]>((resolve, reject) =>
 		{
 			let results:PubChemSearchResult[] = [];
-			let callbackResult = (result:PubChemSearchResult):void => 
+			let callbackResult = (result:PubChemSearchResult):void =>
 			{
 				results.push(result);
 			};

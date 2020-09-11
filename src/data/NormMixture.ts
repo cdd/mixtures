@@ -113,7 +113,7 @@ export class NormMixture
 					let amount = 0, childType = AbsType.None;
 					for (let i of childIndexes[n])
 					{
-						if (sumType[i] == AbsType.None || sumAmount2[i] != null || 
+						if (sumType[i] == AbsType.None || sumAmount2[i] != null ||
 							(childType != AbsType.None && sumType[i] != childType))
 						{
 							childType = AbsType.None;

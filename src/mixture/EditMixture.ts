@@ -259,7 +259,7 @@ export class EditMixture extends wmk.Widget
 			comp = deepClone(comp);
 			comp.molfile = molfile;
 			let modmix = this.mixture.clone();
-			if (modmix.setComponent(origin, comp)) 
+			if (modmix.setComponent(origin, comp))
 			{
 				this.setMixture(modmix);
 				this.selectOrigin(origin);
@@ -284,7 +284,7 @@ export class EditMixture extends wmk.Widget
 		if (this.selectedIndex < 0) return;
 		let origin = this.layout.components[this.selectedIndex].origin;
 		let comp = this.mixture.getComponent(origin);
-		
+
 		//let w = this.content.width(), h = this.content.height();
 		let w = $(window).width() * 0.8, h = $(window).height() * 0.8;
 
@@ -293,7 +293,7 @@ export class EditMixture extends wmk.Widget
 		dlg.onSave(() =>
 		{
 			let modmix = this.mixture.clone();
-			if (modmix.setComponent(origin, dlg.getComponent())) 
+			if (modmix.setComponent(origin, dlg.getComponent()))
 			{
 				this.setMixture(modmix);
 				this.selectOrigin(origin);
@@ -305,7 +305,7 @@ export class EditMixture extends wmk.Widget
 			this.selectOrigin(origin);
 			this.editStructure();
 		});
-		dlg.onClose(() => 
+		dlg.onClose(() =>
 		{
 			this.isEditing = false;
 			this.content.focus();
@@ -329,14 +329,14 @@ export class EditMixture extends wmk.Widget
 			let name = dlg.getName(), mol = dlg.getMolecule();
 			if (name != null) comp.name = name;
 			if (mol != null) comp.molfile = new wmk.MDLMOLWriter(mol).write();
-			if (modmix.setComponent(origin, comp)) 
+			if (modmix.setComponent(origin, comp))
 			{
 				this.setMixture(modmix);
 				this.selectOrigin(origin);
 			}
 			dlg.close();
 		});
-		dlg.onClose(() => 
+		dlg.onClose(() =>
 		{
 			this.isEditing = false;
 			this.content.focus();
@@ -798,7 +798,7 @@ export class EditMixture extends wmk.Widget
 		if (idx >= 0)
 		{
 			let comp = this.layout.components[idx].content, origin = this.layout.components[idx].origin;
-			let sel = () => this.selectComponent(idx);
+			let sel = ():void => this.selectComponent(idx);
 			menu.append(new electron.remote.MenuItem({'label': 'Edit Structure', 'click': () => {sel(); this.editStructure();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Edit Details', 'click': () => {sel(); this.editDetails();}}));
 			menu.append(new electron.remote.MenuItem({'label': 'Lookup Name', 'click': () => {sel(); this.lookupCurrent();}}));

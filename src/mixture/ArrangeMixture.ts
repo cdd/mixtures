@@ -42,7 +42,7 @@ export interface ArrangeMixtureComponent
 	nameBox?:wmk.Box;
 	nameLines?:string[];
 	fontSize?:number;
-	
+
 	outline?:wmk.Box; // inner boundary (surrounds molecule, names, etc.)
 
 	isCollapsed?:boolean;
@@ -129,7 +129,7 @@ export class ArrangeMixture
 			if (comp.molBox)
 			{
 				comp.molBox.scaleBy(modScale);
-				if (comp.molLayout) 
+				if (comp.molLayout)
 				{
 					let mx = comp.boundary.x + comp.molBox.x, my = comp.boundary.y + comp.molBox.y;
 					comp.molLayout.squeezeInto(mx, my, comp.molBox.w, comp.molBox.h);
@@ -391,9 +391,9 @@ export class ArrangeMixture
 		for (; xpos[p] < this.hardwrapName; p++)
 		{
 			let ch = txt.charAt(p);
-			if (' ,;-/'.includes(ch)) 
+			if (' ,;-/'.includes(ch))
 			{
-				p++; 
+				p++;
 				break;
 			}
 		}
@@ -409,7 +409,7 @@ export class ArrangeMixture
 		if (Vec.last(xpos) <= this.hardwrapName) return txt;
 		let ellipsis = '...', ellw = wmk.FontData.measureText(ellipsis, this.nameFontSize)[0];
 		let keep = 1;
-		for(; keep < txt.length; keep++) if (xpos[keep] + ellw > this.hardwrapName) break;
+		for (; keep < txt.length; keep++) if (xpos[keep] + ellw > this.hardwrapName) break;
 		return txt.substring(0, keep) + ellipsis;
 	}
 }
