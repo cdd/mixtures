@@ -114,9 +114,11 @@ export class EditMixtureWeb extends EditMixture
 		let popup = new wmk.Popup(divCursor);
  		popup.callbackPopulate = () =>
 		{
+			let divContainer = $('<div/>').appendTo(popup.body());
+			divContainer.css({'font-size': 'medium'});
 			for (let menuItem of menu)
 			{
-				let div = $('<div/>').appendTo(popup.body());
+				let div = $('<div/>').appendTo(divContainer);
 				div.text(menuItem.label);
 				div.hover(() => div.css({'background-color': '#D0D0D0'}), () => div.css({'background-color': 'transparent'}));
 				div.css({'cursor': 'pointer'});
