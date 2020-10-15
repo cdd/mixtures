@@ -165,11 +165,11 @@ export class WebWidget extends wmk.Widget
 		return this.editor.getMixture();
 	}
 
-	public setMixture(mixture:Mixture):void
+	public setMixture(mixture:Mixture, dirty = false):void
 	{
 		this.editor.clearHistory();
 		this.editor.setMixture(mixture, true, false);
-		this.editor.setDirty(false);
+		this.editor.setDirty(dirty);
 	}
 
 	public menuAction(cmd:MenuBannerCommand):void

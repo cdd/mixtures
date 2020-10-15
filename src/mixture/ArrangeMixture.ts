@@ -379,6 +379,7 @@ export class ArrangeMixture
 	// appended to the list parameter
 	private wrapSplitName(list:string[], txt:string):void
 	{
+		if (!txt) return;
 		let xpos = wmk.FontData.measureWidths(txt, this.nameFontSize);
 		if (Vec.last(xpos) <= this.softwrapName)
 		{
