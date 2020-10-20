@@ -174,7 +174,7 @@ export class ArrangeMixture
 		if (mixcomp.quantity == null) return null;
 
 		let str = '';
-		if (mixcomp.relation)
+		if (mixcomp.relation && mixcomp.relation != '=')
 		{
 			let rel = mixcomp.relation;
 			if (rel == '>=') rel = '\u{2265}'; else if (rel == '<=') rel = '\u{2264}';
