@@ -10,17 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
-///<reference path='../../../WebMolKit/src/data/CoordUtil.ts'/>
-///<reference path='../../../WebMolKit/src/data/QuantityCalc.ts'/>
-///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
-///<reference path='../../../WebMolKit/src/gfx/ArrangeMeasurement.ts'/>
-///<reference path='../../../WebMolKit/src/gfx/FontData.ts'/>
-///<reference path='../../../WebMolKit/src/util/Geom.ts'/>
-
-///<reference path='../data/Mixture.ts'/>
-///<reference path='../data/NormMixture.ts'/>
-
 namespace Mixtures /* BOF */ {
 
 /*

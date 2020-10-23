@@ -10,10 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
-///<reference path='../../../WebMolKit/src/decl/jquery/index.d.ts'/>
-///<reference path='../../../WebMolKit/src/util/util.ts'/>
-
 namespace Mixtures /* BOF */ {
 
 /*

@@ -10,13 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
-///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
-///<reference path='../../../WebMolKit/src/sketcher/MoleculeActivity.ts'/>
-
-///<reference path='Mixfile.ts'/>
-///<reference path='Mixture.ts'/>
-
 namespace Mixtures /* BOF */ {
 
 /*

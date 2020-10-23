@@ -10,20 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
-///<reference path='../../../WebMolKit/src/decl/jquery/index.d.ts'/>
-///<reference path='../../../WebMolKit/src/util/util.ts'/>
-///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
-///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
-///<reference path='../../../WebMolKit/src/data/MDLReader.ts'/>
-///<reference path='../../../WebMolKit/src/data/MDLWriter.ts'/>
-///<reference path='../../../WebMolKit/src/data/MolUtil.ts'/>
-///<reference path='../../../WebMolKit/src/data/CoordUtil.ts'/>
-
-///<reference path='../decl/node.d.ts'/>
-///<reference path='../decl/electron.d.ts'/>
-///<reference path='../startup.ts'/>
-
 namespace Mixtures /* BOF */ {
 
 /*

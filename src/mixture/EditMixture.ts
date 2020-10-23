@@ -10,26 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
-///<reference path='../../../WebMolKit/src/decl/jquery/index.d.ts'/>
-///<reference path='../../../WebMolKit/src/util/util.ts'/>
-///<reference path='../../../WebMolKit/src/sketcher/Sketcher.ts'/>
-///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
-///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
-///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
-///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
-///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
-///<reference path='../../../WebMolKit/src/dialog/EditCompound.ts'/>
-
-///<reference path='../startup.ts'/>
-///<reference path='../data/Mixture.ts'/>
-///<reference path='../data/NormMixture.ts'/>
-///<reference path='../lookup/LookupCompoundDialog.ts'/>
-///<reference path='../lookup/ExtractCTABComponent.ts'/>
-///<reference path='ArrangeMixture.ts'/>
-///<reference path='DrawMixture.ts'/>
-///<reference path='EditComponent.ts'/>
-
 namespace Mixtures /* BOF */ {
 
 /*

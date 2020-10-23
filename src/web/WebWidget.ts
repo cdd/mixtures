@@ -10,25 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
-///<reference path='../../../WebMolKit/src/decl/jquery/index.d.ts'/>
-///<reference path='../../../WebMolKit/src/util/util.ts'/>
-///<reference path='../../../WebMolKit/src/sketcher/Sketcher.ts'/>
-///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
-///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
-///<reference path='../../../WebMolKit/src/gfx/Rendering.ts'/>
-///<reference path='../../../WebMolKit/src/ui/Widget.ts'/>
-///<reference path='../../../WebMolKit/src/ui/ClipboardProxy.ts'/>
-
-///<reference path='../decl/node.d.ts'/>
-///<reference path='../data/Mixfile.ts'/>
-///<reference path='../data/Mixture.ts'/>
-///<reference path='../data/Units.ts'/>
-///<reference path='../mixture/ArrangeMixture.ts'/>
-///<reference path='../mixture/DrawMixture.ts'/>
-///<reference path='../mixture/EditMixture.ts'/>
-///<reference path='../mixture/ExportSDFile.ts'/>
-
 namespace Mixtures /* BOF */ {
 
 /*

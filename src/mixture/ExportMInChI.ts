@@ -10,21 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../../../WebMolKit/src/decl/corrections.d.ts'/>
-///<reference path='../../../WebMolKit/src/decl/jquery/index.d.ts'/>
-///<reference path='../../../WebMolKit/src/util/util.ts'/>
-///<reference path='../../../WebMolKit/src/data/Molecule.ts'/>
-///<reference path='../../../WebMolKit/src/data/MoleculeStream.ts'/>
-///<reference path='../../../WebMolKit/src/data/DataSheetStream.ts'/>
-///<reference path='../../../WebMolKit/src/data/MDLWriter.ts'/>
-
-///<reference path='../startup.ts'/>
-///<reference path='../main/InChI.ts'/>
-///<reference path='../data/Mixfile.ts'/>
-///<reference path='../data/Mixture.ts'/>
-///<reference path='../data/Units.ts'/>
-///<reference path='../data/NormMixture.ts'/>
-
 namespace Mixtures /* BOF */ {
 
 // work-in-progress placeholder for the recursive MInChI assembler

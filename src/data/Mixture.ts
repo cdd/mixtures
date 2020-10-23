@@ -10,10 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../decl/node.d.ts'/>
-///<reference path='../../../WebMolKit/src/util/Vec.ts'/>
-///<reference path='Mixfile.ts'/>
-
 namespace Mixtures /* BOF */ {
 
 /*
