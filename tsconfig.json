@@ -15,6 +15,7 @@
         // imported from WebMolKit
         "../WebMolKit/src/**/*.ts",
 
+		"src/*.ts",
         "src/**/*.ts"
     ],
     "exclude":

@@ -10,6 +10,9 @@
 	Made available under the Gnu Public License v3.0
 */
 
+///<reference path='MenuBanner.ts'/>
+///<reference path='MainPanel.ts'/>
+
 namespace Mixtures /* BOF */ {
 
 /*
