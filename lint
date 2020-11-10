@@ -12,7 +12,8 @@ endif
 
 echo "-- ESLint --"
 
-eslint src/{data,lookup,main,mixture,web}/*.ts
+#eslint src/{data,lookup,main,mixture,web}/*.ts
+npm run eslint
 if ("$status" != "0") then
 	echo "**** ERRORS; fix TypeScript code before pushing to git"
 	exit

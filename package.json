@@ -1,19 +1,21 @@
 {
     "name": "placeholder",
     "version": "0.0.0",
-    "devDependencies": 
-    {
-        "electron": "^1.6.11",
+    "devDependencies": {
+        "electron": "^9.0",
         "electron-packager": "^8.1.0",
-        "typescript": "^3.9.0"
+        "typescript": "^4.0",
+        "eslint": "^7.0",
+        "@typescript-eslint/parser": "^4.7",
+        "@typescript-eslint/eslint-plugin": "^4.7"
     },
-    "build": 
-    {
+    "build": {
         "appId": "com.cdd.mixture.MixfileEditor",
-        "mac": 
-        {
+        "mac": {
             "category": "public.app-category.productivity"
         }
     },
-    "scripts": {}
+    "scripts": {
+        "eslint": "eslint -c ../WebMolKit/src/.eslintrc.js --ignore-pattern src/decl --quiet src/**/*.ts"
+    }
 }

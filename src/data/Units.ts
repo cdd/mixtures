@@ -10,7 +10,7 @@
 	Made available under the Gnu Public License v3.0
 */
 
-/* eslint @typescript-eslint/camelcase: 0 */
+/* eslint-disable @typescript-eslint/naming-convention */
 
 namespace Mixtures /* BOF */ {
 

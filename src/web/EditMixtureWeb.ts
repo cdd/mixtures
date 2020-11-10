@@ -10,6 +10,8 @@
 	Made available under the Gnu Public License v3.0
 */
 
+///<reference path='../mixture/EditMixture.ts'/>
+
 namespace Mixtures /* BOF */ {
 
 /*

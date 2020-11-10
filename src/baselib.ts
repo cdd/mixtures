@@ -10,6 +10,8 @@
 	Made available under the Gnu Public License v3.0
 */
 
+///<reference path='../../WebMolKit/src/util/Vec.ts'/>
+
 // NOTE: imports need to go before we start defining our own stuff, otherwise transpiler order sometimes breaks
 import wmk = WebMolKit;
 import Vec = WebMolKit.Vec;
