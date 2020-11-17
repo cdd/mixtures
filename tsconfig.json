@@ -1,28 +1,28 @@
 {
-    "compilerOptions": 
-    {
-        "module": "system",
-        "noImplicitAny": true,
-        "removeComments": true,
-        "preserveConstEnums": true,
-        "outFile": "app/mixfile.js",
-        "sourceMap": true,
-        "target": "ES6",
+	"compilerOptions": 
+	{
+		"module": "system",
+		"noImplicitAny": true,
+		"removeComments": true,
+		"preserveConstEnums": true,
+		"outFile": "app/mixfile.js",
+		"sourceMap": true,
+		"target": "ES6",
 		"lib": ["es2017", "dom"],
 		"types": []
-    },
-    "include": 
-    [
-        // imported from WebMolKit
-        "../WebMolKit/src/**/*.ts",
+	},
+	"include": 
+	[
+		// imported from WebMolKit
+		"../WebMolKit/src/**/*.ts",
 
 		"src/*.ts",
-        "src/**/*.ts"
-    ],
-    "exclude":
-    [
-        "node_modules",
-        "dist"
-    ]
+		"src/**/*.ts"
+	],
+	"exclude":
+	[
+		"node_modules",
+		"dist"
+	]
 }
 
