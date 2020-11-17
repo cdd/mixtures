@@ -29,6 +29,8 @@ export class EditComponent extends wmk.Dialog
 {
 	public proxyClip:wmk.ClipboardProxy = null;
 
+	private component:MixfileComponent;
+
 	//private btnClear:JQuery;
 	private btnSketch:JQuery;
 	private btnPaste:JQuery;
@@ -47,8 +49,6 @@ export class EditComponent extends wmk.Dialog
 	private lineFormula:JQuery;
 	private lineInChI:JQuery;
 	private lineSMILES:JQuery;
-	private areaIdent:JQuery;
-	private areaLinks:JQuery;
 
 	private unitValues:string[];
 	private unitLabels:string[];
@@ -60,9 +60,11 @@ export class EditComponent extends wmk.Dialog
 
 	// ------------ public methods ------------
 
-	constructor(private component:MixfileComponent, private parentSize:[number, number], parent:JQuery = null)
+	constructor(component:MixfileComponent, private parentSize:[number, number], parent:JQuery = null)
 	{
 		super(parent);
+
+		this.component = deepClone(component);
 
 		this.title = 'Edit Component';
 		this.minPortionWidth = 20;
@@ -159,16 +161,18 @@ export class EditComponent extends wmk.Dialog
 		this.lineSMILES.val(this.component.smiles);
 
 		this.createFieldName(grid2, ++line, 'Identifiers', true);
-		this.areaIdent = this.createValueMultiline(grid2, line);
-		let listID:string[] = [];
-		if (this.component.identifiers) for (let key in this.component.identifiers) listID.push(key + '=' + this.component.identifiers[key]);
-		this.areaIdent.val(listID.join('\n'));
+		let kvIdentifiers = new KeyValueWidget(this.component.identifiers, (dict) =>
+		{
+			this.component.identifiers = dict;
+		});
+		kvIdentifiers.render($('<div/>').appendTo(grid2).css({'grid-area': `${line} / value`}));
 
 		this.createFieldName(grid2, ++line, 'Links', true);
-		this.areaLinks = this.createValueMultiline(grid2, line);
-		let listLinks:string[] = [];
-		if (this.component.links) for (let key in this.component.links) listLinks.push(key + '=' + this.component.links[key]);
-		this.areaLinks.val(listLinks.join('\n'));
+		let kvLinks = new KeyValueWidget(this.component.links, (dict) =>
+		{
+			this.component.links = dict;
+		});
+		kvLinks.render($('<div/>').appendTo(grid2).css({'grid-area': `${line} / value`}));
 
 		this.lineName.focus();
 
@@ -247,9 +251,6 @@ export class EditComponent extends wmk.Dialog
 		this.component.inchi = nullifyBlank(this.lineInChI.val().toString());
 		this.component.smiles = nullifyBlank(this.lineSMILES.val().toString());
 
-		this.component.identifiers = splitKeys(this.areaIdent.val().toString());
-		this.component.links = splitKeys(this.areaLinks.val().toString());
-
 		// remove explicit nulls, for clarity
 		//Object.keys(this.component).forEach((key:string) => {if ((<any>this.component)[key] == null) delete (<any>this.component)[key];});
 
@@ -293,23 +294,18 @@ export class EditComponent extends wmk.Dialog
 	private createValueLine(parent:JQuery, row:number):JQuery
 	{
 		let div = $('<div/>').appendTo(parent);
-		div.css('grid-column', 'value');
-		div.css('grid-row', row.toString());
+		div.css({'grid-area': `${row} / value`});
 		let input = $('<input/>').appendTo(div);
-		input.css({'width': '100%', 'font': 'inherit'});
-		//...
+		input.css({'width': '100%', 'padding': '0', 'font': 'inherit'});
 		return input;
 	}
 	private createValueMultiline(parent:JQuery, row:number):JQuery
 	{
 		let div = $('<div/>').appendTo(parent);
-		div.css('grid-column', 'value');
-		div.css('grid-row', row.toString());
+		div.css({'grid-area': `${row} / value`});
 		let area = $('<textarea/>').appendTo(div);
 		area.attr('rows', '5');
-		area.css('width', '100%');
-		area.css('font', 'inherit');
-		//...
+		area.css({'width': '100%', 'padding': '0', 'font': 'inherit'});
 		return area;
 	}
 
