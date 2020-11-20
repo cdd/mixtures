@@ -122,6 +122,7 @@ export class MenuBanner
 	private createCommand(btn:MenuBannerButton):JQuery[]
 	{
 		let div = $('<div/>').css({'display': 'inline-block'});
+		div.attr('id', 'mixtureEditor_btn_' + btn.icon.substring(0, btn.icon.lastIndexOf('.')));
 		let width = btn.width ? btn.width : 20;
 		div.css({'width': `${width}px`, 'height': '20px', 'margin': '2px', 'padding': '5px'});
 		div.css({'border-radius': '4px'});

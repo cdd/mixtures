@@ -94,6 +94,7 @@ export class EditMixture extends wmk.Widget
 		this.content.keyup((event:JQueryEventObject) => this.keyUp(event));
 		this.content.contextmenu((event:JQueryEventObject) => this.contextMenu(event));
 
+		this.content.attr('id', 'mixtureEditor_main');
 		this.content.attr('tabindex', '0');
 		this.content.focus();
 		this.redraw(true);
