@@ -59,7 +59,7 @@ export class EditMixture extends wmk.Widget
 
 	// ------------ public methods ------------
 
-	constructor(private proxyClip:wmk.ClipboardProxy)
+	constructor(protected proxyClip:wmk.ClipboardProxy, protected proxyMenu:wmk.MenuProxy)
 	{
 		super();
 	}
@@ -96,7 +96,7 @@ export class EditMixture extends wmk.Widget
 
 		this.content.attr('id', 'mixtureEditor_main');
 		this.content.attr('tabindex', '0');
-		this.content.focus();
+		this.refocus();
 		this.redraw(true);
 	}
 
@@ -252,9 +252,10 @@ export class EditMixture extends wmk.Widget
 		{
 			this.isEditing = false;
 			this.dlgCompound = null;
-			this.content.focus();
+			this.refocus();
 		});
 		this.dlgCompound.defineClipboard(this.proxyClip);
+		this.dlgCompound.defineContext(this.proxyMenu);
 		this.isEditing = true;
 		this.dlgCompound.open();
 	}
@@ -289,7 +290,7 @@ export class EditMixture extends wmk.Widget
 		dlg.onClose(() =>
 		{
 			this.isEditing = false;
-			this.content.focus();
+			this.refocus();
 		});
 		this.isEditing = true;
 		dlg.open();
@@ -299,6 +300,7 @@ export class EditMixture extends wmk.Widget
 	public lookupCurrent():void
 	{
 		if (this.selectedIndex < 0) return;
+		
 		let origin = this.layout.components[this.selectedIndex].origin;
 		let comp = this.mixture.getComponent(origin);
 		let curX = this.content.width(), curY = this.content.height();
@@ -320,7 +322,7 @@ export class EditMixture extends wmk.Widget
 		dlg.onClose(() =>
 		{
 			this.isEditing = false;
-			this.content.focus();
+			this.refocus();
 		});
 		dlg.open();
 	}
@@ -469,6 +471,12 @@ export class EditMixture extends wmk.Widget
 			this.delayedSelect = Vec.concat(origin, [comp.contents.length - 1]);
 		}
 		this.setMixture(modmix);
+	}
+
+	// call this anytime the focus could have wandered
+	public refocus():void
+	{
+		this.content.focus();
 	}
 
 	// ------------ private methods ------------

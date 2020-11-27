@@ -58,6 +58,8 @@ export interface MenuBannerButton
 
 export class MenuBanner
 {
+	public callbackRefocus:() => void = null;
+
 	private divFlex:JQuery;
 	private mapDiv:Record<string, JQuery> = {};
 	private mapSVG:Record<string, JQuery> = {};
@@ -77,7 +79,9 @@ export class MenuBanner
 		this.divFlex.css({'flex-direction': 'row', 'flex-wrap': 'nowrap', 'justify-content': 'space-around', 'align-items': 'center'});
 		//this.divFlex.css({'linear-gradient': '90deg, #F0F0F0, #808080'});
 		this.divFlex.css({'background': 'linear-gradient(to bottom, #FFFFFF, #C0C0C0)'});
-		this.divFlex.css({'user-select': 'none'});
+		this.divFlex.css({'user-select': 'none' /*, 'pointer-events': 'none'*/});
+
+		this.divFlex.click(() => {if (this.callbackRefocus) this.callbackRefocus();});
 
 		for (let blk of this.commands)
 		{

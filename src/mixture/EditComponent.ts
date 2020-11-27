@@ -176,7 +176,6 @@ export class EditComponent extends wmk.Dialog
 
 		this.lineName.focus();
 
-		// trap the escape key, for easy closing
 		body.find('input').keydown((event:JQueryEventObject) => this.trapEscape(event, true));
 		body.find('textarea').keydown((event:JQueryEventObject) => this.trapEscape(event, false));
 		body.find('input,textarea').prop('spellcheck', false);

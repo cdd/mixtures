@@ -26,9 +26,9 @@ export class EditMixtureWeb extends EditMixture
 
 	// ------------ public methods ------------
 
-	constructor(proxyClip:wmk.ClipboardProxy)
+	constructor(proxyClip:wmk.ClipboardProxy, proxyMenu?:wmk.MenuProxy)
 	{
-		super(proxyClip);
+		super(proxyClip, proxyMenu);
 	}
 
 	public render(parent:any):void
@@ -92,32 +92,50 @@ export class EditMixtureWeb extends EditMixture
 			menu.push({'label': 'Zoom Out', 'click': () => this.zoom(0.8)});
 		}
 
-		let divCursor = $('<div/>').appendTo(this.content).css({'position': 'absolute'});
-		wmk.setBoundaryPixels(divCursor, x - 5, y - 5, 10, 10);
-		let popup = new wmk.Popup(divCursor);
- 		popup.callbackPopulate = () =>
-		{
-			let divContainer = $('<div/>').appendTo(popup.body());
-			divContainer.css({'font-size': 'medium'});
-			for (let menuItem of menu)
-			{
-				let div = $('<div/>').appendTo(divContainer);
-				div.text(menuItem.label);
-				div.hover(() => div.css({'background-color': '#D0D0D0'}), () => div.css({'background-color': 'transparent'}));
-				div.css({'cursor': 'pointer'});
-				div.click(() =>
-				{
-					popup.close();
-					setTimeout(() => popup.close(), 50);
-					menuItem.click();
-				});
-			}
-		};
-		popup.callbackClose = () => divCursor.remove();
-
-		// (timeout is necessary, otherwise the default popup menu reasserts itself for some bizarre reason)
-		setTimeout(() => popup.open(), 50);
+		this.proxyMenu.openContextMenu(menu, event);
 	}
+
+	protected keyDown(event:JQueryEventObject):void
+	{
+		let key = event.keyCode;
+
+		//let cmd = event.ctrlKey;
+		let mod = '';
+		if (event.shiftKey) mod += 'S';
+		if (event.altKey) mod += 'A';
+		if (/^(Mac|iPhone|iPod|iPad)/i.test(navigator.platform))
+		{
+			if (event.metaKey) mod += 'X';
+			if (event.ctrlKey) mod += 'C';
+		}
+		else
+		{
+			if (event.ctrlKey) mod += 'X';
+		}
+		
+		//console.log(`DOWN: ${event.key} (#${event.keyCode}) mod=${mod}`);
+
+		if (event.key == 'Enter' && mod == 'X') this.editDetails();
+		else if (event.key == 'Enter' && mod == 'S') this.editStructure();
+		else if (event.key == 'l' && mod == 'X') {if (this.onLookup) this.onLookup(this);}
+		else if (event.key == '/' && mod == 'X') this.appendToCurrent();
+		else if (event.key == '\\' && mod == 'X') this.prependBeforeCurrent();
+		else if (event.key == 'Delete' && mod == 'X') this.deleteCurrent();
+		else if (event.key == 'ArrowUp' && mod == 'X') this.reorderCurrent(-1);
+		else if (event.key == 'ArrowDown' && mod == 'X') this.reorderCurrent(-1);
+		else if (event.key == 'z' && mod == 'X') this.performUndo();
+		else if (event.key == 'Z' && mod == 'X') this.performRedo();
+		else if (event.key == 'C' && mod == 'X') this.clipboardCopy(false, true);
+		else
+		{
+			super.keyDown(event);
+			return;
+		}
+
+		event.stopPropagation();
+		event.preventDefault();
+	}
+
 
 	public editStructure():void
 	{

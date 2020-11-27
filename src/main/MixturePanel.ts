@@ -57,11 +57,11 @@ export class MixturePanel extends MainPanel
 {
 	private filename:string = null;
 	private banner:MenuBanner;
-	private editor = new EditMixture(this.proxyClip);
+	private editor = new EditMixture(this.proxyClip, this.proxyMenu);
 
 	// ------------ public methods ------------
 
-	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy)
+	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
 	{
 		super(root);
 
@@ -71,11 +71,13 @@ export class MixturePanel extends MainPanel
 
 		let divFlex = $('<div/>').appendTo(root).css({'display': 'flex'});
 		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
-		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
+		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0', 'pointer-events': 'none'});
 		let divEditor = $('<div/>').appendTo(divFlex).css({'flex-grow': '1'});
 
 		this.banner.render(divBanner);
 		this.editor.render(divEditor);
+
+		this.banner.callbackRefocus = () => this.editor.refocus();
 	}
 
 	public setMixture(mixture:Mixture):void

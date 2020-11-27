@@ -68,10 +68,35 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 	proxyClip.canSetHTML = ():boolean => true;
 	proxyClip.canAlwaysGet = ():boolean => true;
 
+	let proxyMenu = new wmk.MenuProxy();
+	proxyMenu.hasContextMenu = () => true;
+	proxyMenu.openContextMenu = (menuItems:wmk.MenuProxyContext[], event:JQueryMouseEventObject) =>
+	{
+		let populate = (emenu:Electron.Menu, itemList:wmk.MenuProxyContext[]):void =>
+		{
+			for (let item of itemList)
+			{
+				if (!item || !item.label) emenu.append(new electron.remote.MenuItem({'type': 'separator'}));
+				else if (item.click) emenu.append(new electron.remote.MenuItem(item));
+				else if (item.subMenu)
+				{
+					let subMenu = new electron.remote.Menu();
+					populate(subMenu, item.subMenu);
+					emenu.append(new electron.remote.MenuItem({'label': item.label, 'submenu': subMenu}));
+				}
+			}
+		};
+
+		let menu = new electron.remote.Menu();
+		populate(menu, menuItems);
+
+		menu.popup({'window': electron.remote.getCurrentWindow()});
+	};
+
 	let main:MainPanel;
 	if (!panelClass)
 	{
-		let dw = main = new MixturePanel(root, proxyClip);
+		let dw = main = new MixturePanel(root, proxyClip, proxyMenu);
 	}
 	else
 	{
@@ -90,7 +115,7 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 export function openNewWindow(panelClass:string, filename?:string):void
 {
 	const electron = require('electron');
-	const WEBPREF = {'nodeIntegration': true};
+	const WEBPREF = {'nodeIntegration': true, 'enableRemoteModule': true};
 	let iconFN = __dirname + '/img/icon.png';
 	let bw = new electron.remote.BrowserWindow({'width': 900, 'height': 800, 'icon': iconFN, 'webPreferences': WEBPREF});
 	let url = BASE_APP + '/index.html?panel=' + panelClass;

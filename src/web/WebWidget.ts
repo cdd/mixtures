@@ -65,11 +65,12 @@ export class WebWidget extends wmk.Widget
 
 	// ------------ public methods ------------
 
-	constructor(public proxyClip?:wmk.ClipboardProxy)
+	constructor(public proxyClip?:wmk.ClipboardProxy, public proxyMenu?:wmk.MenuProxy)
 	{
 		super();
 
 		if (!this.proxyClip) this.proxyClip = new wmk.ClipboardProxyWeb();
+		if (!this.proxyMenu) this.proxyMenu = new wmk.MenuProxyWeb();
 
 		let handler = new wmk.ClipboardProxyHandler();
 		handler.copyEvent = (andCut:boolean, proxy:wmk.ClipboardProxy):boolean =>
@@ -102,7 +103,7 @@ export class WebWidget extends wmk.Widget
 		}
 		this.banner = new MenuBanner(bannerContent, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
-		this.editor = new EditMixtureWeb(this.proxyClip);
+		this.editor = new EditMixtureWeb(this.proxyClip, this.proxyMenu);
 		this.editor.callbackUpdateTitle = () => {};
 		this.editor.onLookup = this.onLookup;
 
@@ -129,6 +130,8 @@ export class WebWidget extends wmk.Widget
 
 		this.banner.render(divMenu);
 		this.editor.render(divMainX);
+
+		this.banner.callbackRefocus = () => this.editor.refocus();
 	}
 
 	public cleanup():void

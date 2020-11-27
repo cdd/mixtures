@@ -81,7 +81,7 @@ export class CollectionPanel extends MainPanel
 
 	// ------------ public methods ------------
 
-	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy)
+	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
 	{
 		super(root);
 
@@ -421,7 +421,7 @@ export class CollectionPanel extends MainPanel
 	{
 		if (this.selected < 0) return;
 
-		this.editor = new EditMixture(this.proxyClip);
+		this.editor = new EditMixture(this.proxyClip, this.proxyMenu);
 
 		this.divMain.empty();
 		this.editor.render(this.divMain);
