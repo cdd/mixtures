@@ -126,6 +126,9 @@ export class EditMixtureWeb extends EditMixture
 		else if (event.key == 'z' && mod == 'X') this.performUndo();
 		else if (event.key == 'Z' && mod == 'X') this.performRedo();
 		else if (event.key == 'C' && mod == 'X') this.clipboardCopy(false, true);
+		else if (event.key == '0' && mod == 'X') this.zoomFull();
+		else if (event.key == '=' && mod == 'X') this.zoom(1.25);
+		else if (event.key == '-' && mod == 'X') this.zoom(0.8);
 		else
 		{
 			super.keyDown(event);

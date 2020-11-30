@@ -15,7 +15,7 @@
 			"console": "integratedTerminal",
 			"args": 
 			[
-				//"play/mixture7.mixfile",
+				"play/mixture7.mixfile",
 				//"play/collection.json",
 				"--inchi", "${env:HOME}/bin/inchi-1"
 			],

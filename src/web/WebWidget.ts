@@ -96,6 +96,28 @@ export class WebWidget extends wmk.Widget
 			let back:MenuBannerButton = {'icon': 'CommandBack.svg', 'tip': null/*'Back'*/, 'cmd': MenuBannerCommand.Back};
 			bannerContent.unshift([back]);
 		}
+
+		let mapButton:Record<string, MenuBannerButton> = {};
+		for (let list of bannerContent) for (let btn of list) mapButton[btn.cmd] = btn;
+
+		let action = /^(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? 'Command' : 'Ctrl';
+
+		mapButton[MenuBannerCommand.EditDetails].tip += ` (${action}+Enter)`;
+		mapButton[MenuBannerCommand.EditStructure].tip += ` (Shift+Enter)`;
+		mapButton[MenuBannerCommand.Lookup].tip += ` (${action}+L)`;
+		mapButton[MenuBannerCommand.Append].tip += ` (${action}+/)`;
+		mapButton[MenuBannerCommand.Prepend].tip += ` (${action}+\\)`;
+		mapButton[MenuBannerCommand.Delete].tip += ` (${action}+Delete)`;
+		mapButton[MenuBannerCommand.MoveUp].tip += ` (${action}+Up)`;
+		mapButton[MenuBannerCommand.MoveDown].tip += ` (${action}+Down)`;
+		mapButton[MenuBannerCommand.Undo].tip += ` (${action}+Z)`;
+		mapButton[MenuBannerCommand.Redo].tip += ` (${action}+Shift+Z)`;
+		mapButton[MenuBannerCommand.Copy].tip += ` (${action}+C)`;
+		mapButton[MenuBannerCommand.Cut].tip += ` (${action}+X)`;
+		mapButton[MenuBannerCommand.ZoomFull].tip += ` (${action}+0)`;
+		mapButton[MenuBannerCommand.ZoomIn].tip += ` (${action}+-)`;
+		mapButton[MenuBannerCommand.ZoomOut].tip += ` (${action}+=)`;
+
 		if (!this.onLookup)
 		{
 			outer: for (let blk of bannerContent) for (let n = 0; n < blk.length; n++)

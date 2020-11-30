@@ -371,6 +371,35 @@ export class EditMixture extends wmk.Widget
 		this.setMixture(modmix);
 	}
 
+	// insert above/below the current component
+	public insertBeforeCurrent():void
+	{
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		if (Vec.isBlank(origin)) return;
+		let modmix = this.mixture.clone();
+		let pos = origin.pop();
+		let parent = modmix.getComponent(origin);
+		parent.contents.splice(pos, 0, {});
+		origin.push(pos);
+		this.delayedSelect = origin;
+		this.setMixture(modmix);
+	}
+	public insertAfterCurrent():void
+	{
+		if (this.selectedIndex < 0) return;
+		let origin = this.layout.components[this.selectedIndex].origin;
+		if (Vec.isBlank(origin)) return;
+		let modmix = this.mixture.clone();
+		let pos = origin.pop();
+		let parent = modmix.getComponent(origin);
+		parent.contents.splice(pos + 1, 0, {});
+		origin.push(pos + 1);
+		this.delayedSelect = origin;
+		this.setMixture(modmix);
+	}
+
+
 	// move the current component up or down the hierarchy
 	public reorderCurrent(dir:number):void
 	{
@@ -585,6 +614,21 @@ export class EditMixture extends wmk.Widget
 		else
 		{
 			let origin = this.layout.components[this.selectedIndex].origin.slice(0);
+
+			if (dir == 'tab')
+			{
+				if (Vec.notBlank(origin))
+				{
+					let parent = this.mixture.getComponent(origin.slice(0, origin.length - 1)), pos = Vec.last(origin);
+					if (pos == parent.contents.length - 1)
+					{
+						this.insertAfterCurrent();
+						return;
+					}
+				}
+				dir = 'down';
+			}
+
 			if (dir == 'left')
 			{
 				if (origin.length == 0) return;
@@ -737,16 +781,17 @@ export class EditMixture extends wmk.Widget
 	}
 	protected keyDown(event:JQueryEventObject):void
 	{
-		let key = event.keyCode;
+		let key = event.key;
 		//console.log('DOWN: key='+key);
 
 		if (!event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey)
 		{
-			if (key == 27) {} // escape
-			if (key == 37) this.navigateDirection('left');
-			else if (key == 39) this.navigateDirection('right');
-			else if (key == 38) this.navigateDirection('up');
-			else if (key == 40) this.navigateDirection('down');
+			if (key == 'Escape') {} // escape
+			if (key == 'ArrowLeft') this.navigateDirection('left');
+			else if (key == 'ArrowRight') this.navigateDirection('right');
+			else if (key == 'ArrowUp') this.navigateDirection('up');
+			else if (key == 'ArrowDown') this.navigateDirection('down');
+			else if (key == 'Tab') this.navigateDirection('tab');
 		}
 	}
 	protected keyUp(event:JQueryEventObject):void

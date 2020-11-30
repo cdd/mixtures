@@ -110,6 +110,8 @@ function setupMenu()
 				{'label': 'Delete', 'accelerator': 'CmdOrCtrl+Delete', 'click': () => sendCommand('delete')},
 				{'label': 'Append', 'accelerator': 'CmdOrCtrl+/', 'click': () => sendCommand('append')},
 				{'label': 'Prepend', 'accelerator': 'CmdOrCtrl+\\', 'click': () => sendCommand('prepend')},
+				{'label': 'Insert Before', 'accelerator': 'CmdOrCtrl+[', 'click': () => sendCommand('insertBefore')},
+				{'label': 'Insert After', 'accelerator': 'CmdOrCtrl+]', 'click': () => sendCommand('insertAfter')},
 				{'label': 'Move Up', 'accelerator': 'CmdOrCtrl+Up', 'click': () => sendCommand('moveUp')},
 				{'label': 'Move Down', 'accelerator': 'CmdOrCtrl+Down', 'click': () => sendCommand('moveDown')},
 				{'type': 'separator'},

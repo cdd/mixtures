@@ -31,8 +31,10 @@ const BANNER:MenuBannerButton[][] =
 		{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'cmd': MenuBannerCommand.ExportSVG},
 	],
 	[
-		{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'cmd': MenuBannerCommand.Append},
-		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'cmd': MenuBannerCommand.Prepend},
+		{'icon': 'CommandAppend.svg', 'tip': 'Append component to the right', 'cmd': MenuBannerCommand.Append},
+		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component to the left', 'cmd': MenuBannerCommand.Prepend},
+		{'icon': 'CommandInsertBefore.svg', 'tip': 'Insert component above', 'cmd': MenuBannerCommand.InsertBefore},
+		{'icon': 'CommandInsertAfter.svg', 'tip': 'Append component below', 'cmd': MenuBannerCommand.InsertAfter},
 		{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'cmd': MenuBannerCommand.Delete},
 		{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'cmd': MenuBannerCommand.MoveUp},
 		{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'cmd': MenuBannerCommand.MoveDown},
@@ -71,7 +73,7 @@ export class MixturePanel extends MainPanel
 
 		let divFlex = $('<div/>').appendTo(root).css({'display': 'flex'});
 		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
-		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0', 'pointer-events': 'none'});
+		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
 		let divEditor = $('<div/>').appendTo(divFlex).css({'flex-grow': '1'});
 
 		this.banner.render(divBanner);
@@ -182,6 +184,8 @@ export class MixturePanel extends MainPanel
 		else if (cmd == MenuBannerCommand.Delete) this.editor.deleteCurrent();
 		else if (cmd == MenuBannerCommand.Append) this.editor.appendToCurrent();
 		else if (cmd == MenuBannerCommand.Prepend) this.editor.prependBeforeCurrent();
+		else if (cmd == MenuBannerCommand.InsertBefore) this.editor.insertBeforeCurrent();
+		else if (cmd == MenuBannerCommand.InsertAfter) this.editor.insertAfterCurrent();
 		else if (cmd == MenuBannerCommand.MoveUp) this.editor.reorderCurrent(-1);
 		else if (cmd == MenuBannerCommand.MoveDown) this.editor.reorderCurrent(1);
 		else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();

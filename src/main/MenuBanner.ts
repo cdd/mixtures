@@ -31,6 +31,8 @@ export enum MenuBannerCommand
 	CreateMInChI = 'createMInChI',
 	Append = 'append',
 	Prepend = 'prepend',
+	InsertBefore = 'insertBefore',
+	InsertAfter = 'insertAfter',
 	Delete = 'delete',
 	MoveUp = 'moveUp',
 	MoveDown = 'moveDown',
