@@ -21,8 +21,9 @@ namespace Mixtures /* BOF */ {
 
 export class EditMixtureWeb extends EditMixture
 {
-	public onLookup:(editor:EditMixtureWeb) => void = null; // optional: added to context menu if defined
-	public proxyStructureEditor:(mol:wmk.Molecule, onSuccess:(mol:wmk.Molecule) => void) => void = null; // optional editor replacement
+	public callbackLookup:(editor:EditMixtureWeb) => void = null; // optional: added to context menu if defined
+	public callbackStructureEditor:(mol:wmk.Molecule, onSuccess:(mol:wmk.Molecule) => void) => void = null; // optional editor replacement
+	public callbackFreeformKey:(edit:EditMixture, event:JQueryEventObject) => void = null;
 
 	// ------------ public methods ------------
 
@@ -41,6 +42,7 @@ export class EditMixtureWeb extends EditMixture
 	protected contextMenu(event:JQueryEventObject):void
 	{
 		event.preventDefault();
+		if (!this.isReceivingCommands()) return;
 
 		let [x, y] = eventCoords(event, this.content);
 		let idx = this.pickComponent(x, y);
@@ -58,14 +60,16 @@ export class EditMixtureWeb extends EditMixture
 
 			menu.push({'label': 'Edit Structure', 'click': () => {sel(); this.editStructure();}});
 			menu.push({'label': 'Edit Details', 'click': () => {sel(); this.editDetails();}});
-			if (this.onLookup)
+			if (this.callbackLookup)
 			{
-				menu.push({'label': 'Lookup', 'click': () => this.onLookup(this)});
+				menu.push({'label': 'Lookup', 'click': () => this.callbackLookup(this)});
 			}
 			menu.push({'label': 'Append', 'click': () => {sel(); this.appendToCurrent();}});
 			menu.push({'label': 'Prepend', 'click': () => {sel(); this.prependBeforeCurrent();}});
 			if (origin.length > 0)
 			{
+				menu.push({'label': 'Insert Before', 'click': () => {sel(); this.insertBeforeCurrent();}});
+				menu.push({'label': 'Insert After', 'click': () => {sel(); this.insertAfterCurrent();}});
 				menu.push({'label': 'Delete', 'click': () => {sel(); this.deleteCurrent();}});
 
 				if (origin[origin.length - 1] > 0)
@@ -97,6 +101,8 @@ export class EditMixtureWeb extends EditMixture
 
 	protected keyDown(event:JQueryEventObject):void
 	{
+		if (!this.isReceivingCommands()) return;
+
 		let key = event.keyCode;
 
 		//let cmd = event.ctrlKey;
@@ -117,9 +123,11 @@ export class EditMixtureWeb extends EditMixture
 
 		if (event.key == 'Enter' && mod == 'X') this.editDetails();
 		else if (event.key == 'Enter' && mod == 'S') this.editStructure();
-		else if (event.key == 'l' && mod == 'X') {if (this.onLookup) this.onLookup(this);}
+		else if (event.key == 'l' && mod == 'X') {if (this.callbackLookup) this.callbackLookup(this);}
 		else if (event.key == '/' && mod == 'X') this.appendToCurrent();
 		else if (event.key == '\\' && mod == 'X') this.prependBeforeCurrent();
+		else if (event.key == ';' && mod == 'X') this.insertBeforeCurrent();
+		else if (event.key == '\'' && mod == 'X') this.insertAfterCurrent();
 		else if (event.key == 'Delete' && mod == 'X') this.deleteCurrent();
 		else if (event.key == 'ArrowUp' && mod == 'X') this.reorderCurrent(-1);
 		else if (event.key == 'ArrowDown' && mod == 'X') this.reorderCurrent(-1);
@@ -129,6 +137,7 @@ export class EditMixtureWeb extends EditMixture
 		else if (event.key == '0' && mod == 'X') this.zoomFull();
 		else if (event.key == '=' && mod == 'X') this.zoom(1.25);
 		else if (event.key == '-' && mod == 'X') this.zoom(0.8);
+		else if (this.callbackFreeformKey && !mod && /^[A-Za-z0-9 ]$/.test(event.key)) this.callbackFreeformKey(this, event);
 		else
 		{
 			super.keyDown(event);
@@ -142,7 +151,7 @@ export class EditMixtureWeb extends EditMixture
 
 	public editStructure():void
 	{
-		if (!this.proxyStructureEditor)
+		if (!this.callbackStructureEditor)
 		{
 			super.editStructure();
 			return;
@@ -153,7 +162,7 @@ export class EditMixtureWeb extends EditMixture
 		let comp = this.mixture.getComponent(origin);
 		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
 
-		this.proxyStructureEditor(mol, (mol) =>
+		this.callbackStructureEditor(mol, (mol) =>
 		{
 			wmk.CoordUtil.normaliseBondDistances(mol);
 			let molfile = mol && mol.numAtoms > 0 ? wmk.MoleculeStream.writeMDLMOL(mol) : undefined;

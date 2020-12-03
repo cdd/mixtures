@@ -102,6 +102,7 @@ export class EditMixture extends wmk.Widget
 
 	// whether or not menu commands are being received; no means that it's in dialog/editing mode
 	public isReceivingCommands():boolean {return !this.isEditing;}
+	public setEditing(isEditing:boolean):void {this.isEditing = isEditing;}
 	public compoundEditor():wmk.EditCompound {return this.dlgCompound;}
 
 	// access to current state
@@ -110,6 +111,8 @@ export class EditMixture extends wmk.Widget
 	{
 		// NOTE: the "withAutoScale" parameter is currently not very meaningful since the modified mixture gets a re-layout
 		withAutoScale = true;
+
+		if (this.delayedSelect == null && this.selectedIndex >= 0 && this.layout != null) this.delayedSelect = this.layout.components[this.selectedIndex].origin;
 
 		if (withStashUndo) this.stashUndo();
 		this.mixture = mixture;
@@ -508,6 +511,19 @@ export class EditMixture extends wmk.Widget
 		this.content.focus();
 	}
 
+	// return the layout around onscreen for an indicated component
+	public getComponentPosition(origin:number[]):wmk.Box
+	{
+		for (let comp of this.layout.components) if (Vec.equals(origin, comp.origin))
+		{
+			let box = comp.boundary.clone();
+			box.x += this.offsetX;
+			box.y += this.offsetY;
+			return box;
+		}
+		return null;
+	}
+
 	// ------------ private methods ------------
 
 	protected redraw(rescale = false):void
@@ -617,7 +633,18 @@ export class EditMixture extends wmk.Widget
 
 			if (dir == 'tab')
 			{
-				if (Vec.notBlank(origin))
+				if (Vec.isBlank(origin))
+				{
+					let comp = this.mixture.getComponent(origin);
+					if (Vec.isBlank(comp.contents))
+					{
+						this.delayedSelect = [0];
+						this.appendToCurrent();
+						return;
+					}
+					dir = 'right';
+				}
+				else
 				{
 					let parent = this.mixture.getComponent(origin.slice(0, origin.length - 1)), pos = Vec.last(origin);
 					if (pos == parent.contents.length - 1)
@@ -625,8 +652,8 @@ export class EditMixture extends wmk.Widget
 						this.insertAfterCurrent();
 						return;
 					}
+					dir = 'down';
 				}
-				dir = 'down';
 			}
 
 			if (dir == 'left')
@@ -781,6 +808,8 @@ export class EditMixture extends wmk.Widget
 	}
 	protected keyDown(event:JQueryEventObject):void
 	{
+		if (!this.isReceivingCommands()) return;
+
 		let key = event.key;
 		//console.log('DOWN: key='+key);
 
@@ -792,6 +821,9 @@ export class EditMixture extends wmk.Widget
 			else if (key == 'ArrowUp') this.navigateDirection('up');
 			else if (key == 'ArrowDown') this.navigateDirection('down');
 			else if (key == 'Tab') this.navigateDirection('tab');
+			else return;
+
+			event.preventDefault();
 		}
 	}
 	protected keyUp(event:JQueryEventObject):void
@@ -819,6 +851,7 @@ export class EditMixture extends wmk.Widget
 	protected contextMenu(event:JQueryMouseEventObject):void
 	{
 		event.preventDefault();
+		if (!this.isReceivingCommands()) return;
 
 		let [x, y] = eventCoords(event, this.content);
 		let idx = this.pickComponent(x, y);
@@ -840,6 +873,8 @@ export class EditMixture extends wmk.Widget
 			menu.append(new electron.remote.MenuItem({'label': 'Prepend', 'click': () => {sel(); this.prependBeforeCurrent();}}));
 			if (origin.length > 0)
 			{
+				menu.append(new electron.remote.MenuItem({'label': 'Insert Before', 'click': () => {sel(); this.insertBeforeCurrent();}}));
+				menu.append(new electron.remote.MenuItem({'label': 'Insert After', 'click': () => {sel(); this.insertAfterCurrent();}}));
 				menu.append(new electron.remote.MenuItem({'label': 'Delete', 'click': () => {this.selectComponent(idx); this.deleteCurrent();}}));
 
 				if (origin[origin.length - 1] > 0)

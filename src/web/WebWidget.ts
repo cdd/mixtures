@@ -34,6 +34,8 @@ const BANNER:MenuBannerButton[][] =
 	[
 		{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'cmd': MenuBannerCommand.Append},
 		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'cmd': MenuBannerCommand.Prepend},
+		{'icon': 'CommandInsertBefore.svg', 'tip': 'Insert component above', 'cmd': MenuBannerCommand.InsertBefore},
+		{'icon': 'CommandInsertAfter.svg', 'tip': 'Append component below', 'cmd': MenuBannerCommand.InsertAfter},
 		{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'cmd': MenuBannerCommand.Delete},
 		{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'cmd': MenuBannerCommand.MoveUp},
 		{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'cmd': MenuBannerCommand.MoveDown},
@@ -55,9 +57,10 @@ const BANNER:MenuBannerButton[][] =
 
 export class WebWidget extends wmk.Widget
 {
-	public onGoBack:() => void = null; // optional: gets an icon if defined
-	public onLookup:(editor:EditMixtureWeb) => void = null; // optional: gets an icon if defined
-	public onEditStructure:(molfile:string, onSuccess:(molfile:string) => void) => void = null;
+	public callbackGoBack:() => void = null; // optional: gets an icon if defined
+	public callbackLookup:(editor:EditMixtureWeb) => void = null; // optional: gets an icon if defined
+	public callbackEditStructure:(molfile:string, callbackSuccess:(molfile:string) => void, callbackClose:() => void) => void = null;
+	public callbackFreeformKey:(edit:EditMixture, event:JQueryEventObject) => void = null;
 
 	//public proxyClip = new wmk.ClipboardProxyWeb();
 	public banner:MenuBanner;
@@ -91,7 +94,7 @@ export class WebWidget extends wmk.Widget
 		super.render(parent);
 
 		let bannerContent = deepClone(BANNER);
-		if (this.onGoBack)
+		if (this.callbackGoBack)
 		{
 			let back:MenuBannerButton = {'icon': 'CommandBack.svg', 'tip': null/*'Back'*/, 'cmd': MenuBannerCommand.Back};
 			bannerContent.unshift([back]);
@@ -107,6 +110,8 @@ export class WebWidget extends wmk.Widget
 		mapButton[MenuBannerCommand.Lookup].tip += ` (${action}+L)`;
 		mapButton[MenuBannerCommand.Append].tip += ` (${action}+/)`;
 		mapButton[MenuBannerCommand.Prepend].tip += ` (${action}+\\)`;
+		mapButton[MenuBannerCommand.InsertBefore].tip += ` (${action}+;)`;
+		mapButton[MenuBannerCommand.InsertAfter].tip += ` (${action}+')`;
 		mapButton[MenuBannerCommand.Delete].tip += ` (${action}+Delete)`;
 		mapButton[MenuBannerCommand.MoveUp].tip += ` (${action}+Up)`;
 		mapButton[MenuBannerCommand.MoveDown].tip += ` (${action}+Down)`;
@@ -118,7 +123,7 @@ export class WebWidget extends wmk.Widget
 		mapButton[MenuBannerCommand.ZoomIn].tip += ` (${action}+-)`;
 		mapButton[MenuBannerCommand.ZoomOut].tip += ` (${action}+=)`;
 
-		if (!this.onLookup)
+		if (!this.callbackLookup)
 		{
 			outer: for (let blk of bannerContent) for (let n = 0; n < blk.length; n++)
 				if (blk[n].cmd == MenuBannerCommand.Lookup) {blk.splice(n, 1); break outer;}
@@ -127,19 +132,26 @@ export class WebWidget extends wmk.Widget
 
 		this.editor = new EditMixtureWeb(this.proxyClip, this.proxyMenu);
 		this.editor.callbackUpdateTitle = () => {};
-		this.editor.onLookup = this.onLookup;
+		this.editor.callbackFreeformKey = this.callbackFreeformKey;
+		this.editor.callbackLookup = this.callbackLookup;
 
-		if (this.onEditStructure)
+		if (this.callbackEditStructure)
 		{
-			this.editor.proxyStructureEditor = (mol, onSuccess:(mol:wmk.Molecule) => void) =>
+			this.editor.callbackStructureEditor = (mol, callbackSuccess:(mol:wmk.Molecule) => void) =>
 			{
 				if (!mol) mol = new wmk.Molecule();
 				let molfile = new wmk.MDLMOLWriter(mol).write();
-				this.onEditStructure(molfile, (molfile:string):void =>
-				{
-					mol = molfile ? new wmk.MDLMOLReader(molfile).parse() : mol;
-					onSuccess(mol);
-				});
+				this.editor.setEditing(true);
+				this.callbackEditStructure(molfile, 
+					(molfile:string):void =>
+					{
+						mol = molfile ? new wmk.MDLMOLReader(molfile).parse() : mol;
+						callbackSuccess(mol);
+					},
+					():void =>
+					{
+						this.editor.setEditing(false);
+					});
 			};
 		}
 
@@ -209,21 +221,23 @@ export class WebWidget extends wmk.Widget
 		else if (cmd == MenuBannerCommand.Paste) this.editor.clipboardPaste();
 		else if (cmd == MenuBannerCommand.EditStructure) this.editor.editStructure();
 		else if (cmd == MenuBannerCommand.EditDetails) this.editor.editDetails();
-		else if (cmd == MenuBannerCommand.Lookup) this.onLookup(this.editor);
+		else if (cmd == MenuBannerCommand.Lookup) this.callbackLookup(this.editor);
 		else if (cmd == MenuBannerCommand.Delete) this.editor.deleteCurrent();
 		else if (cmd == MenuBannerCommand.Append) this.editor.appendToCurrent();
 		else if (cmd == MenuBannerCommand.Prepend) this.editor.prependBeforeCurrent();
+		else if (cmd == MenuBannerCommand.InsertBefore) this.editor.insertBeforeCurrent();
+		else if (cmd == MenuBannerCommand.InsertAfter) this.editor.insertAfterCurrent();
 		else if (cmd == MenuBannerCommand.MoveUp) this.editor.reorderCurrent(-1);
 		else if (cmd == MenuBannerCommand.MoveDown) this.editor.reorderCurrent(1);
 		else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
 		else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
 		else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
-		else if (cmd == MenuBannerCommand.Back) this.onGoBack();
+		else if (cmd == MenuBannerCommand.Back) this.callbackGoBack();
 	}
 
 	// ------------ private methods ------------
 
-	private actionClear():void
+	/*private actionClear():void
 	{
 		this.editor.setMixture(new Mixture(), true, true);
 	}
@@ -231,7 +245,7 @@ export class WebWidget extends wmk.Widget
 	{
 		let str = this.editor.getMixture().serialise();
 		this.downloadFile('mixture.mixfile', str);
-	}
+	}*/
 	private actionExportSDF():void
 	{
 		let mixture = this.editor.getMixture();

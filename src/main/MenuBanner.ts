@@ -83,7 +83,7 @@ export class MenuBanner
 		this.divFlex.css({'background': 'linear-gradient(to bottom, #FFFFFF, #C0C0C0)'});
 		this.divFlex.css({'user-select': 'none' /*, 'pointer-events': 'none'*/});
 
-		this.divFlex.click(() => {if (this.callbackRefocus) this.callbackRefocus();});
+		//this.divFlex.click(() => {if (this.callbackRefocus) this.callbackRefocus();});
 
 		for (let blk of this.commands)
 		{
@@ -150,6 +150,7 @@ export class MenuBanner
 			});
 		div.click(() =>
 		{
+			if (this.callbackRefocus) this.callbackRefocus();
 			if (!this.mapActive[btn.cmd]) return;
 			this.onAction(btn.cmd);
 		});
