@@ -142,7 +142,7 @@ export class WebWidget extends wmk.Widget
 				if (!mol) mol = new wmk.Molecule();
 				let molfile = new wmk.MDLMOLWriter(mol).write();
 				this.editor.setEditing(true);
-				this.callbackEditStructure(molfile, 
+				this.callbackEditStructure(molfile,
 					(molfile:string):void =>
 					{
 						mol = molfile ? new wmk.MDLMOLReader(molfile).parse() : mol;

@@ -402,7 +402,6 @@ export class EditMixture extends wmk.Widget
 		this.setMixture(modmix);
 	}
 
-
 	// move the current component up or down the hierarchy
 	public reorderCurrent(dir:number):void
 	{

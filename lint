@@ -1,22 +1,3 @@
 #!/bin/tcsh
 
-# check syntax: run this before pushing anything out to git
-
-echo "-- TSLint --"
-
-tslint -p tsconfig.json
-if ("$status" != "0") then
-	echo "**** ERRORS; fix TypeScript code before pushing to git"
-	exit
-endif
-
-echo "-- ESLint --"
-
-#eslint src/{data,lookup,main,mixture,web}/*.ts
 npm run eslint
-if ("$status" != "0") then
-	echo "**** ERRORS; fix TypeScript code before pushing to git"
-	exit
-endif
-
-echo "All good."

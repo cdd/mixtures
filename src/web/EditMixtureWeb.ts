@@ -118,7 +118,7 @@ export class EditMixtureWeb extends EditMixture
 		{
 			if (event.ctrlKey) mod += 'X';
 		}
-		
+
 		//console.log(`DOWN: ${event.key} (#${event.keyCode}) mod=${mod}`);
 
 		if (event.key == 'Enter' && mod == 'X') this.editDetails();
@@ -147,7 +147,6 @@ export class EditMixtureWeb extends EditMixture
 		event.stopPropagation();
 		event.preventDefault();
 	}
-
 
 	public editStructure():void
 	{
