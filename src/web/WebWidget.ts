@@ -106,7 +106,7 @@ export class WebWidget extends wmk.Widget
 		let action = /^(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? 'Command' : 'Ctrl';
 
 		mapButton[MenuBannerCommand.EditDetails].tip += ` (${action}+Enter)`;
-		mapButton[MenuBannerCommand.EditStructure].tip += ` (Shift+Enter)`;
+		mapButton[MenuBannerCommand.EditStructure].tip += ' (Shift+Enter)';
 		mapButton[MenuBannerCommand.Lookup].tip += ` (${action}+L)`;
 		mapButton[MenuBannerCommand.Append].tip += ` (${action}+/)`;
 		mapButton[MenuBannerCommand.Prepend].tip += ` (${action}+\\)`;
