@@ -19,6 +19,8 @@ namespace Mixtures /* BOF */ {
 
 export const MIXFILE_VERSION = 1.00; // version number to use for newly created instances
 
+export type MixfileMetadatum = string | (string | number)[];
+
 export interface Mixfile extends MixfileComponent
 {
 	mixfileVersion:number;
@@ -51,6 +53,10 @@ export interface MixfileComponent
 	// resources; in some cases where there are multiple identifiers, the value should be specified as an array
 	identifiers?:Record<string, string | string[]>;
 	links?:Record<string, string | string[]>;
+
+	// metadata starts with an IRI that defines the core concept, and then may be followed by scalar data and/or other IRIs; this allows
+	// discrete facts to be asserted about the component, as well as numeric values such as physical properties and their units
+	metadata?:MixfileMetadatum[];
 
 	// subcomponents: if this is a discrete molecular entity, then there will be none; usually there are either 0 or 2-or-more; in cases
 	// where there are any subcomponents, any of the properties above apply to all of these subcomponents collectively

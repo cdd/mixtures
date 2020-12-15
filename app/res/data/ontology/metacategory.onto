@@ -1,0 +1,32 @@
+# Common category tags for mixture components
+
+# !!! NOTE: these are currently just made up... they need to be replaced with formal ontologies
+
+http://mixtures.org/rdf#MixtureMetadata metadata
+
+- http://mixtures.org/rdf#Density density
+- http://mixtures.org/rdf#MeltingPoint melting point
+- http://mixtures.org/rdf#BoilingPoint boiling point
+
+- http://mixtures.org/rdf#Solubility solubility
+- - http://mixtures.org/rdf#AqueousSolubility aqueous solubility
+
+- http://mixtures.org/rdf#Hazards hazardous
+- - http://mixtures.org/rdf#HazardFlammable flammable
+- - http://mixtures.org/rdf#HazardExplosive explosive
+- - http://mixtures.org/rdf#HazardPoisoness poisoness
+- - http://mixtures.org/rdf#HazardCarcinogenic carcinogenic
+- - http://mixtures.org/rdf#HazardReactive reactive
+
+- http://mixtures.org/rdf#PolymerDistribution polymer distribution
+
+- http://mixtures.org/rdf#Form form
+- - http://mixtures.org/rdf#FormSolid solid
+- - - http://mixtures.org/rdf#FormSolidPowder powder
+- - - http://mixtures.org/rdf#FormSolidCrystalline crystalline
+- - http://mixtures.org/rdf#FormLiquid liquid
+- - http://mixtures.org/rdf#FormGas gas
+- - http://mixtures.org/rdf#FormSolution solution
+- - http://mixtures.org/rdf#FormEmulsion emulsion
+
+- http://mixtures.org/rdf#ChemicalClass chemical class

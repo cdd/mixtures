@@ -139,40 +139,49 @@ export class EditComponent extends wmk.Dialog
 		// second batch of fields
 
 		let grid2 = this.fieldGrid().appendTo(vertical);
-		let line = 0;
+		let row = 0;
 
-		this.createFieldName(grid2, ++line, 'Formula', false);
-		this.lineFormula = this.createValueLine(grid2, line);
+		this.createFieldName(grid2, ++row, 'Formula', false);
+		this.lineFormula = this.createValueLine(grid2, row);
 		this.lineFormula.val(this.component.formula);
 
-		this.createFieldName(grid2, ++line, 'InChI', false);
-		this.lineInChI = this.createValueLine(grid2, line);
+		this.createFieldName(grid2, ++row, 'InChI', false);
+		this.lineInChI = this.createValueLine(grid2, row);
 		this.lineInChI.val(this.component.inchi);
 
 		if (InChI.isAvailable() && this.component.molfile)
 		{
-			let div = this.createDiv(grid2, ++line);
+			let div = this.createDiv(grid2, ++row);
 			let btn = $('<button class="wmk-button wmk-button-default">Calculate from Structure</button>').appendTo(div);
 			btn.click(() => this.calculateInChI().then());
 		}
 
-		this.createFieldName(grid2, ++line, 'SMILES', false);
-		this.lineSMILES = this.createValueLine(grid2, line);
+		this.createFieldName(grid2, ++row, 'SMILES', false);
+		this.lineSMILES = this.createValueLine(grid2, row);
 		this.lineSMILES.val(this.component.smiles);
 
-		this.createFieldName(grid2, ++line, 'Identifiers', true);
-		let kvIdentifiers = new KeyValueWidget(this.component.identifiers, (dict) =>
+		this.createFieldName(grid2, ++row, 'Identifiers', true);
+		let editIdentifiers = new KeyValueWidget(this.component.identifiers, (dict) =>
 		{
 			this.component.identifiers = dict;
 		});
-		kvIdentifiers.render($('<div/>').appendTo(grid2).css({'grid-area': `${line} / value`}));
+		editIdentifiers.render($('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
 
-		this.createFieldName(grid2, ++line, 'Links', true);
-		let kvLinks = new KeyValueWidget(this.component.links, (dict) =>
+		this.createFieldName(grid2, ++row, 'Links', true);
+		let editLinks = new KeyValueWidget(this.component.links, (dict) =>
 		{
 			this.component.links = dict;
 		});
-		kvLinks.render($('<div/>').appendTo(grid2).css({'grid-area': `${line} / value`}));
+		editLinks.render($('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
+
+		/* NOTE temporarily deactivated: to be switched on once built-in ontologies have been
+		   fleshed out a bit more, rather than just placeholders...
+		this.createFieldName(grid2, ++row, 'Metadata', true);
+		let editMetadata = new MetadataWidget(this.component.metadata, (metadata) =>
+		{
+			this.component.metadata = Vec.notBlank(metadata) ? metadata : undefined;
+		});
+		editMetadata.render($('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));*/
 
 		this.lineName.focus();
 

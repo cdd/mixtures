@@ -31,6 +31,11 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 
 	ON_DESKTOP = true;
 	wmk.initWebMolKit(resURL);
+	(async () => 
+	{
+		await wmk.OntologyTree.init();
+		await wmk.OntologyTree.main.loadFromURL(resURL + '/data/ontology/metacategory.onto');
+	})();
 
 	// node/electron imports; note these are defined inside the function so as not to perturb normal web-access, which does not
 	// include these libraries

@@ -32,7 +32,7 @@ export class KeyValueWidget extends wmk.Widget
 
 	// ------------ public methods ------------
 
-	constructor(private dict:Record<string, string | string[]>, private onChange:(dict:Record<string, string | string[]>) => void)
+	constructor(dict:Record<string, string | string[]>, private callbackChange:(dict:Record<string, string | string[]>) => void)
 	{
 		super();
 
@@ -118,7 +118,7 @@ export class KeyValueWidget extends wmk.Widget
 			else if (Array.isArray(dval)) dval.push(line.value);
 		}
 		
-		this.onChange(dict);
+		this.callbackChange(dict);
 	}
 }
 
