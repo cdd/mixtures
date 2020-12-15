@@ -331,12 +331,14 @@ export class EditComponent extends wmk.Dialog
 		if (event.keyCode == 27)
 		{
 			event.preventDefault();
+			event.stopPropagation();
 			this.close();
 		}
 		else if (andEnter && event.keyCode == 13)
 		{
 			if (this.interpretQuantString()) return;
 			event.preventDefault();
+			event.stopPropagation();
 			this.saveAndClose();
 		}
 	}

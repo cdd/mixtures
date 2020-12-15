@@ -151,6 +151,7 @@ export class WebWidget extends wmk.Widget
 					():void =>
 					{
 						this.editor.setEditing(false);
+						this.editor.refocus();
 					});
 			};
 		}
