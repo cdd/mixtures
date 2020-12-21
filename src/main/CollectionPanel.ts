@@ -63,20 +63,24 @@ enum CollectionPanelView
 
 const BG_NORMAL = '#E0E0E0';
 const BG_SELECTED = '#B9CBFF';
+const PAGE_SIZE = 100;
 
 export class CollectionPanel extends MainPanel
 {
 	private filename:string = null;
 	private collection = new MixtureCollection();
+	private curPage = 0;
+	private pageBlock:number[][] = [];
 	private isDirty = false;
 
 	private banner:MenuBanner;
 	private divMain:JQuery;
+	private divFooter:JQuery;
 	private policy = wmk.RenderPolicy.defaultColourOnWhite(20);
 	private viewType = CollectionPanelView.Detail;
 
 	private selected = -1;
-	private divMixtures:JQuery[] = [];
+	private mapMixDiv = new Map<number, JQuery>(); // index-in-collection to rendered div
 	private editor:EditMixture = null; // when defined, refers to collection{selected}
 
 	// ------------ public methods ------------
@@ -91,8 +95,10 @@ export class CollectionPanel extends MainPanel
 		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
 		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
 		this.divMain = $('<div/>').appendTo(divFlex).css({'flex-grow': '1', 'overflow-y': 'scroll'});
+		this.divFooter = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
 
 		this.banner.render(divBanner);
+		this.dividePages();
 		this.renderMain();
 
 		this.updateBanner();
@@ -100,12 +106,8 @@ export class CollectionPanel extends MainPanel
 
 	public setCollection(collection:MixtureCollection):void
 	{
-		/* !!
-		this.editor.clearHistory();
-		this.editor.setMixture(mixture, true, false);
-		this.editor.setDirty(false);*/
-
 		this.collection = collection;
+		this.dividePages();
 		this.renderMain();
 	}
 
@@ -141,28 +143,6 @@ export class CollectionPanel extends MainPanel
 			this.updateTitle();
 		});
 	}
-
-	/*public saveFile(filename:string):void
-	{
-		const fs = require('fs');
-
-		let mixture = this.editor.getMixture();
-		let content = mixture.serialise();
-
-		fs.writeFile(filename, content, (err:any):void =>
-		{
-			if (err) alert('Unable to save: ' + err);
-		});
-	}
-
-	protected onResize()
-	{
-		super.onResize();
-		this.editor.delayedRedraw();
-
-		//let w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
-		//this.sketcher.changeSize(w, h); // force a re-layout to match the new size
-	}*/
 
 	public menuAction(cmd:MenuBannerCommand):void
 	{
@@ -244,8 +224,10 @@ export class CollectionPanel extends MainPanel
 	private renderMain():void
 	{
 		this.divMain.empty();
+		this.divFooter.empty();
+
 		this.selected = -1;
-		this.divMixtures = [];
+		this.mapMixDiv.clear();
 
 		let divContent = $('<div/>').appendTo(this.divMain);
 
@@ -255,16 +237,93 @@ export class CollectionPanel extends MainPanel
 			divContent.css({'justify-content': 'flex-start', 'align-items': 'flex-start'});
 		}
 
-		for (let n = 0; n < this.collection.count; n++)
+		//for (let n = 0; n < this.collection.count; n++)
+		for (let idx of this.pageBlock[this.curPage])
 		{
-			let div = this.createMixture(this.collection.getMixture(n)).appendTo(divContent);
-			div.click(() => this.changeSelection(n));
+			let div = this.createMixture(idx, this.collection.getMixture(idx)).appendTo(divContent);
+			div.click(() => this.changeSelection(idx));
 			div.dblclick(() => this.editMixture());
-			this.divMixtures.push(div);
+			this.mapMixDiv.set(idx, div);
+		}
+
+		let npage = this.pageBlock.length;
+		if (npage > 1)
+		{
+			this.divFooter.css({'text-align': 'center', 'border-top': '1px solid #808080', 'background-color': 'white'});
+
+			if (this.curPage > 0)
+			{
+				let ahref = $('<a/>').appendTo(this.divFooter).attr('href', '#');
+				ahref.text('Previous');
+				ahref.click((event) =>
+				{
+					this.curPage--;
+					this.renderMain();
+					event.preventDefault();
+				});
+			}
+
+			let showPages:number[] = [];
+			for (let n = Math.max(0, this.curPage - 5); n <= Math.min(npage - 1, this.curPage + 5); n++) showPages.push(n);
+			if (Vec.first(showPages) != 0) showPages.unshift(0);
+			if (Vec.last(showPages) != npage - 1) showPages.push(npage - 1);
+
+			for (let n = 0; n < showPages.length; n++)
+			{
+				let page = showPages[n];
+				if (n > 0 && page != showPages[n - 1] + 1) this.divFooter.append('...');
+				if (page != this.curPage)
+				{
+					let ahref = $('<a/>').appendTo(this.divFooter).attr('href', '#');
+					ahref.text(`${page + 1}`);
+					ahref.click((event) =>
+					{
+						this.curPage = page;
+						this.renderMain();
+						event.preventDefault();
+					});
+				}
+				else this.divFooter.append(`<span>${page + 1}</span>`);
+			}
+
+			if (this.curPage < npage - 1)
+			{
+				let ahref = $('<a/>').appendTo(this.divFooter).attr('href', '#');
+				ahref.text('Next');
+				ahref.click((event) =>
+				{
+					this.curPage++;
+					this.renderMain();
+					event.preventDefault();
+				});
+			}
+
+			this.divFooter.find('a,span').css({'margin-left': '0.25em', 'margin-right': '0.25em'});
 		}
 	}
 
-	private createMixture(mixture:Mixture):JQuery
+	private dividePages():void
+	{
+		let sz = this.collection.count;
+		if (sz == 0)
+		{
+			this.pageBlock = [[]];
+			this.curPage = 0;
+			return;
+		}
+
+		let blk:number[] = [];
+		this.pageBlock = [blk];
+		for (let n = 0; n < sz; n++)
+		{
+			if (blk.length >= PAGE_SIZE) this.pageBlock.push(blk = []);
+			blk.push(n);
+		}
+
+		this.curPage = Math.min(this.curPage, this.pageBlock.length - 1);
+	}
+
+	private createMixture(idx:number, mixture:Mixture):JQuery
 	{
 		let divOuter = $('<div/>');
 		if (this.viewType == CollectionPanelView.Detail)
@@ -288,6 +347,11 @@ export class CollectionPanel extends MainPanel
 		let draw = new DrawMixture(layout, gfx);
 		draw.draw();
 
+		let tag = (idx + 1).toString(), fsz = 10, tpad = 2;
+		let wad = wmk.FontData.measureText(tag, fsz);
+		gfx.drawRect(0, 0, wad[0] + 2 * tpad, wad[1] + 2 * tpad, wmk.MetaVector.NOCOLOUR, 0, 0x000000);
+		gfx.drawText(0 + tpad, tpad, tag, fsz, 0xFFFFFF, wmk.TextAlign.Top | wmk.TextAlign.Left);
+
 		gfx.normalise();
 		let svg = $(gfx.createSVG()).appendTo(divInner);
 
@@ -303,9 +367,17 @@ export class CollectionPanel extends MainPanel
 
 	private changeSelection(idx:number):void
 	{
-		if (this.selected >= 0) this.divMixtures[this.selected].css({'background-color': BG_NORMAL});
+		if (this.selected >= 0) 
+		{
+			let div = this.mapMixDiv.get(this.selected);
+			if (div) div.css({'background-color': BG_NORMAL});
+		}
 		this.selected = idx;
-		if (idx >= 0) this.divMixtures[idx].css({'background-color': BG_SELECTED});
+		if (idx >= 0) 
+		{
+			let div = this.mapMixDiv.get(idx);
+			if (div) div.css({'background-color': BG_SELECTED});
+		}
 	}
 
 	protected actionFileOpen():void
@@ -413,8 +485,8 @@ export class CollectionPanel extends MainPanel
 	private scrollToIndex(idx:number):void
 	{
 		if (idx < 0) return;
-		let div = this.divMixtures[idx];
-		this.divMain[0].scrollTop = div.offset().top - this.divMain.offset().top + this.divMain[0].scrollTop;
+		let div = this.mapMixDiv.get(idx);
+		if (div) this.divMain[0].scrollTop = div.offset().top - this.divMain.offset().top + this.divMain[0].scrollTop;
 	}
 
 	private editMixture():void
