@@ -299,6 +299,8 @@ export class CollectionPanel extends MainPanel
 			}
 
 			this.divFooter.find('a,span').css({'margin-left': '0.25em', 'margin-right': '0.25em'});
+
+			this.divFooter.append(` (${this.collection.count})`);
 		}
 	}
 
