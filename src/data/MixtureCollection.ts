@@ -96,7 +96,7 @@ export class MixtureCollection
 	{
 		let list:any[] = [];
 		for (let mixture of this.mixtures) list.push(mixture.mixfile);
-		return list.length <= 1000 ? Mixture.beautify(list) : JSON.stringify(list);
+		return beautify || list.length <= 1000 ? Mixture.beautify(list) : JSON.stringify(list);
 	}
 
 	// ------------ private methods ------------
