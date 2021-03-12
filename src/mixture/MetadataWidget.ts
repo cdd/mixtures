@@ -27,17 +27,13 @@ const CSS_METADATAWIDGET = `
 interface MetadataWidgetLine
 {
 	datum:MixfileMetadatum;
-	/*key:string;
-	value:string;
-	inputKey?:JQuery;
-	inputValue?:JQuery;*/
 }
 
 export class MetadataWidget extends wmk.Widget
 {
 	private lines:MetadataWidgetLine[] = [];
 
-	private divGrid:JQuery;
+	private divGrid:DOM;
 
 	// ------------ public methods ------------
 
@@ -54,10 +50,10 @@ export class MetadataWidget extends wmk.Widget
 	{
 		super.render(parent);
 
-		this.divGrid = $('<div/>').appendTo(this.content).css({'display': 'grid', 'width': '100%', 'margin': '0'});
+		this.divGrid = dom('<div/>').appendTo(this.contentDOM).css({'display': 'grid', 'width': '100%', 'margin': '0'});
 		this.divGrid.css({'align-items': 'baseline', 'justify-content': 'start'});
 		this.divGrid.css({'grid-row-gap': '0.5em', 'grid-column-gap': '0.5em'});
-		this.divGrid.css('grid-template-columns', '[start content] 1fr [button] auto [end]');
+		this.divGrid.css({'grid-template-columns': '[start content] 1fr [button] auto [end]'});
 
 		this.rebuildGrid();
 	}
@@ -68,9 +64,9 @@ export class MetadataWidget extends wmk.Widget
 	{
 		this.divGrid.empty();
 
-		let renderTerm = (parent:JQuery, item:number | string, line:MetadataWidgetLine, idx:number):void =>
+		let renderTerm = (parent:DOM, item:number | string, line:MetadataWidgetLine, idx:number):void =>
 		{
-			let div = $('<div/>').appendTo(parent);
+			let div = dom('<div/>').appendTo(parent);
 			div.css({'padding': '0.2em', 'margin-right': '0.5em'});
 			if (typeof item == 'string')
 			{
@@ -78,22 +74,22 @@ export class MetadataWidget extends wmk.Widget
 				let branch = wmk.OntologyTree.main.getBranch(item);
 				if (Vec.notBlank(branch))
 				{
-					div.text(branch[0].label);
+					div.setText(branch[0].label);
 					wmk.addTooltip(div, escapeHTML(branch[0].uri), null, 1000);
 				}
-				else div.text(item);
+				else div.setText(item);
 			}
 			else // number (or null, which is a pre-number)
 			{
-				let input = $('<input type="number"/>').appendTo(div).css({'width': '5em', 'padding': '0', 'font': 'inherit'});
+				let input = dom('<input type="number"/>').appendTo(div).css({'width': '5em', 'padding': '0', 'font': 'inherit'});
 				if (item != null)
 				{
-					input.css('width', Math.max(5, item.toString().length) + 'em');
-					input.val(item.toString());
+					input.css({'width': Math.max(5, item.toString().length) + 'em'});
+					input.setValue(item.toString());
 				}
-				input.on('input', () =>
+				input.onInput(() =>
 				{
-					let num = parseFloat(input.val().toString());
+					let num = parseFloat(input.getValue());
 					if (!isNaN(num)) (line.datum as number[])[idx] = num;
 				});
 			}
@@ -106,8 +102,8 @@ export class MetadataWidget extends wmk.Widget
 			let line = this.lines[n];
 
 			row++;
-			let divContent = $('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / content`});
-			let divButton = $('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / button`});
+			let divContent = dom('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / content`});
+			let divButton = dom('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / button`});
 
 			divContent.css({'display': 'flex', 'flex-wrap': 'wrap', 'justify-content': 'flex-start', 'align-items': 'baseline'});
 			if (Array.isArray(line.datum))
@@ -120,10 +116,10 @@ export class MetadataWidget extends wmk.Widget
 
 				if (line.datum.length > 1)
 				{
-					let btnBack = $('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divContent);
-					btnBack.text('\u{21E6}');
+					let btnBack = dom('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divContent);
+					btnBack.setText('\u{21E6}');
 					btnBack.css({'margin-right': '0.5em'});
-					btnBack.click(() =>
+					btnBack.onClick(() =>
 					{
 						let list = line.datum as any[];
 						list.splice(list.length - 1, 1);
@@ -135,18 +131,18 @@ export class MetadataWidget extends wmk.Widget
 			}
 			else renderTerm(divContent, line.datum, line, 0);
 
-			let btnAssert = $('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divContent);
-			btnAssert.text('\u{21E9}');
+			let btnAssert = dom('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divContent);
+			btnAssert.setText('\u{21E9}');
 			btnAssert.css({'margin-right': '0.5em'});
-			btnAssert.click(() => this.pickExtraTerm(btnAssert, line, false));
-			let btnProp = $('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divContent);
-			btnProp.text('\u{21E8}');
+			btnAssert.onClick(() => this.pickExtraTerm(btnAssert, line, false));
+			let btnProp = dom('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divContent);
+			btnProp.setText('\u{21E8}');
 			btnProp.css({'margin-right': '0.5em'});
-			btnProp.click(() => this.pickExtraTerm(btnProp, line, true));
+			btnProp.onClick(() => this.pickExtraTerm(btnProp, line, true));
 
-			let btnDelete = $('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divButton);
-			btnDelete.text('\u{2716}');
-			btnDelete.click(() =>
+			let btnDelete = dom('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divButton);
+			btnDelete.setText('\u{2716}');
+			btnDelete.onClick(() =>
 			{
 				this.lines.splice(n, 1);
 				this.rebuildGrid();
@@ -155,10 +151,10 @@ export class MetadataWidget extends wmk.Widget
 		}
 
 		row++;
-		let divAdd = $('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / start / ${row} / end`, 'text-align': this.lines.length > 0 ? 'center' : 'left'});
-		let btnAdd = $('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divAdd);
-		btnAdd.text('\u{271A}');
-		btnAdd.click(() => this.pickNewTerm(btnAdd));
+		let divAdd = dom('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / start / ${row} / end`, 'text-align': this.lines.length > 0 ? 'center' : 'left'});
+		let btnAdd = dom('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divAdd);
+		btnAdd.setText('\u{271A}');
+		btnAdd.onClick(() => this.pickNewTerm(btnAdd));
 	}
 
 	private triggerModified():void
@@ -167,7 +163,7 @@ export class MetadataWidget extends wmk.Widget
 		this.callbackChange(metadata);
 	}
 
-	private pickNewTerm(divParent:JQuery):void
+	private pickNewTerm(divParent:DOM):void
 	{
 		let branchList:wmk.OntologyTreeTerm[] = [];
 		const ROOTS = ['http://mixtures.org/rdf#MixtureMetadata'];
@@ -185,7 +181,7 @@ export class MetadataWidget extends wmk.Widget
 		popup.open();
 	}
 
-	private pickExtraTerm(divParent:JQuery, line:MetadataWidgetLine, isProperty:boolean):void
+	private pickExtraTerm(divParent:DOM, line:MetadataWidgetLine, isProperty:boolean):void
 	{
 		let branchList:wmk.OntologyTreeTerm[] = [];
 		const ROOTS_ASSERT = ['http://mixtures.org/rdf#MixtureMetadata'];
@@ -209,20 +205,20 @@ export class MetadataWidget extends wmk.Widget
 	// enumerates a list of clickable ontology tree items
 	private populateBranch(popup:wmk.Popup, branchList:wmk.OntologyTreeTerm[], callbackClicked:(term:wmk.OntologyTreeTerm) => void):void
 	{
-		let body = popup.body();
+		let body = popup.bodyDOM();
 
 		for (let term of branchList)
 		{
-			let div = $('<div/>').appendTo(body);
+			let div = dom('<div/>').appendTo(body);
 			if (term.depth > 0)
 			{
-				div.css('margin-left', (term.depth - 0.5) + 'em');
-				$('<span>\u{279E}&nbsp;</span>').appendTo(div).css({'color': '#A0A0A0'});
+				div.css({'margin-left': (term.depth - 0.5) + 'em'});
+				dom('<span>\u{279E}&nbsp;</span>').appendTo(div).css({'color': '#A0A0A0'});
 			}
-			let span = $('<span class="wmk-metadataitem"/>').appendTo(div);
-			span.text(term.label);
+			let span = dom('<span class="wmk-metadataitem"/>').appendTo(div);
+			span.setText(term.label);
 			wmk.addTooltip(span, escapeHTML(term.uri), null, 2000);
-			span.click(() =>
+			span.onClick(() =>
 			{
 				wmk.clearTooltip();
 				popup.close();

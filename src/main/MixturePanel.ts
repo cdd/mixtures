@@ -63,7 +63,7 @@ export class MixturePanel extends MainPanel
 
 	// ------------ public methods ------------
 
-	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
+	constructor(root:DOM, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
 	{
 		super(root);
 
@@ -71,10 +71,10 @@ export class MixturePanel extends MainPanel
 
 		this.editor.callbackUpdateTitle = () => this.updateTitle();
 
-		let divFlex = $('<div/>').appendTo(root).css({'display': 'flex'});
+		let divFlex = dom('<div/>').appendTo(root).css({'display': 'flex'});
 		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
-		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
-		let divEditor = $('<div/>').appendTo(divFlex).css({'flex-grow': '1'});
+		let divBanner = dom('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
+		let divEditor = dom('<div/>').appendTo(divFlex).css({'flex-grow': '1'});
 
 		this.banner.render(divBanner);
 		this.editor.render(divEditor);
@@ -245,7 +245,7 @@ export class MixturePanel extends MainPanel
 
 		const electron = require('electron');
 		const dialog = electron.remote.dialog;
-		let params:any =
+		let params:Electron.SaveDialogOptions =
 		{
 			'title': 'Save Mixfile',
 			//defaultPath...
@@ -254,7 +254,7 @@ export class MixturePanel extends MainPanel
 				{'name': 'Mixfile', 'extensions': ['mixfile']}
 			]
 		};
-		dialog.showSaveDialog({}).then((value) =>
+		dialog.showSaveDialog(params).then((value) =>
 		{
 			if (value.canceled) return;
 			this.saveFile(value.filePath);
@@ -276,9 +276,18 @@ export class MixturePanel extends MainPanel
 		const electron = require('electron'), fs = require('fs');
 		const dialog = electron.remote.dialog;
 
-		let params:any =
+		let defPath = this.filename;
+		if (defPath)
+		{
+			let lastDot = defPath.lastIndexOf('.');
+			if (lastDot > 0 && lastDot > defPath.lastIndexOf('/') && lastDot > defPath.lastIndexOf('\\')) defPath = defPath.substring(0, lastDot);
+			defPath += '.sdf';
+		}
+
+		let params:Electron.SaveDialogOptions =
 		{
 			'title': 'Export as SDfile',
+			'defaultPath': defPath,
 			'filters':
 			[
 				{'name': 'SDfile', 'extensions': ['sdf']}
@@ -287,7 +296,7 @@ export class MixturePanel extends MainPanel
 		if (this.filename && this.filename.endsWith('.mixfile'))
 			params.defaultPath = (this.filename.substring(0, this.filename.length - 8) + '.sdf').split(/[\/\\]/).pop();
 
-		dialog.showSaveDialog({}).then((value) =>
+		dialog.showSaveDialog(params).then((value) =>
 		{
 			if (value.canceled) return;
 			fs.writeFile(value.filePath, sdfile, (err:any):void =>
@@ -299,18 +308,26 @@ export class MixturePanel extends MainPanel
 
 	private actionFileExportSVG():void
 	{
+		let defPath = this.filename;
+		if (defPath)
+		{
+			let lastDot = defPath.lastIndexOf('.');
+			if (lastDot > 0 && lastDot > defPath.lastIndexOf('/') && lastDot > defPath.lastIndexOf('\\')) defPath = defPath.substring(0, lastDot);
+			defPath += '.svg';
+		}
+
 		const electron = require('electron');
 		const dialog = electron.remote.dialog;
-		let params:any =
+		let params:Electron.SaveDialogOptions =
 		{
 			'title': 'Save SVG Diagram',
-			//defaultPath...
+			'defaultPath': defPath,
 			'filters':
 			[
 				{'name': 'Scalable Vector Graphics', 'extensions': ['svg']}
 			]
 		};
-		dialog.showSaveDialog({}).then((value) =>
+		dialog.showSaveDialog(params).then((value) =>
 		{
 			if (value.canceled) return;
 			let policy = wmk.RenderPolicy.defaultColourOnWhite();

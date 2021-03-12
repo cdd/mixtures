@@ -23,7 +23,7 @@ export class EditMixtureWeb extends EditMixture
 {
 	public callbackLookup:(editor:EditMixtureWeb) => void = null; // optional: added to context menu if defined
 	public callbackStructureEditor:(mol:wmk.Molecule, onSuccess:(mol:wmk.Molecule) => void) => void = null; // optional editor replacement
-	public callbackFreeformKey:(edit:EditMixture, event:JQueryEventObject) => void = null;
+	public callbackFreeformKey:(edit:EditMixture, event:KeyboardEvent) => void = null;
 
 	// ------------ public methods ------------
 
@@ -39,7 +39,7 @@ export class EditMixtureWeb extends EditMixture
 
 	// ------------ private methods ------------
 
-	protected contextMenu(event:JQueryEventObject):void
+	protected contextMenu(event:MouseEvent):void
 	{
 		event.preventDefault();
 		if (!this.isReceivingCommands()) return;
@@ -99,7 +99,7 @@ export class EditMixtureWeb extends EditMixture
 		this.proxyMenu.openContextMenu(menu, event);
 	}
 
-	protected keyDown(event:JQueryEventObject):void
+	protected keyDown(event:KeyboardEvent):void
 	{
 		if (!this.isReceivingCommands()) return;
 

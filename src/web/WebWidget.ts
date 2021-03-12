@@ -60,7 +60,7 @@ export class WebWidget extends wmk.Widget
 	public callbackGoBack:() => void = null; // optional: gets an icon if defined
 	public callbackLookup:(editor:EditMixtureWeb) => void = null; // optional: gets an icon if defined
 	public callbackEditStructure:(molfile:string, callbackSuccess:(molfile:string) => void, callbackClose:() => void) => void = null;
-	public callbackFreeformKey:(edit:EditMixture, event:JQueryEventObject) => void = null;
+	public callbackFreeformKey:(edit:EditMixture, event:KeyboardEvent) => void = null;
 
 	//public proxyClip = new wmk.ClipboardProxyWeb();
 	public banner:MenuBanner;
@@ -92,6 +92,8 @@ export class WebWidget extends wmk.Widget
 	public render(parent:any, width?:number, height?:number):void
 	{
 		super.render(parent);
+
+		let content = this.contentDOM;
 
 		let bannerContent = deepClone(BANNER);
 		if (this.callbackGoBack)
@@ -156,12 +158,14 @@ export class WebWidget extends wmk.Widget
 			};
 		}
 
-		this.content.css({'width': width, 'height': height});
-		this.content.css({'border': '1px solid black', 'display': 'flex', 'flex-direction': 'column'});
+		//content.css({'width': width, 'height': height});
+		if (width) content.setCSS('width', `${width}px`);
+		if (height) content.setCSS('height', `${height}px`);
+		content.css({'border': '1px solid black', 'display': 'flex', 'flex-direction': 'column'});
 
-		let divMenu = $('<div style="width: 100%; flex-grow: 0;"/>').appendTo(this.content);
-		let divMain = $('<div style="width: 100%; flex: 1 1 0; height: 100%; position: relative;"/>').appendTo(this.content);
-		let divMainX = $('<div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"/>').appendTo(divMain); // workaround
+		let divMenu = dom('<div style="width: 100%; flex-grow: 0;"/>').appendTo(content);
+		let divMain = dom('<div style="width: 100%; flex: 1 1 0; height: 100%; position: relative;"/>').appendTo(content);
+		let divMainX = dom('<div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"/>').appendTo(divMain); // workaround
 
 		this.banner.render(divMenu);
 		this.editor.render(divMainX);

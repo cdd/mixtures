@@ -20,15 +20,15 @@ interface KeyValueWidgetLine
 {
 	key:string;
 	value:string;
-	inputKey?:JQuery;
-	inputValue?:JQuery;
+	inputKey?:DOM;
+	inputValue?:DOM;
 }
 
 export class KeyValueWidget extends wmk.Widget
 {
 	private lines:KeyValueWidgetLine[] = [];
 
-	private divGrid:JQuery;
+	private divGrid:DOM;
 
 	// ------------ public methods ------------
 
@@ -48,10 +48,10 @@ export class KeyValueWidget extends wmk.Widget
 	{
 		super.render(parent);
 		
-		this.divGrid = $('<div/>').appendTo(this.content).css({'display': 'grid', 'width': '100%', 'margin': '0'});
+		this.divGrid = dom('<div/>').appendTo(this.contentDOM).css({'display': 'grid', 'width': '100%', 'margin': '0'});
 		this.divGrid.css({'align-items': 'baseline', 'justify-content': 'start'});
 		this.divGrid.css({'grid-row-gap': '0.5em', 'grid-column-gap': '0.5em'});
-		this.divGrid.css('grid-template-columns', '[start key] 1fr [value] 1fr [button] auto [end]');
+		this.divGrid.css({'grid-template-columns': '[start key] 1fr [value] 1fr [button] auto [end]'});
 
 		this.rebuildGrid();
 	}
@@ -69,21 +69,21 @@ export class KeyValueWidget extends wmk.Widget
 			let line = this.lines[n];
 
 			row++;
-			let divKey = $('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / key`});
-			let divValue = $('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / value`});
-			let divButton = $('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / button`});
+			let divKey = dom('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / key`});
+			let divValue = dom('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / value`});
+			let divButton = dom('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / button`});
 
-			line.inputKey = $('<input/>').appendTo(divKey).css({'width': '100%', 'padding': '0', 'font': 'inherit'});
-			line.inputKey.val(line.key);
-			line.inputKey.on('input', () => this.scrapeData());
+			line.inputKey = dom('<input/>').appendTo(divKey).css({'width': '100%', 'padding': '0', 'font': 'inherit'});
+			line.inputKey.setValue(line.key);
+			line.inputKey.onInput(() => this.scrapeData());
 
-			line.inputValue = $('<input/>').appendTo(divValue).css({'width': '100%', 'padding': '0', 'font': 'inherit'});
-			line.inputValue.val(line.value);
-			line.inputValue.on('input', () => this.scrapeData());
+			line.inputValue = dom('<input/>').appendTo(divValue).css({'width': '100%', 'padding': '0', 'font': 'inherit'});
+			line.inputValue.setValue(line.value);
+			line.inputValue.onInput(() => this.scrapeData());
 
-			let btnDelete = $('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divButton);
-			btnDelete.text('\u{2716}');
-			btnDelete.click(() =>
+			let btnDelete = dom('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divButton);
+			btnDelete.setText('\u{2716}');
+			btnDelete.onClick(() =>
 			{
 				this.lines.splice(n, 1);
 				this.rebuildGrid();
@@ -92,10 +92,10 @@ export class KeyValueWidget extends wmk.Widget
 		}
 
 		row++;
-		let divAdd = $('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / start / ${row} / end`, 'text-align': this.lines.length > 0 ? 'center' : 'left'});
-		let btnAdd = $('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divAdd);
-		btnAdd.text('\u{271A}');
-		btnAdd.click(() =>
+		let divAdd = dom('<div/>').appendTo(this.divGrid).css({'grid-area': `${row} / start / ${row} / end`, 'text-align': this.lines.length > 0 ? 'center' : 'left'});
+		let btnAdd = dom('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(divAdd);
+		btnAdd.setText('\u{271A}');
+		btnAdd.onClick(() =>
 		{
 			this.lines.push({'key': '', 'value': ''});
 			this.rebuildGrid();
@@ -108,8 +108,8 @@ export class KeyValueWidget extends wmk.Widget
 		let dict:Record<string, string | string[]> = {};
 		for (let line of this.lines)
 		{
-			line.key = line.inputKey.val().toString();
-			line.value = line.inputValue.val().toString();
+			line.key = line.inputKey.getValue();
+			line.value = line.inputValue.getValue();
 			if (!line.key || !line.value) continue;
 
 			let dval = dict[line.key];

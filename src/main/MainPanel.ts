@@ -20,16 +20,15 @@ export abstract class MainPanel
 {
 	// ------------ public methods ------------
 
-	constructor(public root:JQuery)
+	constructor(public root:DOM)
 	{
-		$('body').css('overflow', 'hidden');
+		dom('body').css({'overflow': 'hidden'});
 
-		root.css('width', '100%');
-		root.css('height', document.documentElement.clientHeight + 'px');
-		$(window).resize(() => this.onResize());
-		root.css('user-select', 'none');
+		root.css({'width': '100%', 'height': document.documentElement.clientHeight + 'px'});
+		window.addEventListener('resize', () => this.onResize());
+		root.css({'user-select': 'none'});
 
-		root.on('menuAction', (event:any, cmd:string) => this.menuAction(cmd as MenuBannerCommand));
+		(this.root.el as any).addEventListener('menuAction', (event:any, cmd:string) => this.menuAction(cmd as MenuBannerCommand));
 	}
 
 	// stub: may be called early on to provide a source file upon which to work
@@ -40,7 +39,7 @@ export abstract class MainPanel
 	// minimum required functionality for resizing windows; override to capture
 	protected onResize():void
 	{
-		this.root.css('height', document.documentElement.clientHeight + 'px');
+		this.root.css({'height': document.documentElement.clientHeight + 'px'});
 	}
 
 	// optionally override this to pre-empt menu actions

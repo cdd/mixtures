@@ -74,28 +74,28 @@ export class CollectionPanel extends MainPanel
 	private isDirty = false;
 
 	private banner:MenuBanner;
-	private divMain:JQuery;
-	private divFooter:JQuery;
+	private divMain:DOM;
+	private divFooter:DOM;
 	private policy = wmk.RenderPolicy.defaultColourOnWhite(20);
 	private viewType = CollectionPanelView.Detail;
 
 	private selected = -1;
-	private mapMixDiv = new Map<number, JQuery>(); // index-in-collection to rendered div
+	private mapMixDiv = new Map<number, DOM>(); // index-in-collection to rendered div
 	private editor:EditMixture = null; // when defined, refers to collection{selected}
 
 	// ------------ public methods ------------
 
-	constructor(root:JQuery, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
+	constructor(root:DOM, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
 	{
 		super(root);
 
 		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
-		let divFlex = $('<div/>').appendTo(root).css({'display': 'flex'});
+		let divFlex = dom('<div/>').appendTo(root).css({'display': 'flex'});
 		divFlex.css({'flex-direction': 'column', 'width': '100%', 'height': '100%'});
-		let divBanner = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
-		this.divMain = $('<div/>').appendTo(divFlex).css({'flex-grow': '1', 'overflow-y': 'scroll'});
-		this.divFooter = $('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
+		let divBanner = dom('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
+		this.divMain = dom('<div/>').appendTo(divFlex).css({'flex-grow': '1', 'overflow-y': 'scroll'});
+		this.divFooter = dom('<div/>').appendTo(divFlex).css({'flex-grow': '0'});
 
 		this.banner.render(divBanner);
 		this.dividePages();
@@ -229,7 +229,7 @@ export class CollectionPanel extends MainPanel
 		this.selected = -1;
 		this.mapMixDiv.clear();
 
-		let divContent = $('<div/>').appendTo(this.divMain);
+		let divContent = dom('<div/>').appendTo(this.divMain);
 
 		if (this.viewType == CollectionPanelView.Card)
 		{
@@ -241,8 +241,8 @@ export class CollectionPanel extends MainPanel
 		for (let idx of this.pageBlock[this.curPage])
 		{
 			let div = this.createMixture(idx, this.collection.getMixture(idx)).appendTo(divContent);
-			div.click(() => this.changeSelection(idx));
-			div.dblclick(() => this.editMixture());
+			div.onClick(() => this.changeSelection(idx));
+			div.onDblClick(() => this.editMixture());
 			this.mapMixDiv.set(idx, div);
 		}
 
@@ -253,9 +253,9 @@ export class CollectionPanel extends MainPanel
 
 			if (this.curPage > 0)
 			{
-				let ahref = $('<a/>').appendTo(this.divFooter).attr('href', '#');
-				ahref.text('Previous');
-				ahref.click((event) =>
+				let ahref = dom('<a/>').appendTo(this.divFooter).attr({'href': '#'});
+				ahref.setText('Previous');
+				ahref.onClick((event) =>
 				{
 					this.curPage--;
 					this.renderMain();
@@ -271,26 +271,26 @@ export class CollectionPanel extends MainPanel
 			for (let n = 0; n < showPages.length; n++)
 			{
 				let page = showPages[n];
-				if (n > 0 && page != showPages[n - 1] + 1) this.divFooter.append('...');
+				if (n > 0 && page != showPages[n - 1] + 1) this.divFooter.appendText('...');
 				if (page != this.curPage)
 				{
-					let ahref = $('<a/>').appendTo(this.divFooter).attr('href', '#');
-					ahref.text(`${page + 1}`);
-					ahref.click((event) =>
+					let ahref = dom('<a/>').appendTo(this.divFooter).attr({'href': '#'});
+					ahref.setText(`${page + 1}`);
+					ahref.onClick((event) =>
 					{
 						this.curPage = page;
 						this.renderMain();
 						event.preventDefault();
 					});
 				}
-				else this.divFooter.append(`<span>${page + 1}</span>`);
+				else this.divFooter.appendHTML(`<span>${page + 1}</span>`);
 			}
 
 			if (this.curPage < npage - 1)
 			{
-				let ahref = $('<a/>').appendTo(this.divFooter).attr('href', '#');
-				ahref.text('Next');
-				ahref.click((event) =>
+				let ahref = dom('<a/>').appendTo(this.divFooter).attr({'href': '#'});
+				ahref.setText('Next');
+				ahref.onClick((event) =>
 				{
 					this.curPage++;
 					this.renderMain();
@@ -300,7 +300,7 @@ export class CollectionPanel extends MainPanel
 
 			this.divFooter.find('a,span').css({'margin-left': '0.25em', 'margin-right': '0.25em'});
 
-			this.divFooter.append(` (${this.collection.count})`);
+			this.divFooter.appendText(` (${this.collection.count})`);
 		}
 	}
 
@@ -325,19 +325,19 @@ export class CollectionPanel extends MainPanel
 		this.curPage = Math.min(this.curPage, this.pageBlock.length - 1);
 	}
 
-	private createMixture(idx:number, mixture:Mixture):JQuery
+	private createMixture(idx:number, mixture:Mixture):DOM
 	{
-		let divOuter = $('<div/>');
+		let divOuter = dom('<div/>');
 		if (this.viewType == CollectionPanelView.Detail)
 		{
-			divOuter.css('display', 'block');
+			divOuter.css({'display': 'block'});
 		}
 		else // == CollectionPanelView.Card
 		{
-			divOuter.css('display', 'inline-block');
+			divOuter.css({'display': 'inline-block'});
 		}
 
-		let divInner = $('<div/>').appendTo(divOuter);
+		let divInner = dom('<div/>').appendTo(divOuter);
 		divInner.css({'margin': '2px', 'padding': '2px', 'border-radius': '4px'});
 		divInner.css({'background-color': BG_NORMAL, 'border': '1px solid #808080'});
 
@@ -355,7 +355,7 @@ export class CollectionPanel extends MainPanel
 		gfx.drawText(0 + tpad, tpad, tag, fsz, 0xFFFFFF, wmk.TextAlign.Top | wmk.TextAlign.Left);
 
 		gfx.normalise();
-		let svg = $(gfx.createSVG()).appendTo(divInner);
+		let svg = dom(gfx.createSVG()).appendTo(divInner);
 
 		return divInner;
 	}
@@ -488,7 +488,7 @@ export class CollectionPanel extends MainPanel
 	{
 		if (idx < 0) return;
 		let div = this.mapMixDiv.get(idx);
-		if (div) this.divMain[0].scrollTop = div.offset().top - this.divMain.offset().top + this.divMain[0].scrollTop;
+		if (div) this.divMain.el.scrollTop = div.offset().y - this.divMain.offset().y + this.divMain.el.scrollTop;
 	}
 
 	private editMixture():void
@@ -537,9 +537,9 @@ export class CollectionPanel extends MainPanel
 			this.collection.deleteMixture(idx);
 			this.isDirty = true;
 
-			let top = this.divMain[0].scrollTop;
+			let top = this.divMain.el.scrollTop;
 			this.renderMain();
-			this.divMain[0].scrollTop = top;
+			this.divMain.el.scrollTop = top;
 			this.updateBanner();
 			this.updateTitle();
 		}
@@ -596,10 +596,10 @@ export class CollectionPanel extends MainPanel
 		if (this.editor) return;
 		let idx = Math.max(0, this.selected);
 		this.collection.insertMixture(idx, new Mixture());
-		let top = this.divMain[0].scrollTop;
+		let top = this.divMain.el.scrollTop;
 		this.renderMain();
 		this.changeSelection(idx);
-		this.divMain[0].scrollTop = top;
+		this.divMain.el.scrollTop = top;
 
 		this.isDirty = true;
 		this.updateTitle();
@@ -610,10 +610,10 @@ export class CollectionPanel extends MainPanel
 		let idx = this.selected;
 		if (idx < 0 || idx + dir < 0 || idx + dir >= this.collection.count || this.editor) return;
 		this.collection.swapMixtures(idx, idx + dir);
-		let top = this.divMain[0].scrollTop;
+		let top = this.divMain.el.scrollTop;
 		this.renderMain();
 		this.changeSelection(idx + dir);
-		this.divMain[0].scrollTop = top;
+		this.divMain.el.scrollTop = top;
 
 		this.isDirty = true;
 		this.updateTitle();

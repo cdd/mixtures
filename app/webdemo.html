@@ -8,7 +8,6 @@
 	<link rel="shortcut icon" href="img/icon.ico" type="image/x-icon" />
 	<link href="main.css" rel="stylesheet" type="text/css">
 	<link href="widgets.css" rel="stylesheet" type="text/css">
-	<script src="jquery.js" type="text/javascript"></script>
     <script src="mixfile.js" type="text/javascript"></script>
 	<!--<meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline' 'unsafe-eval' serve://dist/">-->
 </head>
@@ -50,11 +49,11 @@
 
 	wmk.initWebMolKit('res');
 	var widget = new Mixtures.WebWidget();
-	var mixture = new Mixtures.Mixture(JSON.parse($('#data').text()));
-	widget.render($('#root'), 700, 600);
+	var mixture = new Mixtures.Mixture(JSON.parse(wmk.dom('#data').text()));
+	widget.render(wmk.DOM.find('#root'), 700, 600);
 	widget.setMixture(mixture);
 
-	let btnMInChI = $('<button class="wmk-button wmk-button-primary">Create MInChI</button>').appendTo($('#buttons'));
+	let btnMInChI = wmk.dom('<button class="wmk-button wmk-button-primary">Create MInChI</button>').appendTo(wmk.DOM.find('#buttons'));
 	btnMInChI.click(() => 
 	{
 		if (widget.isBlank())
@@ -62,14 +61,14 @@
 			alert('Mixture is empty.');
 			return;
 		}
-		$('#minchi').empty();
+		wmk.DOM.find('#minchi').empty();
 
 		let mixture = widget.getMixture();
 		let maker = new Mixtures.ExportMInChI(mixture.mixfile);
 		maker.fillInChI().then(() =>
 		{
 			maker.formulate();
-			let pre = $('<pre></pre>').appendTo($('#minchi')).css({'padding-top': '0.5em'});
+			let pre = wmk.dom('<pre></pre>').appendTo(wmk.DOM.find('#minchi')).css({'padding-top': '0.5em'});
 			pre.text(maker.getResult());
 			pre.append('\n');
 			pre.append(maker.getSegment().join(''));

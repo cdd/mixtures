@@ -68,34 +68,35 @@ export class EditMixture extends wmk.Widget
 	{
 		super.render(parent);
 
-		this.content.css({'width': '100%', 'height': '100%'});
-		this.content.css('background-color', '#F0F0F0');
-		this.content.css({'position': 'relative', 'outline-width': '0'});
+		let content = this.contentDOM;
+
+		content.css({'width': '100%', 'height': '100%'});
+		content.css({'background-color': '#F0F0F0'});
+		content.css({'position': 'relative', 'outline-width': '0'});
 
 		let canvasStyle = 'position: absolute; left: 0; top: 0; pointer-events: none;';
-		this.canvasMixture = newElement(this.content, 'canvas', {'style': canvasStyle}) as HTMLCanvasElement;
-		this.canvasOver = newElement(this.content, 'canvas', {'style': canvasStyle}) as HTMLCanvasElement;
+		this.canvasMixture = newElement(content, 'canvas', {'style': canvasStyle}) as HTMLCanvasElement;
+		this.canvasOver = newElement(content, 'canvas', {'style': canvasStyle}) as HTMLCanvasElement;
 
-		this.content.resize(() => this.redraw());
+		//content.onResize(() => this.redraw());
 
 		// setup all the interactive events
-		this.content.click((event:JQueryEventObject) => this.mouseClick(event));
-		this.content.dblclick((event:JQueryEventObject) => this.mouseDoubleClick(event));
-		this.content.mousedown((event:JQueryEventObject) => this.mouseDown(event));
-		this.content.mouseup((event:JQueryEventObject) => this.mouseUp(event));
-		this.content.mouseover((event:JQueryEventObject) => this.mouseOver(event));
-		this.content.mouseout((event:JQueryEventObject) => this.mouseOut(event));
-		this.content.mousemove((event:JQueryEventObject) => this.mouseMove(event));
+		content.onClick((event) => this.mouseClick(event));
+		content.onDblClick((event) => this.mouseDoubleClick(event));
+		content.onMouseDown((event) => this.mouseDown(event));
+		content.onMouseUp((event) => this.mouseUp(event));
+		content.onMouseOver((event) => this.mouseOver(event));
+		content.onMouseLeave((event) => this.mouseOut(event));
+		content.onMouseMove((event) => this.mouseMove(event));
 		// (maybe have mousewheel as an option: in Electron mode it makes some sense, but embedded
 		// on a web page it' not good...)
-		//this.content.on('mousewheel', (event:JQueryEventObject) => this.mouseWheel(event));
-		this.content.keypress((event:JQueryEventObject) => this.keyPressed(event));
-		this.content.keydown((event:JQueryEventObject) => this.keyDown(event));
-		this.content.keyup((event:JQueryEventObject) => this.keyUp(event));
-		this.content.contextmenu((event:JQueryEventObject) => this.contextMenu(event));
+		//content.on('mousewheel', (event:JQueryEventObject) => this.mouseWheel(event));
+		content.onKeyPress((event) => this.keyPressed(event));
+		content.onKeyDown((event) => this.keyDown(event));
+		content.onKeyUp((event) => this.keyUp(event));
+		content.onContextMenu((event) => this.contextMenu(event));
 
-		this.content.attr('id', 'mixtureEditor_main');
-		this.content.attr('tabindex', '0');
+		content.attr({'id': 'mixtureEditor_main', 'tabindex': '0'});
 		this.refocus();
 		this.redraw(true);
 	}
@@ -234,7 +235,7 @@ export class EditMixture extends wmk.Widget
 
 		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
 
-		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule(), this.content);
+		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule(), this.contentDOM);
 		this.dlgCompound.onSave(() =>
 		{
 			let molfile = wmk.MoleculeStream.writeMDLMOL(this.dlgCompound.getMolecule());
@@ -270,10 +271,9 @@ export class EditMixture extends wmk.Widget
 		let origin = this.layout.components[this.selectedIndex].origin;
 		let comp = this.mixture.getComponent(origin);
 
-		//let w = this.content.width(), h = this.content.height();
-		let w = $(window).width() * 0.8, h = $(window).height() * 0.8;
+		let w = window.innerWidth * 0.8, h = window.innerHeight * 0.8;
 
-		let dlg = new EditComponent(deepClone(comp), [w, h], this.content);
+		let dlg = new EditComponent(deepClone(comp), [w, h], this.contentDOM);
 		dlg.proxyClip = this.proxyClip;
 		dlg.onSave(() =>
 		{
@@ -306,7 +306,7 @@ export class EditMixture extends wmk.Widget
 		
 		let origin = this.layout.components[this.selectedIndex].origin;
 		let comp = this.mixture.getComponent(origin);
-		let curX = this.content.width(), curY = this.content.height();
+		let curX = this.contentDOM.width(), curY = this.contentDOM.height();
 		let dlg = new LookupCompoundDialog(comp.name, [curX, curY]);
 		dlg.onSelect(() =>
 		{
@@ -507,7 +507,7 @@ export class EditMixture extends wmk.Widget
 	// call this anytime the focus could have wandered
 	public refocus():void
 	{
-		this.content.focus();
+		this.contentDOM.grabFocus();
 	}
 
 	// return the layout around onscreen for an indicated component
@@ -529,7 +529,7 @@ export class EditMixture extends wmk.Widget
 	{
 		this.filthy = false;
 
-		let width = this.content.width(), height = this.content.height();
+		let width = this.contentDOM.width(), height = this.contentDOM.height();
 		let density = pixelDensity();
 
 		for (let canvas of [this.canvasMixture, this.canvasOver])
@@ -577,7 +577,7 @@ export class EditMixture extends wmk.Widget
 	// assuming that layout is already defined, modifies the offset/scale so that
 	protected scaleToFit():void
 	{
-		let width = this.content.width(), height = this.content.height(), pad = 4;
+		let width = this.contentDOM.width(), height = this.contentDOM.height(), pad = 4;
 		if (this.layout.width > width - pad || this.layout.height > height - pad)
 		{
 			let scale = Math.min((width - pad) / this.layout.width, (height - pad) / this.layout.height);
@@ -589,9 +589,9 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// mouse has moved: see if we need to update the hover
-	protected updateHoverCursor(event:JQueryMouseEventObject):void
+	protected updateHoverCursor(event:MouseEvent):void
 	{
-		let [x, y] = eventCoords(event, this.content);
+		let [x, y] = eventCoords(event, this.contentDOM);
 		let idx = this.activeIndex >= 0 ? -1 : this.pickComponent(x, y);
 		if (idx != this.hoverIndex)
 		{
@@ -700,7 +700,7 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// interactivity
-	protected mouseClick(event:JQueryMouseEventObject):void
+	protected mouseClick(event:MouseEvent):void
 	{
 		if (event.ctrlKey)
 		{
@@ -708,15 +708,15 @@ export class EditMixture extends wmk.Widget
 			return;
 		}
 
-		let [x, y] = eventCoords(event, this.content);
+		let [x, y] = eventCoords(event, this.contentDOM);
 		let picked = this.pickComponentSection(x, y);
 		if (picked && picked[1]) this.toggleCollapsed(picked[0]);
 	}
-	protected mouseDoubleClick(event:JQueryMouseEventObject):void
+	protected mouseDoubleClick(event:MouseEvent):void
 	{
 		event.stopImmediatePropagation();
 
-		let [x, y] = eventCoords(event, this.content);
+		let [x, y] = eventCoords(event, this.contentDOM);
 		let idx = this.pickComponent(x, y);
 		if (idx >= 0)
 		{
@@ -727,7 +727,7 @@ export class EditMixture extends wmk.Widget
 			this.editDetails();
 		}
 	}
-	protected mouseDown(event:JQueryMouseEventObject):void
+	protected mouseDown(event:MouseEvent):void
 	{
 		//event.preventDefault();
 
@@ -739,7 +739,7 @@ export class EditMixture extends wmk.Widget
 			return;
 		}
 
-		let [x, y] = eventCoords(event, this.content);
+		let [x, y] = eventCoords(event, this.contentDOM);
 		let idx = this.pickComponent(x, y);
 
 		this.dragReason = DragReason.Any;
@@ -753,7 +753,7 @@ export class EditMixture extends wmk.Widget
 			this.delayedRedraw();
 		}
 	}
-	protected mouseUp(event:JQueryMouseEventObject):void
+	protected mouseUp(event:MouseEvent):void
 	{
 		if (event.ctrlKey)
 		{
@@ -761,7 +761,7 @@ export class EditMixture extends wmk.Widget
 			return;
 		}
 
-		let [x, y] = eventCoords(event, this.content);
+		let [x, y] = eventCoords(event, this.contentDOM);
 		let idx = this.pickComponent(x, y);
 		if (idx == this.activeIndex) this.selectedIndex = idx;
 		this.activeIndex = -1;
@@ -769,16 +769,16 @@ export class EditMixture extends wmk.Widget
 
 		this.dragReason = DragReason.None;
 	}
-	protected mouseOver(event:JQueryMouseEventObject):void
+	protected mouseOver(event:MouseEvent):void
 	{
 		this.updateHoverCursor(event);
 	}
-	protected mouseOut(event:JQueryMouseEventObject):void
+	protected mouseOut(event:MouseEvent):void
 	{
 		this.updateHoverCursor(event);
 		this.dragReason = DragReason.None;
 	}
-	protected mouseMove(event:JQueryMouseEventObject):void
+	protected mouseMove(event:MouseEvent):void
 	{
 		this.updateHoverCursor(event);
 
@@ -789,7 +789,7 @@ export class EditMixture extends wmk.Widget
 
 		if (this.dragReason == DragReason.Pan)
 		{
-			let [x, y] = eventCoords(event, this.content);
+			let [x, y] = eventCoords(event, this.contentDOM);
 			let dx = x - this.dragX, dy = y - this.dragY;
 			if (dx != 0 && dy != 0)
 			{
@@ -800,12 +800,12 @@ export class EditMixture extends wmk.Widget
 			}
 		}
 	}
-	protected keyPressed(event:JQueryEventObject):void
+	protected keyPressed(event:KeyboardEvent):void
 	{
 		//let ch = String.fromCharCode(event.keyCode || event.charCode);
 		//console.log('PRESSED['+ch+'] key='+event.keyCode+' chcode='+event.charCode);
 	}
-	protected keyDown(event:JQueryEventObject):void
+	protected keyDown(event:KeyboardEvent):void
 	{
 		if (!this.isReceivingCommands()) return;
 
@@ -825,15 +825,14 @@ export class EditMixture extends wmk.Widget
 			event.preventDefault();
 		}
 	}
-	protected keyUp(event:JQueryEventObject):void
+	protected keyUp(event:KeyboardEvent):void
 	{
 		// !!
 	}
-	protected mouseWheel(event:JQueryEventObject):void
+	protected mouseWheel(event:WheelEvent):void
 	{
-		let orig = event.originalEvent as WheelEvent;
-		let [x, y] = eventCoords(event, this.content);
-		let delta = Math.abs(orig.deltaX) > Math.abs(orig.deltaY) ? orig.deltaX : orig.deltaY;
+		let [x, y] = eventCoords(event, this.contentDOM);
+		let delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
 		let scale = 1 + Math.abs(delta) * 0.05;
 		if (delta < 0) scale = 1.0 / scale;
 
@@ -847,12 +846,12 @@ export class EditMixture extends wmk.Widget
 		this.delayedRedraw();
 		event.preventDefault();
 	}
-	protected contextMenu(event:JQueryMouseEventObject):void
+	protected contextMenu(event:MouseEvent):void
 	{
 		event.preventDefault();
 		if (!this.isReceivingCommands()) return;
 
-		let [x, y] = eventCoords(event, this.content);
+		let [x, y] = eventCoords(event, this.contentDOM);
 		let idx = this.pickComponent(x, y);
 
 		this.selectedIndex = idx;

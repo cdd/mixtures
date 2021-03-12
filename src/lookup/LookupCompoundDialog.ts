@@ -18,22 +18,22 @@ namespace Mixtures /* BOF */ {
 
 export class LookupCompoundDialog extends wmk.Dialog
 {
-	private spanStatus:JQuery;
-	private btnSearch:JQuery;
-	private btnApply:JQuery;
-	private vertical:JQuery;
-	private searchInput:JQuery;
-	private resultArea:JQuery;
+	private spanStatus:DOM;
+	private btnSearch:DOM;
+	private btnApply:DOM;
+	private vertical:DOM;
+	private searchInput:DOM;
+	private resultArea:DOM;
 
 	private pubchem:PubChemSearch = null;
 	private resultList:PubChemSearchResult[] = [];
 
 	private nameSelected = -1;
 	private nameList:string[] = [];
-	private nameDOM:JQuery[] = [];
+	private nameDOM:DOM[] = [];
 	private molSelected = -1;
 	private molList:wmk.Molecule[] = [];
-	private molDOM:JQuery[] = [];
+	private molDOM:DOM[] = [];
 
 	private callbackSelect:(source?:LookupCompoundDialog) => void = null;
 
@@ -59,39 +59,37 @@ export class LookupCompoundDialog extends wmk.Dialog
 	// builds the dialog content
 	protected populate():void
 	{
-		let buttons = this.buttons(), body = this.body();
+		let buttons = this.buttonsDOM(), body = this.bodyDOM();
 
 		// top section
 
-		this.spanStatus = $('<span/>').appendTo(buttons);
-		buttons.append(' ');
+		this.spanStatus = dom('<span/>').appendTo(buttons);
+		buttons.appendText(' ');
 
-		buttons.append(this.btnClose);
+		buttons.append(this.domClose);
 
-		buttons.append(' ');
+		buttons.appendText(' ');
 
-		this.btnSearch = $('<button class="wmk-button wmk-button-primary">Search</button>').appendTo(buttons);
-		this.btnSearch.click(() => this.runSearch());
+		this.btnSearch = dom('<button class="wmk-button wmk-button-primary">Search</button>').appendTo(buttons);
+		this.btnSearch.onClick(() => this.runSearch());
 
-		buttons.append(' ');
+		buttons.appendText(' ');
 
-		this.btnApply = $('<button class="wmk-button wmk-button-default">Apply</button>').appendTo(buttons);
-		this.btnApply.click(() => this.applyResult());
-		this.btnApply.prop('disabled', true);
+		this.btnApply = dom('<button class="wmk-button wmk-button-default">Apply</button>').appendTo(buttons);
+		this.btnApply.onClick(() => this.applyResult());
+		this.btnApply.elInput.disabled = true;
 
 		// main section
 
-		body.css('padding', '0 0 0 0.5em');
-		this.vertical = $('<div/>').appendTo(body);
-		this.vertical.css('overflow-y', 'scroll');
-		this.vertical.css('height', '100%');
-		this.vertical.css('max-height', (this.parentSize[1] - 200) + 'px');
-		this.vertical.css('padding-right', '18px');
-		this.vertical.css('padding-bottom', '10px');
+		body.css({'padding': '0 0 0 0.5em'});
+		this.vertical = dom('<div/>').appendTo(body);
+		this.vertical.css({'overflow-y': 'scroll', 'height': '100%'});
+		this.vertical.css({'max-height': (this.parentSize[1] - 200) + 'px'});
+		this.vertical.css({'padding-right': '18px', 'padding-bottom': '10px'});
 
 		this.populateSearchEntry();
 
-		this.resultArea = $('<div/>').appendTo(this.vertical);
+		this.resultArea = dom('<div/>').appendTo(this.vertical);
 
 		if (this.searchText) this.runSearch(); // auto-start
 	}
@@ -116,31 +114,20 @@ export class LookupCompoundDialog extends wmk.Dialog
 
 	private populateSearchEntry():void
 	{
-		let grid = $('<div/>').appendTo(this.vertical);
-		grid.css('display', 'grid');
-		grid.css('width', '100%');
-		grid.css('margin', '0.5em 0 0.5em 0');
-		grid.css('align-items', 'center');
-		grid.css('justify-content', 'start');
-		grid.css('grid-row-gap', '0.5em');
-		grid.css('grid-template-columns', '[start field] max-content [value] 1fr [end]');
+		let grid = dom('<div/>').appendTo(this.vertical).css({'display': 'grid'});
+		grid.css({'width': '100%', 'margin': '0.5em 0 0.5em 0'});
+		grid.css({'align-items': 'center', 'justify-content': 'start', 'grid-row-gap': '0.5em'});
+		grid.css({'grid-template-columns': '[start field] max-content [value] 1fr [end]'});
 
-		let divLabel = $('<div/>').appendTo(grid);
-		divLabel.css('grid-column', 'field');
-		divLabel.css('grid-row', '1');
-		divLabel.css('padding-right', '0.5em');
-		divLabel.text('Name:');
+		let divLabel = dom('<div/>').appendTo(grid).css({'grid-column': 'field', 'grid-row': '1', 'padding-right': '0.5em'});
+		divLabel.setText('Name:');
 
-		let divInput = $('<div/>').appendTo(grid);
-		divInput.css('grid-column', 'value');
-		divInput.css('grid-row', '1');
-		this.searchInput = $('<input/>').appendTo(divInput);
-		this.searchInput.css('width', '100%');
-		this.searchInput.css('font', 'inherit');
-		this.searchInput.val(this.searchText);
-		this.searchInput.keydown((event:JQueryEventObject) => this.trapKeys(event));
+		let divInput = dom('<div/>').appendTo(grid).css({'grid-column': 'value', 'grid-row': '1'});
+		this.searchInput = dom('<input/>').appendTo(divInput).css({'width': '100%', 'font': 'inherit'});
+		this.searchInput.setValue(this.searchText);
+		this.searchInput.onKeyDown((event) => this.trapKeys(event));
 
-		this.searchInput.focus();
+		this.searchInput.grabFocus();
 	}
 
 	private runSearch():void
@@ -149,9 +136,9 @@ export class LookupCompoundDialog extends wmk.Dialog
 		this.resultArea.empty();
 		this.resultList = [];
 
-		this.spanStatus.text('Searching...');
+		this.spanStatus.setText('Searching...');
 
-		let text = this.searchInput.val().toString();
+		let text = this.searchInput.getValue();
 		if (!text) return;
 		this.pubchem = new PubChemSearch(text,
 			(result:PubChemSearchResult):void => this.gotResult(result),
@@ -169,19 +156,12 @@ export class LookupCompoundDialog extends wmk.Dialog
 	{
 		this.resultList.push(result);
 
-		let grid = $('<div/>').appendTo(this.resultArea);
-		grid.css('display', 'grid');
-		grid.css('width', '100%');
-		grid.css('margin', '0.5em 0 0.5em 0');
-		grid.css('align-items', 'top');
-		grid.css('justify-content', 'start');
-		grid.css('grid-row-gap', '0.5em');
-		grid.css('grid-template-columns', '[start molecule] max-content [names] 1fr [end]');
+		let grid = dom('<div/>').appendTo(this.resultArea).css({'display': 'grid'});
+		grid.css({'width': '100%', 'margin': '0.5em 0 0.5em 0', 'align-items': 'top', 'justify-content': 'start'});
+		grid.css({'grid-row-gap': '0.5em'});
+		grid.css({'grid-template-columns': '[start molecule] max-content [names] 1fr [end]'});
 
-		let divMol = $('<div/>').appendTo(grid);
-		divMol.css('grid-column', 'molecule');
-		divMol.css('grid-row', '1');
-		divMol.css('padding-right', '0.5em');
+		let divMol = dom('<div/>').appendTo(grid).css({'grid-column': 'molecule', 'grid-row': '1', 'padding-right': '0.5em'});
 
 		if (result.mol)
 		{
@@ -194,33 +174,29 @@ export class LookupCompoundDialog extends wmk.Dialog
 			new wmk.DrawMolecule(layout, gfx).draw();
 			gfx.normalise();
 
-			let svg = $(gfx.createSVG()).appendTo(divMol);
-			svg.css('display', 'inline-block');
+			let svg = dom(gfx.createSVG()).appendTo(divMol).css({'display': 'inline-block'});
 			svg.addClass('mixtures-lookupcompound-unselected');
 
 			const idx = this.molList.length;
-			svg.click(() => this.selectMolecule(idx));
+			svg.onClick(() => this.selectMolecule(idx));
 
 			this.molList.push(result.mol);
 			this.molDOM.push(svg);
 		}
-		else divMol.text('(no structure)');
+		else divMol.setText('(no structure)');
 
-		let divName = $('<div/>').appendTo(grid);
-		divName.css('grid-column', 'names');
-		divName.css('grid-row', '1');
-		divName.css('padding-right', '0.5em');
+		let divName = dom('<div/>').appendTo(grid).css({'grid-column': 'names', 'grid-row': '1', 'padding-right': '0.5em'});
 
-		if (result.names.length == 0) divName.text('(no names)');
+		if (result.names.length == 0) divName.setText('(no names)');
 		else for (let name of result.names)
 		{
-			let div = $('<div/>').appendTo(divName);
-			let span = $('<span/>').appendTo(div);
+			let div = dom('<div/>').appendTo(divName);
+			let span = dom('<span/>').appendTo(div);
 			span.addClass('mixtures-lookupcompound-unselected');
-			span.text(name);
+			span.setText(name);
 
 			const idx = this.nameList.length;
-			div.click(() => this.selectName(idx));
+			div.onClick(() => this.selectName(idx));
 
 			this.nameList.push(name);
 			this.nameDOM.push(span);
@@ -229,17 +205,17 @@ export class LookupCompoundDialog extends wmk.Dialog
 
 	private finishedSearch(err:string):void
 	{
-		this.spanStatus.text('');
+		this.spanStatus.setText('');
 
 		if (err) alert('Search failed: ' + err);
 		else if (this.resultList.length == 0)
 		{
 			this.resultArea.empty();
-			this.resultArea.text('Nothing found.');
+			this.resultArea.setText('Nothing found.');
 		}
 	}
 
-	private trapKeys(event:JQueryEventObject):void
+	private trapKeys(event:KeyboardEvent):void
 	{
 		if (event.keyCode == 27)
 		{
@@ -262,7 +238,7 @@ export class LookupCompoundDialog extends wmk.Dialog
 		if (idx >= 0) this.nameDOM[idx].addClass('mixtures-lookupcompound-selected');
 		this.nameSelected = idx;
 
-		this.btnApply.prop('disabled', this.nameSelected < 0 && this.molSelected < 0);
+		this.btnApply.elInput.disabled = this.nameSelected < 0 && this.molSelected < 0;
 	}
 
 	private selectMolecule(idx:number):void
@@ -274,7 +250,7 @@ export class LookupCompoundDialog extends wmk.Dialog
 		if (idx >= 0) this.molDOM[idx].addClass('mixtures-lookupcompound-selected');
 		this.molSelected = idx;
 
-		this.btnApply.prop('disabled', this.nameSelected < 0 && this.molSelected < 0);
+		this.btnApply.elInput.disabled = this.nameSelected < 0 && this.molSelected < 0;
 	}
 
 	// one-time instantiation of necessary styles

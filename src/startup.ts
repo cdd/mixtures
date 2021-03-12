@@ -26,8 +26,7 @@ let BASE_APP = ''; // base URL location for the app's program files (could be UR
 
 export function runMixfileEditor(resURL:string, rootID:string):void
 {
-	$ = (window as any)['$'] || require('./jquery.js');
-	let root = $('#' + rootID);
+	let root = DOM.find('#' + rootID);
 
 	ON_DESKTOP = true;
 	wmk.initWebMolKit(resURL);
@@ -75,7 +74,7 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 
 	let proxyMenu = new wmk.MenuProxy();
 	proxyMenu.hasContextMenu = () => true;
-	proxyMenu.openContextMenu = (menuItems:wmk.MenuProxyContext[], event:JQueryMouseEventObject) =>
+	proxyMenu.openContextMenu = (menuItems:wmk.MenuProxyContext[], event:MouseEvent) =>
 	{
 		let populate = (emenu:Electron.Menu, itemList:wmk.MenuProxyContext[]):void =>
 		{

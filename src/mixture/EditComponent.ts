@@ -31,24 +31,24 @@ export class EditComponent extends wmk.Dialog
 
 	private component:MixfileComponent;
 
-	//private btnClear:JQuery;
-	private btnSketch:JQuery;
-	private btnPaste:JQuery;
-	private btnCopy:JQuery;
-	private btnSave:JQuery;
+	//private btnClear:DOM;
+	private btnSketch:DOM;
+	private btnPaste:DOM;
+	private btnCopy:DOM;
+	private btnSave:DOM;
 
 	//private sketcher:wmk.Sketcher;
-	private lineName:JQuery;
+	private lineName:DOM;
 	private optQuantType:wmk.OptionList;
-	private dropQuantRel:JQuery;
-	private lineQuantVal1:JQuery;
-	private lineQuantVal2:JQuery;
-	private dropQuantUnits:JQuery;
-	private areaDescr:JQuery = null;
-	private areaSyn:JQuery = null;
-	private lineFormula:JQuery;
-	private lineInChI:JQuery;
-	private lineSMILES:JQuery;
+	private dropQuantRel:DOM;
+	private lineQuantVal1:DOM;
+	private lineQuantVal2:DOM;
+	private dropQuantUnits:DOM;
+	private areaDescr:DOM = null;
+	private areaSyn:DOM = null;
+	private lineFormula:DOM;
+	private lineInChI:DOM;
+	private lineSMILES:DOM;
 
 	private unitValues:string[];
 	private unitLabels:string[];
@@ -60,7 +60,7 @@ export class EditComponent extends wmk.Dialog
 
 	// ------------ public methods ------------
 
-	constructor(component:MixfileComponent, private parentSize:[number, number], parent:JQuery = null)
+	constructor(component:MixfileComponent, private parentSize:[number, number], parent:DOM = null)
 	{
 		super(parent);
 
@@ -89,29 +89,29 @@ export class EditComponent extends wmk.Dialog
 	{
 		if (this.proxyClip) this.proxyClip.pushHandler(new wmk.ClipboardProxyHandler());
 
-		let buttons = this.buttons(), body = this.body();
+		let buttons = this.buttonsDOM(), body = this.bodyDOM();
 
 		// top section
 
 		if (this.callbackSketch)
 		{
-			this.btnSketch = $('<button class="wmk-button wmk-button-default">Sketch</button>').appendTo(buttons);
-			this.btnSketch.click(() => this.invokeSketcher());
+			this.btnSketch = dom('<button class="wmk-button wmk-button-default">Sketch</button>').appendTo(buttons);
+			this.btnSketch.onClick(() => this.invokeSketcher());
 		}
 
-		buttons.append(' ');
-		buttons.append(this.btnClose); // easy way to reorder
+		buttons.appendText(' ');
+		buttons.append(this.domClose); // easy way to reorder
 
-		buttons.append(' ');
-		this.btnSave = $('<button class="wmk-button wmk-button-primary">Save</button>').appendTo(buttons);
-		this.btnSave.click(() => this.saveAndClose());
+		buttons.appendText(' ');
+		this.btnSave = dom('<button class="wmk-button wmk-button-primary">Save</button>').appendTo(buttons);
+		this.btnSave.onClick(() => this.saveAndClose());
 
 		// main section
 
-		body.css('padding', '0 0 0 1em');
-		let vertical = $('<div/>').appendTo(body);
+		body.css({'padding': '0 0 0 1em'});
+		let vertical = dom('<div/>').appendTo(body);
 		vertical.css({'overflow-y': 'scroll', 'height': '100%'});
-		vertical.css('max-height', this.parentSize[1] + 'px');
+		vertical.css({'max-height': this.parentSize[1] + 'px'});
 		vertical.css({'padding-right': '18px', 'padding-bottom': '10px'});
 
 		// first batch of fields
@@ -120,10 +120,10 @@ export class EditComponent extends wmk.Dialog
 
 		this.createFieldName(grid1, 1, 'Name', false);
 		this.lineName = this.createValueLine(grid1, 1);
-		this.lineName.val(this.component.name);
+		this.lineName.setValue(this.component.name);
 
 		this.createFieldName(grid1, 2, 'Quantity', false);
-		let divQuant = $('<div/>').appendTo(grid1);
+		let divQuant = dom('<div/>').appendTo(grid1);
 		divQuant.css({'grid-column': 'value', 'grid-row': '2'});
 		this.createQuantity(divQuant);
 
@@ -133,8 +133,8 @@ export class EditComponent extends wmk.Dialog
 		this.createFieldName(grid1, 4, 'Synonyms', true);
 		this.areaSyn = this.createValueMultiline(grid1, 4);
 
-		this.areaDescr.val(this.component.description);
-		if (this.component.synonyms) this.areaSyn.val(this.component.synonyms.join('\n'));
+		this.areaDescr.setValue(this.component.description);
+		if (this.component.synonyms) this.areaSyn.setValue(this.component.synonyms.join('\n'));
 
 		// second batch of fields
 
@@ -143,36 +143,36 @@ export class EditComponent extends wmk.Dialog
 
 		this.createFieldName(grid2, ++row, 'Formula', false);
 		this.lineFormula = this.createValueLine(grid2, row);
-		this.lineFormula.val(this.component.formula);
+		this.lineFormula.setValue(this.component.formula);
 
 		this.createFieldName(grid2, ++row, 'InChI', false);
 		this.lineInChI = this.createValueLine(grid2, row);
-		this.lineInChI.val(this.component.inchi);
+		this.lineInChI.setValue(this.component.inchi);
 
 		if (InChI.isAvailable() && this.component.molfile)
 		{
 			let div = this.createDiv(grid2, ++row);
-			let btn = $('<button class="wmk-button wmk-button-default">Calculate from Structure</button>').appendTo(div);
-			btn.click(() => this.calculateInChI().then());
+			let btn = dom('<button class="wmk-button wmk-button-default">Calculate from Structure</button>').appendTo(div);
+			btn.onClick(() => {this.calculateInChI().then();});
 		}
 
 		this.createFieldName(grid2, ++row, 'SMILES', false);
 		this.lineSMILES = this.createValueLine(grid2, row);
-		this.lineSMILES.val(this.component.smiles);
+		this.lineSMILES.setValue(this.component.smiles);
 
 		this.createFieldName(grid2, ++row, 'Identifiers', true);
 		let editIdentifiers = new KeyValueWidget(this.component.identifiers, (dict) =>
 		{
 			this.component.identifiers = dict;
 		});
-		editIdentifiers.render($('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
+		editIdentifiers.render(dom('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
 
 		this.createFieldName(grid2, ++row, 'Links', true);
 		let editLinks = new KeyValueWidget(this.component.links, (dict) =>
 		{
 			this.component.links = dict;
 		});
-		editLinks.render($('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
+		editLinks.render(dom('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
 
 		/* NOTE temporarily deactivated: to be switched on once built-in ontologies have been
 		   fleshed out a bit more, rather than just placeholders...
@@ -181,13 +181,13 @@ export class EditComponent extends wmk.Dialog
 		{
 			this.component.metadata = Vec.notBlank(metadata) ? metadata : undefined;
 		});
-		editMetadata.render($('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));*/
+		editMetadata.render(dom('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));*/
 
-		this.lineName.focus();
+		this.lineName.grabFocus();
 
-		body.find('input').keydown((event:JQueryEventObject) => this.trapEscape(event, true));
-		body.find('textarea').keydown((event:JQueryEventObject) => this.trapEscape(event, false));
-		body.find('input,textarea').prop('spellcheck', false);
+		for (let dom of body.findAll('input')) dom.onKeyDown((event) => this.trapEscape(event, true));
+		for (let dom of body.findAll('textarea')) dom.onKeyDown((event) => this.trapEscape(event, false));
+		for (let dom of body.findAll('input,textarea')) dom.elInput.spellcheck = false;
 	}
 
 	public close():void
@@ -220,11 +220,11 @@ export class EditComponent extends wmk.Dialog
 			return dict;
 		};
 
-		this.component.name = nullifyBlank(this.lineName.val().toString());
+		this.component.name = nullifyBlank(this.lineName.getValue());
 
 		let qtype = this.optQuantType.getSelectedValue();
 		[this.component.ratio, this.component.quantity, this.component.error] = [null, null, null];
-		let strQuant1 = this.lineQuantVal1.val().toString().trim(), strQuant2 = this.lineQuantVal2.val().toString().trim();
+		let strQuant1 = this.lineQuantVal1.getValue().trim(), strQuant2 = this.lineQuantVal2.getValue().trim();
 		if (qtype == QuantityType.Value)
 		{
 			if (strQuant1) this.component.quantity = parseFloat(strQuant1);
@@ -251,13 +251,13 @@ export class EditComponent extends wmk.Dialog
 			this.component.relation = null;
 		}
 
-		if (this.areaDescr) this.component.description = nullifyBlank(this.areaDescr.val().toString());
+		if (this.areaDescr) this.component.description = nullifyBlank(this.areaDescr.getValue());
 
-		this.component.synonyms = splitLines(this.areaSyn.val().toString());
+		this.component.synonyms = splitLines(this.areaSyn.getValue());
 
-		this.component.formula = nullifyBlank(this.lineFormula.val().toString());
-		this.component.inchi = nullifyBlank(this.lineInChI.val().toString());
-		this.component.smiles = nullifyBlank(this.lineSMILES.val().toString());
+		this.component.formula = nullifyBlank(this.lineFormula.getValue());
+		this.component.inchi = nullifyBlank(this.lineInChI.getValue());
+		this.component.smiles = nullifyBlank(this.lineSMILES.getValue());
 
 		// remove explicit nulls, for clarity
 		//Object.keys(this.component).forEach((key:string) => {if ((<any>this.component)[key] == null) delete (<any>this.component)[key];});
@@ -274,59 +274,52 @@ export class EditComponent extends wmk.Dialog
 	}
 
 	// creates a 2-column grid for field/value entry
-	private fieldGrid():JQuery
+	private fieldGrid():DOM
 	{
-		let div = $('<div/>').css({'display': 'grid', 'width': '100%', 'margin': '1em 0 1em 0'});
-		div.css('align-items', 'center'); // would be 'baseline', but breaks with textarea
-		div.css('justify-content', 'start');
-		div.css('grid-row-gap', '0.5em');
-		div.css('grid-template-columns', '[start field] max-content [value] 1fr [end]');
+		let div = dom('<div/>').css({'display': 'grid', 'width': '100%', 'margin': '1em 0 1em 0'});
+		div.css({'align-items': 'center'}); // would be 'baseline', but breaks with textarea
+		div.css({'justify-content': 'start', 'grid-row-gap': '0.5em'});
+		div.css({'grid-template-columns': '[start field] max-content [value] 1fr [end]'});
 		return div;
 	}
 
 	// creates a field name for inclusion in the grid
-	private createFieldName(parent:JQuery, row:number, text:string, topAlign:boolean):JQuery
+	private createFieldName(parent:DOM, row:number, text:string, topAlign:boolean):DOM
 	{
-		let div = $('<div/>').appendTo(parent);
-		div.css('grid-column', 'field');
-		div.css('grid-row', row.toString());
-		div.css('align-self', topAlign ? 'baseline' : 'center');
-		if (topAlign) div.css('padding-top', '0.2em'); // baseline fudge
-		div.css('padding-right', '0.5em');
-		div.css('font-weight', 'bold');
-		div.text(text);
+		let div = dom('<div/>').appendTo(parent);
+		div.css({'grid-column': 'field', 'grid-row': row.toString(), 'align-self': topAlign ? 'baseline' : 'center'});
+		if (topAlign) div.css({'padding-top': '0.2em'}); // baseline fudge
+		div.css({'padding-right': '0.5em', 'font-weight': 'bold'});
+		div.setText(text);
 		return div;
 	}
 
 	// returns single/multi-line editors
-	private createValueLine(parent:JQuery, row:number):JQuery
+	private createValueLine(parent:DOM, row:number):DOM
 	{
-		let div = $('<div/>').appendTo(parent);
-		div.css({'grid-area': `${row} / value`});
-		let input = $('<input/>').appendTo(div);
+		let div = dom('<div/>').appendTo(parent).css({'grid-area': `${row} / value`});
+		let input = dom('<input/>').appendTo(div);
 		input.css({'width': '100%', 'padding': '0', 'font': 'inherit'});
 		return input;
 	}
-	private createValueMultiline(parent:JQuery, row:number):JQuery
+	private createValueMultiline(parent:DOM, row:number):DOM
 	{
-		let div = $('<div/>').appendTo(parent);
-		div.css({'grid-area': `${row} / value`});
-		let area = $('<textarea/>').appendTo(div);
-		area.attr('rows', '5');
+		let div = dom('<div/>').appendTo(parent).css({'grid-area': `${row} / value`});
+		let area = dom('<textarea/>').appendTo(div);
+		area.attr({'rows': '5'});
 		area.css({'width': '100%', 'padding': '0', 'font': 'inherit'});
 		return area;
 	}
 
-	private createDiv(parent:JQuery, row:number):JQuery
+	private createDiv(parent:DOM, row:number):DOM
 	{
-		let div = $('<div/>').appendTo(parent);
-		div.css('grid-column', 'value');
-		div.css('grid-row', row.toString());
+		let div = dom('<div/>').appendTo(parent);
+		div.css({'grid-column': 'value', 'grid-row': row.toString()});
 		return div;
 	}
 
 	// make it so that line/text entry boxes trap the escape key to close the dialog box
-	private trapEscape(event:JQueryEventObject, andEnter:boolean):void
+	private trapEscape(event:KeyboardEvent, andEnter:boolean):void
 	{
 		if (event.keyCode == 27)
 		{
@@ -344,11 +337,11 @@ export class EditComponent extends wmk.Dialog
 	}
 
 	// creates the quantity data entry objects, which are somewhat fiddly and multistate
-	private createQuantity(parent:JQuery):void
+	private createQuantity(parent:DOM):void
 	{
-		let flex = $('<div/>').appendTo(parent);
+		let flex = dom('<div/>').appendTo(parent);
 		flex.css({'display': 'flex', 'align-items': 'center'});
-		let box = ():JQuery => $('<div style="padding-left: 0.5em;"/>').appendTo(flex);
+		let box = ():DOM => dom('<div style="padding-left: 0.5em;"/>').appendTo(flex);
 
 		this.optQuantType = new wmk.OptionList([QuantityType.Value, QuantityType.Range, QuantityType.Ratio]);
 		this.optQuantType.render(flex);
@@ -356,17 +349,16 @@ export class EditComponent extends wmk.Dialog
 		this.dropQuantRel = this.makeDropdownGroup(box(), this.component.relation, RELATION_VALUES, RELATION_LABELS,
 									(value:string, label:string) => {this.component.relation = value;});
 
-		this.lineQuantVal1 = $('<input/>').appendTo(box());
-		this.lineQuantVal1.attr('size', '10');
-		this.lineQuantVal1.css('font', 'inherit');
-		this.lineQuantVal1.change(() => this.interpretQuantString());
+		this.lineQuantVal1 = dom('<input/>').appendTo(box());
+		this.lineQuantVal1.attr({'size': '10'});
+		this.lineQuantVal1.css({'font': 'inherit'});
+		this.lineQuantVal1.onChange(() => this.interpretQuantString());
 
-		let spanGap = $('<span/>').appendTo(flex);
-		spanGap.css('padding', '0 0.5em 0 0.5em');
+		let spanGap = dom('<span/>').appendTo(flex).css({'padding': '0 0.5em 0 0.5em'});
 
-		this.lineQuantVal2 = $('<input/>').appendTo(box());
-		this.lineQuantVal2.attr('size', '10');
-		this.lineQuantVal2.css('font', 'inherit');
+		this.lineQuantVal2 = dom('<input/>').appendTo(box());
+		this.lineQuantVal2.attr({'size': '10'});
+		this.lineQuantVal2.css({'font': 'inherit'});
 
 		this.unitValues = Vec.prepend(Units.standardList(), '');
 		this.unitLabels = Vec.prepend(Units.commonNames(), '');
@@ -375,21 +367,21 @@ export class EditComponent extends wmk.Dialog
 
 		let changeToValue = ():void =>
 		{
-			this.dropQuantRel.css('display', 'block');
-			spanGap.html('&plusmn;');
-			this.dropQuantUnits.css('display', 'block');
+			this.dropQuantRel.setCSS('display', 'block');
+			spanGap.setHTML('&plusmn;');
+			this.dropQuantUnits.setCSS('display', 'block');
 		};
 		let changeToRange = ():void =>
 		{
-			this.dropQuantRel.css('display', 'none');
-			spanGap.html('to');
-			this.dropQuantUnits.css('display', 'block');
+			this.dropQuantRel.setCSS('display', 'none');
+			spanGap.setHTML('to');
+			this.dropQuantUnits.setCSS('display', 'block');
 		};
 		let changeToRatio = ():void =>
 		{
-			this.dropQuantRel.css('display', 'none');
-			spanGap.html('/');
-			this.dropQuantUnits.css('display', 'none');
+			this.dropQuantRel.setCSS('display', 'none');
+			spanGap.setHTML('/');
+			this.dropQuantUnits.setCSS('display', 'none');
 		};
 
 		if (this.component.ratio != null)
@@ -398,8 +390,8 @@ export class EditComponent extends wmk.Dialog
 			if (this.component.ratio)
 			{
 				let [numer, denom] = this.component.ratio;
-				this.lineQuantVal1.val(numer.toString());
-				this.lineQuantVal2.val(denom.toString());
+				this.lineQuantVal1.setValue(numer.toString());
+				this.lineQuantVal2.setValue(denom.toString());
 			}
 			changeToRatio();
 		}
@@ -407,15 +399,15 @@ export class EditComponent extends wmk.Dialog
 		{
 			this.optQuantType.setSelectedValue(QuantityType.Range);
 			let [low, high] = this.component.quantity;
-			if (low != null) this.lineQuantVal1.val(low.toString());
-			if (high != null) this.lineQuantVal2.val(high.toString());
+			if (low != null) this.lineQuantVal1.setValue(low.toString());
+			if (high != null) this.lineQuantVal2.setValue(high.toString());
 			changeToRange();
 		}
 		else
 		{
 			this.optQuantType.setSelectedValue(QuantityType.Value);
-			if (this.component.quantity != null) this.lineQuantVal1.val(this.component.quantity.toString());
-			if (this.component.error != null) this.lineQuantVal2.val(this.component.error.toString());
+			if (this.component.quantity != null) this.lineQuantVal1.setValue(this.component.quantity.toString());
+			if (this.component.error != null) this.lineQuantVal2.setValue(this.component.error.toString());
 			changeToValue();
 		}
 
@@ -428,18 +420,18 @@ export class EditComponent extends wmk.Dialog
 	}
 
 	// creates a dropdown list with a prescribed list of choices; the first one will be selected if current matches nothing
-	private makeDropdownGroup(parent:JQuery, current:string, values:string[], labels:string[], changeFunc:(value:string, label:string) => void):JQuery
+	private makeDropdownGroup(parent:DOM, current:string, values:string[], labels:string[], changeFunc:(value:string, label:string) => void):DOM
 	{
-		let drop = $('<select/>').appendTo(parent);
-		drop.css('height', '2.3em');
+		let drop = dom('<select/>').appendTo(parent);
+		drop.css({'height': '2.3em'});
 		for (let n = 0; n < values.length; n++)
 		{
-			let opt = $('<option/>').appendTo(drop);
-			opt.attr('value', n.toString());
-			opt.html(labels[n]);
-			if (current == values[n] || current == labels[n]) opt.attr('selected', 'true');
+			let opt = dom('<option/>').appendTo(drop);
+			opt.setAttr('value', n.toString());
+			opt.setHTML(labels[n]);
+			if (current == values[n] || current == labels[n]) opt.setAttr('selected', 'true');
 		}
-		drop.change(() => {let idx = parseInt(drop.val().toString()); changeFunc(values[idx], labels[idx]);});
+		drop.onChange(() => {let idx = parseInt(drop.getValue()); changeFunc(values[idx], labels[idx]);});
 		return drop;
 	}
 
@@ -447,7 +439,7 @@ export class EditComponent extends wmk.Dialog
 	// a more complete description, e.g. quantity *and* units; returns true if it did something interesting
 	private interpretQuantString():boolean
 	{
-		let qstr = (this.lineQuantVal1.val() as string).trim();
+		let qstr = this.lineQuantVal1.getValue().trim();
 
 		// scrape out any "relation" properties from the beginning first of all
 		let rel = '';
@@ -512,11 +504,11 @@ export class EditComponent extends wmk.Dialog
 		}
 
 		this.optQuantType.setSelectedValue(qtype);
-		this.dropQuantRel.val(Math.max(0, RELATION_VALUES.indexOf(rel)).toString());
-		this.lineQuantVal1.val(qnum1);
-		this.lineQuantVal2.val(qnum2);
+		this.dropQuantRel.setValue(Math.max(0, RELATION_VALUES.indexOf(rel)).toString());
+		this.lineQuantVal1.setValue(qnum1);
+		this.lineQuantVal2.setValue(qnum2);
 		let uidx = Math.max(this.unitValues.indexOf(units), 0);
-		this.dropQuantUnits.val(uidx.toString());
+		this.dropQuantUnits.setValue(uidx.toString());
 		this.component.units = this.unitLabels[uidx];
 		return true;
 	}
@@ -536,7 +528,7 @@ export class EditComponent extends wmk.Dialog
 		try
 		{
 			let inchi = await InChI.makeInChI(mol);
-			this.lineInChI.val(inchi);
+			this.lineInChI.setValue(inchi);
 		}
 		catch (ex) {alert('InChI generation failed: ' + ex);}
 	}

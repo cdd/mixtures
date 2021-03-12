@@ -58,13 +58,23 @@ export interface MenuBannerButton
 	width?:number; // optional width override
 }
 
+const CSS_MENUBANNER = `
+	*.mixtures-menubanner-button:hover
+	{
+		background-color: #D0D0D0;
+	}
+	*.mixtures-menubanner-button:active
+	{
+		background-color: #C0C0C0;
+	}
+`;
 export class MenuBanner
 {
 	public callbackRefocus:() => void = null;
 
-	private divFlex:JQuery;
-	private mapDiv:Record<string, JQuery> = {};
-	private mapSVG:Record<string, JQuery> = {};
+	private divFlex:DOM;
+	private mapDiv:Record<string, DOM> = {};
+	private mapSVG:Record<string, DOM> = {};
 	private mapActive:Record<string, boolean> = {};
 	private selected = new Set<string>();
 
@@ -72,12 +82,13 @@ export class MenuBanner
 
 	constructor(private commands:MenuBannerButton[][], private onAction:(cmd:string) => void)
 	{
+		wmk.installInlineCSS('mixtures-menubanner', CSS_MENUBANNER);
 	}
 
-	public render(domParent:JQuery):void
+	public render(domParent:DOM):void
 	{
 		domParent.empty();
-		this.divFlex = $('<div/>').appendTo(domParent).css({'display': 'flex', 'width': '100%', 'height': '100%'});
+		this.divFlex = dom('<div/>').appendTo(domParent).css({'display': 'flex', 'width': '100%', 'height': '100%'});
 		this.divFlex.css({'flex-direction': 'row', 'flex-wrap': 'nowrap', 'justify-content': 'space-around', 'align-items': 'center'});
 		//this.divFlex.css({'linear-gradient': '90deg, #F0F0F0, #808080'});
 		this.divFlex.css({'background': 'linear-gradient(to bottom, #FFFFFF, #C0C0C0)'});
@@ -87,7 +98,7 @@ export class MenuBanner
 
 		for (let blk of this.commands)
 		{
-			let divBlk = $('<div/>').appendTo(this.divFlex);
+			let divBlk = dom('<div/>').appendTo(this.divFlex);
 			for (let btn of blk)
 			{
 				let [div, svg] = this.createCommand(btn);
@@ -105,7 +116,7 @@ export class MenuBanner
 		for (let cmd in map)
 		{
 			let active = this.mapActive[cmd] = map[cmd];
-			this.mapSVG[cmd].css('opacity', active ? 1 : 0.5);
+			this.mapSVG[cmd].css({'opacity': active ? 1 : 0.5});
 		}
 	}
 
@@ -125,30 +136,31 @@ export class MenuBanner
 
 	// ------------ private methods ------------
 
-	private createCommand(btn:MenuBannerButton):JQuery[]
+	private createCommand(btn:MenuBannerButton):DOM[]
 	{
-		let div = $('<div/>').css({'display': 'inline-block'});
-		div.attr('id', 'mixtureEditor_btn_' + btn.icon.substring(0, btn.icon.lastIndexOf('.')));
+		let div = dom('<div/>').css({'display': 'inline-block'});
+		div.setAttr('id', 'mixtureEditor_btn_' + btn.icon.substring(0, btn.icon.lastIndexOf('.')));
 		let width = btn.width ? btn.width : 20;
 		div.css({'width': `${width}px`, 'height': '20px', 'margin': '2px', 'padding': '5px'});
 		div.css({'border-radius': '4px'});
-		if (this.selected.has(btn.cmd)) div.css('background-color', '#D0D0D0');
+		if (this.selected.has(btn.cmd)) div.css({'background-color': '#D0D0D0'});
 
 		let imgURL = wmk.Theme.RESOURCE_URL + '/img/icons/' + btn.icon;
-		let svg = $('<img/>').appendTo(div).attr({'src': imgURL});
+		let svg = dom('<img/>').appendTo(div).attr({'src': imgURL});
 
-		div.hover(
+		div.addClass('mixtures-menubanner-button');
+		/*div.onHover(
 			() =>
 			{
 				let col = this.selected.has(btn.cmd) ? '#D0D0D0' : this.mapActive[btn.cmd] ? '#C0C0C0' : 'transparent';
-				div.css('background-color', col);
+				div.setCSS('background-color', col);
 			},
 			() =>
 			{
 				let col = this.selected.has(btn.cmd) ? '#D0D0D0' : 'transparent';
-				div.css('background-color', col);
-			});
-		div.click(() =>
+				div.setCSS('background-color', col);
+			});*/
+		div.onClick(() =>
 		{
 			if (this.callbackRefocus) this.callbackRefocus();
 			if (!this.mapActive[btn.cmd]) return;

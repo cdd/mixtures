@@ -28,5 +28,7 @@ import colourCode = WebMolKit.colourCode;
 import TWOPI = WebMolKit.TWOPI;
 import norm_xy = WebMolKit.norm_xy; // eslint-disable-line
 import newElement = WebMolKit.newElement;
+import DOM = WebMolKit.DOM;
+import dom = WebMolKit.dom;
 
 ///<reference path='../decl/node.d.ts'/>
