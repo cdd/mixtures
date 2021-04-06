@@ -298,7 +298,8 @@ export class CollectionPanel extends MainPanel
 				});
 			}
 
-			this.divFooter.find('a,span').css({'margin-left': '0.25em', 'margin-right': '0.25em'});
+			//this.divFooter.find('a,span').css({'margin-left': '0.25em', 'margin-right': '0.25em'});
+			for (let dom of this.divFooter.findAll('a,span')) dom.css({'margin-left': '0.25em', 'margin-right': '0.25em'});
 
 			this.divFooter.appendText(` (${this.collection.count})`);
 		}
@@ -337,7 +338,7 @@ export class CollectionPanel extends MainPanel
 			divOuter.css({'display': 'inline-block'});
 		}
 
-		let divInner = dom('<div/>').appendTo(divOuter);
+		let divInner = dom('<div/>').appendTo(divOuter).css({'display': 'flex'});
 		divInner.css({'margin': '2px', 'padding': '2px', 'border-radius': '4px'});
 		divInner.css({'background-color': BG_NORMAL, 'border': '1px solid #808080'});
 
@@ -355,7 +356,10 @@ export class CollectionPanel extends MainPanel
 		gfx.drawText(0 + tpad, tpad, tag, fsz, 0xFFFFFF, wmk.TextAlign.Top | wmk.TextAlign.Left);
 
 		gfx.normalise();
-		let svg = dom(gfx.createSVG()).appendTo(divInner);
+		let wrapSVG = dom('<div/>').appendTo(divInner).css({'display': 'inline-block'});
+		dom(gfx.createSVG()).appendTo(wrapSVG).css({'display': 'block'});
+
+		if (this.viewType == CollectionPanelView.Detail) this.displayFields(dom('<div/>').appendTo(divInner), mixture);
 
 		return divInner;
 	}
@@ -369,13 +373,13 @@ export class CollectionPanel extends MainPanel
 
 	private changeSelection(idx:number):void
 	{
-		if (this.selected >= 0) 
+		if (this.selected >= 0)
 		{
 			let div = this.mapMixDiv.get(this.selected);
 			if (div) div.css({'background-color': BG_NORMAL});
 		}
 		this.selected = idx;
-		if (idx >= 0) 
+		if (idx >= 0)
 		{
 			let div = this.mapMixDiv.get(idx);
 			if (div) div.css({'background-color': BG_SELECTED});
@@ -623,6 +627,43 @@ export class CollectionPanel extends MainPanel
 	public zoomScale(scale?:number):void
 	{
 		// TODO
+	}
+
+	// render other fields that are encoded into the root branch of the mixture
+	private displayFields(domParent:DOM, mixture:Mixture):void
+	{
+		let items:[string, string][] = [];
+		let root = mixture.mixfile as Record<string, any>;
+		const SKIP = ['name', 'molfile', 'quantity', 'ratio', 'units', 'relation', 'mixfileVersion'];
+		for (let key in root) if (!SKIP.includes(key))
+		{
+			let val = root[key];
+			if (typeof val != 'string' && typeof val != 'number') continue;
+			items.push([key, val.toString()]);
+		}
+
+		if (items.length == 0) return;
+
+		items.sort((i1, i2) => i1[0].localeCompare(i2[0]));
+
+		domParent.css({'padding-left': '0.5em'});
+
+		let flex = dom('<div/>').appendTo(domParent).css({'display': 'flex'});
+		flex.css({'flex-direction': 'row', 'flex-wrap': 'wrap', 'justify-content': 'flex-start', 'align-items': 'flex-start'});
+
+		for (let [title, label] of items)
+		{
+			let div = dom('<div/>').appendTo(flex).css({'white-space': 'nowrap', 'margin': '0 0.2em 0.2em 0'});
+			let divTitle = dom('<div/>').appendTo(div).css({'display': 'inline-block', 'padding': '0.2em', 'background-color': '#C0C0C0', 'border': '1px solid black'});
+			let divLabel = dom('<div/>').appendTo(div).css({'display': 'inline-block', 'padding': '0.2em', 'background-color': '#F8F8F8', 'border': '1px solid black'});
+
+			divTitle.css({'border-right': 'none'});
+			divTitle.css({'border-radius': '0.2em 0 0 0.2em'});
+			divLabel.css({'border-radius': '0 0.2em 0.2em 0'});
+
+			divTitle.setText(title);
+			divLabel.setText(label);
+		}
 	}
 }
 

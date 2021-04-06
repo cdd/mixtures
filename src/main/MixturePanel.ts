@@ -283,6 +283,7 @@ export class MixturePanel extends MainPanel
 			if (lastDot > 0 && lastDot > defPath.lastIndexOf('/') && lastDot > defPath.lastIndexOf('\\')) defPath = defPath.substring(0, lastDot);
 			defPath += '.sdf';
 		}
+		else defPath = undefined;
 
 		let params:Electron.SaveDialogOptions =
 		{
@@ -315,6 +316,7 @@ export class MixturePanel extends MainPanel
 			if (lastDot > 0 && lastDot > defPath.lastIndexOf('/') && lastDot > defPath.lastIndexOf('\\')) defPath = defPath.substring(0, lastDot);
 			defPath += '.svg';
 		}
+		else defPath = undefined;
 
 		const electron = require('electron');
 		const dialog = electron.remote.dialog;

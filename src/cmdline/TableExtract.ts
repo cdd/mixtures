@@ -126,7 +126,7 @@ export class TableExtract
 			this.mappings.push(map);
 		}
 	}
-		
+
 	// merge in user-provided mappings
 	private customMapping(custom:TableExtractMapping[]):void
 	{
@@ -247,7 +247,7 @@ export class TableExtract
 			else if (map.type == TableExtractType.Property)
 			{
 				console.log('TODO: property'); // !! lookup aspects...
-			}	
+			}
 		}
 
 		// fill in any missing ratios
@@ -279,7 +279,7 @@ export class TableExtract
 				mixture.deleteComponent(origin);
 				continue;
 			}
-			
+
 			// may collapse singletons
 			if (Vec.arrayLength(comp.contents) != 1) continue;
 			for (let key in comp) if (key != 'contents' && (comp as any)[key]) continue skip;
