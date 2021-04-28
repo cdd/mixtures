@@ -14,8 +14,9 @@ const electron = require('electron');
 const {app, BrowserWindow} = electron;
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
-
 app.allowRendererProcessReuse = true;
+require('@electron/remote/main').initialize();
+
 app.on('window-all-closed', function() 
 {
 	if (process.platform != 'darwin') app.quit();
@@ -40,7 +41,7 @@ for (let n = 0; n < argv.length; n++)
 }
 if (files.length == 0) files.push(null);
 
-const WEBPREF = {'nodeIntegration': true, 'enableRemoteModule': true};
+const WEBPREF = {'nodeIntegration': true, 'contextIsolation': false, 'enableRemoteModule': true, 'spellcheck': false};
 const BROWSER_PARAMS = {'width': 900, 'height': 800, 'icon': __dirname + '/img/icon.png', 'webPreferences': WEBPREF};
 const INIT_URL = 'file://' + __dirname + '/index.html';
 

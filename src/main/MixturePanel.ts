@@ -199,8 +199,9 @@ export class MixturePanel extends MainPanel
 	protected actionFileOpen():void
 	{
 		const electron = require('electron');
-		const dialog = electron.remote.dialog;
-		let params:any =
+		const remote:Electron.Remote = require('@electron/remote');
+		const dialog = remote.dialog;
+		let params:Electron.OpenDialogOptions =
 		{
 			'title': 'Open Mixture',
 			'properties': ['openFile'],
@@ -244,7 +245,8 @@ export class MixturePanel extends MainPanel
 		if (this.editor.isBlank()) return;
 
 		const electron = require('electron');
-		const dialog = electron.remote.dialog;
+		const remote:Electron.Remote = require('@electron/remote');
+		const dialog = remote.dialog;
 		let params:Electron.SaveDialogOptions =
 		{
 			'title': 'Save Mixfile',
@@ -274,7 +276,8 @@ export class MixturePanel extends MainPanel
 		let sdfile = exportSDF.write();
 
 		const electron = require('electron'), fs = require('fs');
-		const dialog = electron.remote.dialog;
+		const remote:Electron.Remote = require('@electron/remote');
+		const dialog = remote.dialog;
 
 		let defPath = this.filename;
 		if (defPath)
@@ -319,7 +322,8 @@ export class MixturePanel extends MainPanel
 		else defPath = undefined;
 
 		const electron = require('electron');
-		const dialog = electron.remote.dialog;
+		const remote:Electron.Remote = require('@electron/remote');
+		const dialog = remote.dialog;
 		let params:Electron.SaveDialogOptions =
 		{
 			'title': 'Save SVG Diagram',

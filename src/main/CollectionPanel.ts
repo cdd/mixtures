@@ -115,13 +115,18 @@ export class CollectionPanel extends MainPanel
 	{
 		if (!filename)
 		{
+			this.setCollection(new MixtureCollection());
+			return;
+		}
+		/*if (!filename)
+		{
 			this.editor.clearHistory();
 			this.editor.setMixture(new Mixture(), true, true);
 			this.updateTitle();
 			this.filename = null;
 			this.isDirty = false;
 			return;
-		}
+		}*/
 
 		const fs = require('fs');
 		fs.readFile(filename, 'utf-8', (err:any, data:string):void =>
@@ -389,7 +394,8 @@ export class CollectionPanel extends MainPanel
 	protected actionFileOpen():void
 	{
 		const electron = require('electron');
-		const dialog = electron.remote.dialog;
+		const remote:Electron.Remote = require('@electron/remote');
+		const dialog = remote.dialog;
 		let params:any =
 		{
 			'title': 'Open Mixtures',
@@ -431,7 +437,8 @@ export class CollectionPanel extends MainPanel
 	protected actionFileSaveAs():void
 	{
 		const electron = require('electron');
-		const dialog = electron.remote.dialog;
+		const remote:Electron.Remote = require('@electron/remote');
+		const dialog = remote.dialog;
 		let params:any =
 		{
 			'title': 'Save Mixfile Collection',

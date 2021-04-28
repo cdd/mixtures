@@ -44,7 +44,7 @@ export class EditMixtureWeb extends EditMixture
 		event.preventDefault();
 		if (!this.isReceivingCommands()) return;
 
-		let [x, y] = eventCoords(event, this.content);
+		let [x, y] = eventCoords(event, this.contentDOM);
 		let idx = this.pickComponent(x, y);
 
 		this.selectedIndex = idx;

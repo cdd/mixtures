@@ -33,7 +33,7 @@ export class InChI
 	{
 		if (!ON_DESKTOP) return;
 
-		this.remote = require('electron').remote;
+		this.remote = require('@electron/remote');
 		this.inchiPath = this.remote.getGlobal('INCHI_EXEC');
 	
 		if (this.inchiPath)

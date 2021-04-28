@@ -41,6 +41,7 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 	const path = require('path');
 	const electron = require('electron');
 	const process = require('process');
+	const remote:Electron.Remote = require('@electron/remote');
 
 	process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
 
@@ -80,21 +81,21 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 		{
 			for (let item of itemList)
 			{
-				if (!item || !item.label) emenu.append(new electron.remote.MenuItem({'type': 'separator'}));
-				else if (item.click) emenu.append(new electron.remote.MenuItem(item));
+				if (!item || !item.label) emenu.append(new remote.MenuItem({'type': 'separator'}));
+				else if (item.click) emenu.append(new remote.MenuItem(item));
 				else if (item.subMenu)
 				{
-					let subMenu = new electron.remote.Menu();
+					let subMenu = new remote.Menu();
 					populate(subMenu, item.subMenu);
-					emenu.append(new electron.remote.MenuItem({'label': item.label, 'submenu': subMenu}));
+					emenu.append(new remote.MenuItem({'label': item.label, 'submenu': subMenu}));
 				}
 			}
 		};
 
-		let menu = new electron.remote.Menu();
+		let menu = new remote.Menu();
 		populate(menu, menuItems);
 
-		menu.popup({'window': electron.remote.getCurrentWindow()});
+		menu.popup({'window': remote.getCurrentWindow()});
 	};
 
 	let main:MainPanel;
@@ -119,9 +120,11 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 export function openNewWindow(panelClass:string, filename?:string):void
 {
 	const electron = require('electron');
-	const WEBPREF = {'nodeIntegration': true, 'enableRemoteModule': true};
+	const remote:Electron.Remote = require('@electron/remote');
+
+	const WEBPREF = {'nodeIntegration': true, 'contextIsolation': false, 'enableRemoteModule': true, 'spellcheck': false};
 	let iconFN = __dirname + '/img/icon.png';
-	let bw = new electron.remote.BrowserWindow({'width': 900, 'height': 800, 'icon': iconFN, 'webPreferences': WEBPREF});
+	let bw = new remote.BrowserWindow({'width': 900, 'height': 800, 'icon': iconFN, 'webPreferences': WEBPREF});
 	let url = BASE_APP + '/index.html?panel=' + panelClass;
 	if (filename) url += '&fn=' + encodeURIComponent(filename);
 	bw.loadURL(url);

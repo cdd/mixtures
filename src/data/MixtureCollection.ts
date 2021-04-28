@@ -94,9 +94,13 @@ export class MixtureCollection
 	// if not specified, small collections will get nice whitespace, whereas large ones will be densely packed for efficiency
 	public serialise(beautify?:boolean):string
 	{
-		let list:any[] = [];
+		let list:Mixfile[] = [];
 		for (let mixture of this.mixtures) list.push(mixture.mixfile);
-		return beautify || list.length <= 1000 ? Mixture.beautify(list) : JSON.stringify(list);
+		//return beautify || list.length <= 1000 ? Mixture.beautify(list) : JSON.stringify(list);
+		if (beautify || list.length <= 100) return Mixture.beautify(list);
+		
+		let lines = list.map((mixfile) => JSON.stringify(mixfile));
+		return '[\n    ' + lines.join(',\n    ') + '\n]\n';
 	}
 
 	// ------------ private methods ------------
