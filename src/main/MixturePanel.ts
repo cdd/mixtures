@@ -363,17 +363,54 @@ export class MixturePanel extends MainPanel
 			return;
 		}
 
-		// NOTE: display/copy is temporary; replace this with a better way to view overall metadata for the whole mixture
-
-		let creator = new ExportMInChI(this.editor.getMixture().mixfile);
-		creator.fillInChI().then(() =>
+		let maker = new ExportMInChI(this.editor.getMixture().mixfile);
+		let self = this;
+		class MInChIDialog extends wmk.Dialog
 		{
-			creator.formulate();
-			let minchi = creator.getResult();
-			alert('Generated MInChI identifier:\n' + minchi);
-			let clipboard = require('electron').clipboard;
-			clipboard.writeText(minchi);
-		});
+			constructor()
+			{
+				super();
+				this.title = 'MInChI';
+			}
+			protected populate():void
+			{
+				self.proxyClip.pushHandler(new wmk.ClipboardProxyHandler());
+				this.bodyDOM().setText('Calculating...');
+				(async () => await this.renderResult())();
+			}
+			public close():void
+			{
+				self.proxyClip.popHandler();
+				super.close();
+			}
+			private async renderResult():Promise<void>
+			{
+				await wmk.yieldDOM();
+				await maker.fillInChI();
+				maker.formulate();
+
+				let body = this.bodyDOM();
+				body.empty();
+
+				let divOuter = wmk.dom('<div/>').appendTo(body);
+				let pre = wmk.dom('<span/>').appendTo(divOuter).css({'font-family': 'monospace', 'padding-top': '0.5em', 'word-break': 'break-all'});
+				let minchi = maker.getResult(), segment = maker.getSegment();
+				for (let n = 0; n < minchi.length; n++)
+				{
+					let span = wmk.dom('<span/>').appendTo(pre);
+					span.setText(minchi[n]);
+					if (segment[n] == MInChISegment.Header) span.setCSS('background-color', '#FFC0C0');
+					else if (segment[n] == MInChISegment.Component) span.setCSS('background-color', '#C0C0FF');
+					else if (segment[n] == MInChISegment.Hierarchy) span.setCSS('background-color', '#E0E080');
+					else if (segment[n] == MInChISegment.Concentration) span.setCSS('background-color', '#80E080');
+					pre.appendHTML('<wbr/>');
+				}
+
+				let btnCopy = wmk.dom('<button class="wmk-button wmk-button-small wmk-button-default">Copy</button>').appendTo(divOuter).css({'margin-left': '0.5em'});
+				btnCopy.onClick(() => self.proxyClip.setString(minchi));
+			}
+		};
+		new MInChIDialog().open();
 	}
 
 	private updateTitle():void

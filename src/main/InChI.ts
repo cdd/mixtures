@@ -17,6 +17,7 @@ namespace Mixtures /* BOF */ {
 	needs to be discovered. Each generation operation involves a trip to the external execution subsystem.
 */
 
+let execLocation:string = null;
 let inchi:InChI = null;
 
 export class InChI
@@ -26,15 +27,18 @@ export class InChI
 	public static nativeMolfileToInChI:(mdlmol:string, options:string) => Promise<string> = null;
 
 	private available = false;
-	private inchiPath = '';
+	private inchiPath = execLocation;
 	private remote:Electron.Remote = null;
 
 	constructor()
 	{
 		if (!ON_DESKTOP) return;
 
-		this.remote = require('@electron/remote');
-		this.inchiPath = this.remote.getGlobal('INCHI_EXEC');
+		if (!this.inchiPath)
+		{
+			this.remote = require('@electron/remote');
+			this.inchiPath = this.remote.getGlobal('INCHI_EXEC');
+		}
 	
 		if (this.inchiPath)
 		{
@@ -46,6 +50,12 @@ export class InChI
 			}
 			catch (ex) {} // not available
 		}
+	}
+
+	// specify where the executable file is (overrides the global option)
+	public static setExecutable(exec:string):void
+	{
+		execLocation = exec;
 	}
 
 	// returns true if we have reason to believe the InChI executable can be run on demand
@@ -61,8 +71,12 @@ export class InChI
 	// a long time to run, this will be a problem for the UI; the return value is [InChI, InChIKey]
 	public static async makeInChI(mol:wmk.Molecule):Promise<string>
 	{
+		mol = mol.clone();
+		wmk.MolUtil.expandAbbrevs(mol, true);
+		for (let n = 1; n <= mol.numBonds; n++) if (mol.bondOrder(n) < 1 || mol.bondOrder(n) > 3) mol.setBondOrder(n, 1);
+
 		let writer = new wmk.MDLMOLWriter(mol);
-		//writer.enhancedFields = false; (InChI generator will ignore the enhanced fields, so this is OK)
+		writer.enhancedFields = false;
 		let mdlmol = writer.write();
 
 		if (this.nativeMolfileToInChI != null) return this.nativeMolfileToInChI(mdlmol, '-AuxNone -NoLabels');
@@ -81,7 +95,7 @@ export class InChI
 			console.log('InChI command returned result:\n' + raw);
 			console.log('Molecule:\n' + mol);
 			console.log('MDL Molfile:\n' + mdlmol);
-			throw 'Invalid returned by InChI generator';
+			throw 'Invalid returned by InChI generator: ' + raw;
 		}
 		return bits[0];
 	}

@@ -33,7 +33,6 @@ export enum MInChISegment
 interface MInChIComponent extends MixfileComponent
 {
 	inchiFrag:string;
-	placeName:string;
 	useRatio:number;
 	note:NormMixtureNote;
 }
@@ -109,40 +108,21 @@ export class ExportMInChI
 
 		// assemble the InChI fragments - which is sorted and unique and devoid of blanks; same for "placenames", which are
 		// terminal components that have name and concentration information, but no InChI
-		let inchiList:string[] = [], placeList:string[] = [];
+		let inchiList:string[] = [];
 		const PFX = 'InChI=1S/'; // if it doesn't start with this, we don't consider it a valid InChI
 		for (let origin of modmix.getOrigins())
 		{
 			let mcomp = modmix.getComponent(origin) as MInChIComponent;
-			if (mcomp.inchi && mcomp.inchi.startsWith(PFX))
-			{
-				mcomp.inchiFrag = mcomp.inchi.substring(PFX.length);
-				if (inchiList.indexOf(mcomp.inchiFrag) < 0) inchiList.push(mcomp.inchiFrag);
-			}
+			if (Vec.len(mcomp.contents) > 0) continue; // leaf nodes only need apply
 
-			/* NOTE: name placeholders disabled for now; could be reinstated later if the MInChI spec supports
-					 something like this
-			else if (mcomp.name && this.hasConcentration(mcomp)(?) && Vec.arrayLength(mcomp.contents) == 0)
-			{
-				mcomp.placeName = '[';
-				for (let n = 0; n < mcomp.name.length; n++)
-				{
-					let ch = mcomp.name.charAt(n);
-					if (!((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9'))) ch = '_';
-					mcomp.placeName += ch;
-				}
-				mcomp.placeName += ']';
-				if (placeList.indexOf(mcomp.placeName) < 0) placeList.push(mcomp.placeName);
-			}*/
+			mcomp.inchiFrag = mcomp.inchi || '';
+			if (mcomp.inchiFrag.startsWith(PFX)) mcomp.inchiFrag = mcomp.inchiFrag.substring(PFX.length);
+			if (!inchiList.includes(mcomp.inchiFrag)) inchiList.push(mcomp.inchiFrag);
 		}
 		inchiList.sort();
-		placeList.sort();
-		let componentList = Vec.concat(inchiList, placeList);
 
 		let root = modmix.mixfile as any as MInChIComponent;
-		let builder = this.assembleContents(root, componentList);
-
-		//this.minchi = 'MInChI=0.00.1S/' + componentList.join('&') + '/n' + builder.layerN + '/g' + builder.layerG;
+		let builder = this.assembleContents(root, inchiList);
 
 		this.minchi = '';
 		this.segment = [];
@@ -152,13 +132,13 @@ export class ExportMInChI
 			this.minchi += str;
 			for (let n = 0; n < str.length; n++) this.segment.push(type);
 		};
-		
+
 		appendSegment('MInChI=0.00.1S', MInChISegment.Header);
 		appendSegment('/', MInChISegment.None);
-		for (let n = 0; n < componentList.length; n++)
+		for (let n = 0; n < inchiList.length; n++)
 		{
 			if (n > 0) appendSegment('&', MInChISegment.None);
-			appendSegment(componentList[n], MInChISegment.Component);
+			appendSegment(inchiList[n], MInChISegment.Component);
 		}
 		appendSegment('/', MInChISegment.None);
 		appendSegment('n' + builder.layerN, MInChISegment.Hierarchy);
@@ -180,28 +160,30 @@ export class ExportMInChI
 
 	// ------------ private methods ------------
 
-	private assembleContents(mcomp:MInChIComponent, componentList:string[]):MInChIBuilder
+	private assembleContents(mcomp:MInChIComponent, inchiList:string[]):MInChIBuilder
 	{
 		let tree:MInChIBuilder = {'layerN': '', 'layerG': ''};
 		let builder:MInChIBuilder = {'layerN': '', 'layerG': ''};
 
-		// emit sub-contents recursively if applicable
-		if (mcomp.contents != null) for (let subComp of mcomp.contents)
+		// emit sub-contents recursively
+		if (Vec.len(mcomp.contents) > 0)
 		{
-			let subTree = this.assembleContents(subComp as MInChIComponent, componentList);
-			if (!subTree.layerN && !subTree.layerG) continue;
-			if (tree.layerN.length > 0 || tree.layerG.length > 0)
+			if (mcomp.contents != null) for (let subComp of mcomp.contents)
 			{
-				tree.layerN += '&';
-				tree.layerG += '&';
+				let subTree = this.assembleContents(subComp as MInChIComponent, inchiList);
+				//if (!subTree.layerN && !subTree.layerG) continue;
+				if (tree.layerN.length > 0 || tree.layerG.length > 0)
+				{
+					tree.layerN += '&';
+					tree.layerG += '&';
+				}
+				tree.layerN += subTree.layerN;
+				tree.layerG += subTree.layerG;
 			}
-			tree.layerN += subTree.layerN;
-			tree.layerG += subTree.layerG;
 		}
 
 		// append the current information
-		let idx = mcomp.inchiFrag ? componentList.indexOf(mcomp.inchiFrag) + 1 :
-				  mcomp.placeName ? componentList.indexOf(mcomp.placeName) + 1 : 0;
+		let idx = mcomp.inchiFrag != null ? inchiList.indexOf(mcomp.inchiFrag) + 1 : 0;
 		if (idx > 0) builder.layerN += idx.toString();
 
 		let conc = this.formatConcentration(mcomp.quantity, mcomp.error, mcomp.useRatio, mcomp.units, mcomp.relation);
@@ -218,6 +200,7 @@ export class ExportMInChI
 			builder.layerG = '{' + tree.layerG + '}' + builder.layerG;
 			this.shaveBeard(builder);
 		}
+
 		return builder;
 	}
 
