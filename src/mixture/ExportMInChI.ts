@@ -215,12 +215,6 @@ export class ExportMInChI
 		}
 	}
 
-	// returns true if there's any concentration information for the given component
-	private hasConcentration(comp:MixfileComponent):boolean
-	{
-		return comp.ratio != null || comp.quantity != null || comp.units != null || comp.relation != null;
-	}
-
 	// turns a concentration into a suitable precursor string, or null otherwise
 	private formatConcentration(quantity:number | number[], error:number, useRatio:number, units:string, relation:string):string
 	{

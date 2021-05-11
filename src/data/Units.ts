@@ -55,6 +55,10 @@ export enum StandardUnits
 	mmol = 'http://purl.obolibrary.org/obo/UO_0000040', // millimole
 	umol = 'http://purl.obolibrary.org/obo/UO_0000039', // micromole
 	nmol = 'http://purl.obolibrary.org/obo/UO_0000041', // nanomole
+
+	// other
+	ppm = 'placeholder1',
+	ppb = 'placeholder2',
 }
 
 const PAIR_UNIT_NAMES:any[] =
@@ -92,6 +96,9 @@ const PAIR_UNIT_NAMES:any[] =
 	[StandardUnits.mmol, 'mmol'],
 	[StandardUnits.umol, '\u{03BC}mol', 'umol'],
 	[StandardUnits.nmol, 'nmol'],
+
+	[StandardUnits.ppm, 'ppm'],
+	[StandardUnits.ppb, 'ppb'],
 ];
 
 const PAIR_UNIT_MINCHI:any[] =
@@ -102,7 +109,7 @@ const PAIR_UNIT_MINCHI:any[] =
 	[StandardUnits.pcWW, 'wf', 0.01],
 	[StandardUnits.pcVV, 'vf', 0.01],
 	[StandardUnits.pcMM, 'mf', 0.01],
-	[StandardUnits.ratio, 'vp', 1],
+	[StandardUnits.ratio, 'rt', 1],
 	[StandardUnits.mol_L, 'mr', 1],
 	[StandardUnits.mmol_L, 'mr', 1E-3],
 	[StandardUnits.umol_L, 'mr', 1E-6],
@@ -114,7 +121,8 @@ const PAIR_UNIT_MINCHI:any[] =
 	[StandardUnits.mg_L, 'wv', 1E-6],
 	[StandardUnits.ug_L, 'wv', 1E-9],
 	[StandardUnits.mol_kg, 'mb', 1],
-
+	[StandardUnits.ppm, 'pp', 1E-6],
+	[StandardUnits.ppb, 'pp', 1E-9],
 ];
 
 export class Units
