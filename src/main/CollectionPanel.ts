@@ -594,6 +594,7 @@ export class CollectionPanel extends MainPanel
 			idx = this.selected + 1;
 			this.collection.insertMixture(idx, mixture);
 		}
+		this.dividePages();
 		this.renderMain();
 		this.changeSelection(idx);
 		this.scrollToIndex(idx);

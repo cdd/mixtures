@@ -4,7 +4,7 @@
     (c) 2017-2020 Collaborative Drug Discovery, Inc
 
     All rights reserved
-    
+
     http://collaborativedrug.com
 
 	Made available under the Gnu Public License v3.0
@@ -39,7 +39,7 @@ export class InChI
 			this.remote = require('@electron/remote');
 			this.inchiPath = this.remote.getGlobal('INCHI_EXEC');
 		}
-	
+
 		if (this.inchiPath)
 		{
 			const fs = require('fs');
@@ -53,6 +53,10 @@ export class InChI
 	}
 
 	// specify where the executable file is (overrides the global option)
+	public static hasExecutable():boolean
+	{
+		return !!execLocation;
+	}
 	public static setExecutable(exec:string):void
 	{
 		execLocation = exec;
@@ -69,7 +73,7 @@ export class InChI
 	// converts a molecule to an InChI string, if possible; should check the availability first, for graceful
 	// rejection; failure results in an exception; note that it is executed synchronously: if the executable takes
 	// a long time to run, this will be a problem for the UI; the return value is [InChI, InChIKey]
-	public static async makeInChI(mol:wmk.Molecule):Promise<string>
+	public static async makeInChI(mol:wmk.Molecule):Promise<[string, string]>
 	{
 		mol = mol.clone();
 		wmk.MolUtil.expandAbbrevs(mol, true);
@@ -79,7 +83,11 @@ export class InChI
 		writer.enhancedFields = false;
 		let mdlmol = writer.write();
 
-		if (this.nativeMolfileToInChI != null) return this.nativeMolfileToInChI(mdlmol, '-AuxNone -NoLabels');
+		if (this.nativeMolfileToInChI != null)
+		{
+			let inchi = await this.nativeMolfileToInChI(mdlmol, '-AuxNone -NoLabels');
+			return [inchi, null]; // NOTE: this version doesn't provide a key; address this in the future
+		}
 
 		if (!inchi) inchi = new InChI();
 		if (!inchi.available) throw 'InChI executable is not available.';
@@ -97,7 +105,7 @@ export class InChI
 			console.log('MDL Molfile:\n' + mdlmol);
 			throw 'Invalid returned by InChI generator: ' + raw;
 		}
-		return bits[0];
+		return bits;
 	}
 }
 

@@ -1,11 +1,15 @@
 {
     "name": "placeholder",
     "version": "0.0.0",
-    "devDependencies": {
+    "dependencies": {
         "@electron/remote": "",
+        "electron": "^12.0",
+        "stream-json": "^1.7.1",
+        "xmldom": "^0.1.16"
+    },
+    "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^4.7",
         "@typescript-eslint/parser": "^4.7",
-        "electron": "^12.0",
         "electron-packager": "^8.1.0",
         "eslint": "^7.0",
         "typescript": "^4.0"

@@ -21,7 +21,8 @@ export class ExportSDFile
 {
 	private ds = new wmk.DataSheet();
 	private colMol:number;
-	private colSeq:number;
+	private colName:number;
+	private colHier:number;
 	private colConc:number;
 
 	// ------------ public methods ------------
@@ -29,7 +30,8 @@ export class ExportSDFile
 	constructor()
 	{
 		this.colMol = this.ds.appendColumn('Molecule', wmk.DataSheetColumn.Molecule, '');
-		this.colSeq = this.ds.appendColumn('MINCHI$N', wmk.DataSheetColumn.String, '');
+		this.colName = this.ds.appendColumn('Name', wmk.DataSheetColumn.String, '');
+		this.colHier = this.ds.appendColumn('MINCHI$N', wmk.DataSheetColumn.String, '');
 		this.colConc = this.ds.appendColumn('MINCHI$C', wmk.DataSheetColumn.String, '');
 	}
 
@@ -77,7 +79,8 @@ export class ExportSDFile
 		if (!mol) mol = new wmk.Molecule();
 
 		this.ds.setMolecule(row, this.colMol, mol);
-		this.ds.setString(row, this.colSeq, seq.join('.'));
+		if (comp.name) this.ds.setString(row, this.colName, comp.name);
+		this.ds.setString(row, this.colHier, seq.join('.'));
 		this.ds.setString(row, this.colConc, this.formatConcentration(comp));
 
 		if (comp.contents) for (let n = 0; n < comp.contents.length; n++)
@@ -91,6 +94,7 @@ export class ExportSDFile
 	// turns a concentration into a suitable precursor string, or null otherwise
 	private formatConcentration(comp:MixfileComponent):string
 	{
+		/* ... this is a pseudo-MInChI approach ...
 		// TODO: need special deal for ratio without denominator - can sometimes add them up to form an implicit denominator
 
 		if (comp.ratio && comp.ratio.length >= 2)
@@ -122,7 +126,12 @@ export class ExportSDFile
 		if (scaled.length > 1) {bits.push('..'); bits.push(scaled[1].toString());}
 		bits.push(mnemonic);
 
-		return bits.join(' ');
+		return bits.join(' ');*/
+
+		let useRatio:number = null;
+		if (Vec.len(comp.ratio) == 2) useRatio = comp.ratio[0]; // mixfile ratios are stored as [numer, denom] where denom is checksum; could verify that this
+																// is consistent before deigning to use it, but we're just passing it through
+		return ExportMInChI.formatConcentration(comp.quantity, comp.error, useRatio, comp.units, comp.relation);
 	}
 }
 

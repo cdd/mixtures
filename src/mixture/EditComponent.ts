@@ -527,7 +527,7 @@ export class EditComponent extends wmk.Dialog
 
 		try
 		{
-			let inchi = await InChI.makeInChI(mol);
+			let inchi = Vec.first(await InChI.makeInChI(mol));
 			this.lineInChI.setValue(inchi);
 		}
 		catch (ex) {alert('InChI generation failed: ' + ex);}

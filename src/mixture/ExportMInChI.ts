@@ -12,6 +12,27 @@
 
 namespace Mixtures /* BOF */ {
 
+// quick implementation of CRC hash codes
+let crc_table:number[] = [];
+function make_crc_table():void
+{
+	if (crc_table.length > 0) return;
+	for (let n = 0; n < 256; n++)
+	{
+		let c = n;
+		for (let i = 0; i < 8; i++) if ((c & 1) != 0) c = 0xEDB88320 ^ (c >>> 1); else c = (c >>> 1);
+		crc_table.push(c);
+	}
+}
+const BOOT_CRC = 0xFFFFFFFF;
+function start_crc():number {return BOOT_CRC;}
+function feed_crc(crc:number, byte:number):number
+{
+	let idx = (crc ^ byte) & 0xFF;
+	return crc_table[idx] ^ (crc >>> 8);
+}
+function end_crc(crc:number):number {return crc ^ BOOT_CRC;}
+
 // work-in-progress placeholder for the recursive MInChI assembler
 interface MInChIBuilder
 {
@@ -36,6 +57,8 @@ interface MInChIComponent extends MixfileComponent
 	useRatio:number;
 	note:NormMixtureNote;
 }
+
+const MINCHI_VERSION = 'MInChI=0.99.1S';
 
 /*
 	Formulates a MInChI string out of the given mixture.
@@ -72,7 +95,9 @@ export class ExportMInChI
 			try {mol = wmk.MoleculeStream.readUnknown(comp.molfile);}
 			catch (e) {continue;} // silent failure if it's an invalid molecule
 			if (wmk.MolUtil.isBlank(mol)) continue;
-			comp.inchi = await InChI.makeInChI(mol);
+			let [inchi, inchiKey] = await InChI.makeInChI(mol);
+			comp.inchi = inchi;
+			comp.inchiKey = inchiKey;
 			modified = true;
 		}
 		return modified;
@@ -92,14 +117,14 @@ export class ExportMInChI
 
 		// special deal: any component with >2 mixtures that has a consistent ratio definition needs to be marked
 		// at the parent-component level
-		skip: for (let comp of modmix.getComponents()) if (Vec.arrayLength(comp.contents) >= 2)
+		skip: for (let comp of modmix.getComponents()) if (Vec.len(comp.contents) >= 2)
 		{
-			if (Vec.arrayLength(comp.contents[0].ratio) != 2) continue;
+			if (Vec.len(comp.contents[0].ratio) != 2) continue;
 			let [numer, denom] = comp.contents[0].ratio;
 			for (let n = 1; n < comp.contents.length; n++)
 			{
 				let ratio = comp.contents[n].ratio;
-				if (Vec.arrayLength(ratio) != 2 || ratio[1] != denom) continue skip;
+				if (Vec.len(ratio) != 2 || ratio[1] != denom) continue skip;
 				numer += ratio[0];
 			}
 			if (numer != denom) continue;
@@ -133,7 +158,7 @@ export class ExportMInChI
 			for (let n = 0; n < str.length; n++) this.segment.push(type);
 		};
 
-		appendSegment('MInChI=0.00.1S', MInChISegment.Header);
+		appendSegment(MINCHI_VERSION, MInChISegment.Header);
 		appendSegment('/', MInChISegment.None);
 		for (let n = 0; n < inchiList.length; n++)
 		{
@@ -158,65 +183,70 @@ export class ExportMInChI
 		return this.segment;
 	}
 
-	// ------------ private methods ------------
-
-	private assembleContents(mcomp:MInChIComponent, inchiList:string[]):MInChIBuilder
+	// prepares a "hash key" for the mixture: this is basically a sorted unique list of the InChI keys for the structures; it has no concentration or hierarchy
+	// information because these things are not canonical
+	public makeLongHashKey():string
 	{
-		let tree:MInChIBuilder = {'layerN': '', 'layerG': ''};
-		let builder:MInChIBuilder = {'layerN': '', 'layerG': ''};
-
-		// emit sub-contents recursively
-		if (Vec.len(mcomp.contents) > 0)
+		let bits:string[] = [];
+		for (let comp of this.mixture.getComponents())
 		{
-			if (mcomp.contents != null) for (let subComp of mcomp.contents)
+			if (!comp.molfile) continue;
+			if (!comp.inchiKey) throw 'Mixture has InChIKey(s) missing';
+			if (!comp.inchiKey.startsWith('InChIKey=')) throw 'Invalid InChI key: ' + comp.inchiKey;
+			bits.push(comp.inchiKey.substring(9));
+		}
+		bits = Vec.sortedUnique(bits);
+		return 'Long-MInChIKey=' + bits.join(';');
+	}
+
+	// similar to above except fixed length and quite short
+	public makeShortHashKey():string
+	{
+		make_crc_table();
+		const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		const NCRC = 4;
+		let crclist:number[] = [], pos = 0;
+		for (let n = 0; n < NCRC; n++) crclist.push(start_crc());
+
+		let feedCharacter = (letter:string) =>
+		{
+			let idx = LETTERS.indexOf(letter);
+			if (idx < 0) return;
+			crclist[pos] = feed_crc(crclist[pos], idx);
+			pos = pos < NCRC - 1 ? pos + 1 : 0;
+		};
+
+		let bits:string[] = [];
+		for (let comp of this.mixture.getComponents())
+		{
+			if (!comp.molfile) continue;
+			if (!comp.inchiKey) throw 'Mixture has InChIKey(s) missing';
+			if (!comp.inchiKey.startsWith('InChIKey=')) throw 'Invalid InChI key: ' + comp.inchiKey;
+			bits.push(comp.inchiKey.substring(9));
+		}
+		for (let bit of Vec.sortedUnique(bits)) for (let letter of bit)
+		{
+			feedCharacter(letter);
+		}
+
+		let key = 'Short-MInChIKey=';
+
+		for (let crc of crclist)
+		{
+			crc = end_crc(crc) >>> 1; // clear the least significant bit and the sign as well
+			for (let n = 0; n < 7; n++)
 			{
-				let subTree = this.assembleContents(subComp as MInChIComponent, inchiList);
-				//if (!subTree.layerN && !subTree.layerG) continue;
-				if (tree.layerN.length > 0 || tree.layerG.length > 0)
-				{
-					tree.layerN += '&';
-					tree.layerG += '&';
-				}
-				tree.layerN += subTree.layerN;
-				tree.layerG += subTree.layerG;
+				let idx = crc % 26;
+				key += LETTERS[idx];
+				crc = Math.trunc(crc / 26);
 			}
 		}
 
-		// append the current information
-		let idx = mcomp.inchiFrag != null ? inchiList.indexOf(mcomp.inchiFrag) + 1 : 0;
-		if (idx > 0) builder.layerN += idx.toString();
-
-		let conc = this.formatConcentration(mcomp.quantity, mcomp.error, mcomp.useRatio, mcomp.units, mcomp.relation);
-		if (!conc && mcomp.note)
-		{
-			let {concQuantity, concError, concUnits, concRelation} = mcomp.note;
-			conc = this.formatConcentration(concQuantity, concError, null, concUnits, concRelation);
-		}
-		if (conc) builder.layerG += conc;
-
-		if (tree.layerN.length > 0 || tree.layerG.length > 0)
-		{
-			builder.layerN = '{' + tree.layerN + '}' + builder.layerN;
-			builder.layerG = '{' + tree.layerG + '}' + builder.layerG;
-			this.shaveBeard(builder);
-		}
-
-		return builder;
-	}
-
-	// removes unnecessary nesting stubble
-	private shaveBeard(builder:MInChIBuilder):void
-	{
-		while (builder.layerN.startsWith('{{') && builder.layerN.endsWith('}}') &&
-			   builder.layerG.startsWith('{{') && builder.layerG.endsWith('}}'))
-		{
-			builder.layerN = builder.layerN.substring(1, builder.layerN.length - 1);
-			builder.layerG = builder.layerG.substring(1, builder.layerG.length - 1);
-		}
+		return key;
 	}
 
 	// turns a concentration into a suitable precursor string, or null otherwise
-	private formatConcentration(quantity:number | number[], error:number, useRatio:number, units:string, relation:string):string
+	public static formatConcentration(quantity:number | number[], error:number, useRatio:number, units:string, relation:string):string
 	{
 		let mantissa = (value:number, exp:number):string => Math.round(value * Math.pow(10, -exp)).toString();
 
@@ -226,7 +256,7 @@ export class ExportMInChI
 		if (useRatio != null)
 		{
 			let exp = this.determineExponent([useRatio], 4);
-			return mantissa(useRatio, exp) + 'vp' + exp;
+			return mantissa(useRatio, exp) + 'rt' + exp;
 		}
 
 		/*if (comp.ratio && comp.ratio.length >= 2)
@@ -266,9 +296,66 @@ export class ExportMInChI
 		return bits.join('');
 	}
 
+	// ------------ private methods ------------
+
+	private assembleContents(mcomp:MInChIComponent, inchiList:string[]):MInChIBuilder
+	{
+		let tree:MInChIBuilder = {'layerN': '', 'layerG': ''};
+		let builder:MInChIBuilder = {'layerN': '', 'layerG': ''};
+
+		// emit sub-contents recursively
+		if (Vec.len(mcomp.contents) > 0)
+		{
+			if (mcomp.contents != null) for (let subComp of mcomp.contents)
+			{
+				let subTree = this.assembleContents(subComp as MInChIComponent, inchiList);
+				//if (!subTree.layerN && !subTree.layerG) continue;
+				if (tree.layerN.length > 0 || tree.layerG.length > 0)
+				{
+					tree.layerN += '&';
+					tree.layerG += '&';
+				}
+				tree.layerN += subTree.layerN;
+				tree.layerG += subTree.layerG;
+			}
+		}
+
+		// append the current information
+		let idx = mcomp.inchiFrag != null ? inchiList.indexOf(mcomp.inchiFrag) + 1 : 0;
+		if (idx > 0) builder.layerN += idx.toString();
+
+		let conc = ExportMInChI.formatConcentration(mcomp.quantity, mcomp.error, mcomp.useRatio, mcomp.units, mcomp.relation);
+		if (!conc && mcomp.note)
+		{
+			let {concQuantity, concError, concUnits, concRelation} = mcomp.note;
+			conc = ExportMInChI.formatConcentration(concQuantity, concError, null, concUnits, concRelation);
+		}
+		if (conc) builder.layerG += conc;
+
+		if (tree.layerN.length > 0 || tree.layerG.length > 0)
+		{
+			builder.layerN = '{' + tree.layerN + '}' + builder.layerN;
+			builder.layerG = '{' + tree.layerG + '}' + builder.layerG;
+			this.shaveBeard(builder);
+		}
+
+		return builder;
+	}
+
+	// removes unnecessary nesting stubble
+	private shaveBeard(builder:MInChIBuilder):void
+	{
+		while (builder.layerN.startsWith('{{') && builder.layerN.endsWith('}}') &&
+			   builder.layerG.startsWith('{{') && builder.layerG.endsWith('}}'))
+		{
+			builder.layerN = builder.layerN.substring(1, builder.layerN.length - 1);
+			builder.layerG = builder.layerG.substring(1, builder.layerG.length - 1);
+		}
+	}
+
 	// given a positive number, gives out an appropriate exponent to scale it to, such that the mantissa can be an integer that accommodates
 	// the required number of significant figures
-	private determineExponent(values:number[], sigfig:number):number
+	private static determineExponent(values:number[], sigfig:number):number
 	{
 		let minval = Number.POSITIVE_INFINITY;
 		for (let v of values) minval = Math.min(minval, Math.abs(v));

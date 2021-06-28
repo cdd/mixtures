@@ -114,6 +114,8 @@ export class MixturePanel extends MainPanel
 				return;
 			}
 
+			mixture.mixfile.mixfileVersion = MIXFILE_VERSION; // as good a time as any to set latest version
+
 			this.editor.clearHistory();
 			this.editor.setMixture(mixture, true, false);
 			this.editor.setDirty(false);
@@ -409,7 +411,7 @@ export class MixturePanel extends MainPanel
 				let btnCopy = wmk.dom('<button class="wmk-button wmk-button-small wmk-button-default">Copy</button>').appendTo(divOuter).css({'margin-left': '0.5em'});
 				btnCopy.onClick(() => self.proxyClip.setString(minchi));
 			}
-		};
+		}
 		new MInChIDialog().open();
 	}
 

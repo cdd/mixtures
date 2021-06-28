@@ -26,6 +26,7 @@ export class Mixture
 	constructor(public mixfile?:Mixfile)
 	{
 		if (!mixfile) this.mixfile = {'mixfileVersion': MIXFILE_VERSION};
+		else if (!this.mixfile.mixfileVersion) this.mixfile.mixfileVersion = MIXFILE_VERSION;
 	}
 
 	// instantiates a new mixture object by casting a component into a root mixfile
@@ -125,7 +126,7 @@ export class Mixture
 	}
 
 	// returns an array that is equal in size to the number of nodes; each entry contains origin of that node
-	public getOrigins():number[][]
+	public 	getOrigins():number[][]
 	{
 		let origins:number[][] = [];
 
