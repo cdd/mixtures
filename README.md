@@ -75,6 +75,14 @@ The Mixture Editor has one major dependency: *WebMolKit*, which needs to be inst
 * `${GIT}/Mixtures` ⟵ [GitHub](https://github.com/cdd/mixtures)
 * `${GIT}/WebMolKit` ⟵ [GitHub](https://github.com/aclarkxyz/web_molkit)
 
+More recent versions of the project have additional NPM dependencies that are encoded into `package.json`. These are installed by:
+
+```
+npm i
+```
+
+This command creates a `node_modules` subdirectory and fills it with all the necessary packages. 
+
 Compiling at the command line can be done simply with:
 
 ```
@@ -102,6 +110,42 @@ The Mixture Editor can be used on a regular web page, with a slightly different 
 of how to do this. It demonstrates an embedded mixture editor, which lacks certain functionality that is desktop specific (e.g. lookup of molecules,
 running the InChI executable, saving to disk, etc.). It is also straightforward to invoke specific functions like loading and rendering of
 mixtures for dynamic display on a page.
+
+## Command Line
+
+The project supports a console mode as well as interactive editing. This uses *NodeJS* as the executing environment. To run with no parameters and get a list of commands:
+
+```
+node app/console.js
+```
+
+The main command line feature is the ability to stream in a file containing mixtures, and stream out mixtures in some processed form. The following formats can be used for input _or_ output:
+
+* `mixfile`: a JSON object formatted as a *Mixfile*
+* `json`: a JSON array that contains some number of *Mixfile*-formatted objects
+* `sdf`: an MDL SDfile with special fields that can be used to reconstruct hierarchy and concentration for mixtures
+
+The following formats can only be used for output:
+
+* `minchi`: the MInChI notation describing a mixture as a collection of InChI identifiers + metadata
+* `longminchikey`: a hash form of MInChI notation which contains InChI keys for each of the structures
+* `shortminchikey`: a hash form of MInChI notation which combines all of the structures into a single fixed-length string
+* `svg`: Scalable Vector Graphics (SVG) picture, for rendering purposes
+
+The console can use files or standard input/output as necessary. For files, the type is often implied by the suffix, but for stdin/stdout it must always be specified.
+
+For example, converting an array of mixtures to the marked up SDfile format can be as done as either of:
+
+```
+node app/console -i mixtures.json -o mixtures.sdf
+node app/console -i mixtures.json -if json -o mixtures.sdf -of sdf
+```
+
+If InChI generation is required, the location of the binary executable must be provided, e.g. to display the MInChI notation for a mixfile:
+
+```
+node app/console.js --inchi ~/bin/inchi-1 -i something.mixfile -of minchi
+```
 
 ## Reference Data
 
