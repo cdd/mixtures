@@ -58,6 +58,7 @@ export class ArrangeMixture
 	// parameters to influence the drawing
 	public limitStructW:number;
 	public limitStructH:number;
+	public minBoxSize:wmk.Size = null;
 	public showCollapsors = false; // if true, boxes for [+]/[-] will be created for interactive use
 	public collapsedBranches:number[][] = []; // any origin specified in this list will not display its children
 	public hardwrapName:number; // name width guaranteed not longer than this
@@ -293,6 +294,22 @@ export class ArrangeMixture
 				comp.outline.h += padding;
 				comp.nameBox.y += comp.molBox.h + padding;
 				comp.molBox.w = comp.nameBox.w = Math.max(comp.molBox.w, comp.nameBox.w);
+			}
+
+			if (this.minBoxSize)
+			{
+				let dw = this.minBoxSize.w - comp.outline.w, dh = this.minBoxSize.h - comp.outline.h;
+				if (dw > 0)
+				{
+					comp.outline.w += dw;
+					comp.molBox.w += dw;
+				}
+				if (dh > 0)
+				{
+					comp.outline.h += dh;
+					comp.molBox.h += dh;
+					comp.nameBox.y += dh;
+				}
 			}
 
 			comp.boundary = comp.outline.clone();

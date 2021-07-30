@@ -43,6 +43,7 @@ export enum MenuBannerCommand
 	Cut = 'cut',
 	Paste = 'paste',
 	ZoomFull = 'zoomFull',
+	ZoomNormal = 'zoomNormal',
 	ZoomIn = 'zoomIn',
 	ZoomOut = 'zoomOut',
 	ViewDetail = 'viewDetail',

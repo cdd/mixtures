@@ -197,6 +197,7 @@ export class CollectionPanel extends MainPanel
 			else if (cmd == MenuBannerCommand.MoveUp) this.editor.reorderCurrent(-1);
 			else if (cmd == MenuBannerCommand.MoveDown) this.editor.reorderCurrent(1);
 			else if (cmd == MenuBannerCommand.ZoomFull) this.editor.zoomFull();
+			else if (cmd == MenuBannerCommand.ZoomNormal) this.editor.zoomFull(); // (same as full)
 			else if (cmd == MenuBannerCommand.ZoomIn) this.editor.zoom(1.25);
 			else if (cmd == MenuBannerCommand.ZoomOut) this.editor.zoom(0.8);
 			else super.customMenuAction(cmd);

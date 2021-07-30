@@ -98,7 +98,7 @@ export class EditMixture extends wmk.Widget
 
 		content.attr({'id': 'mixtureEditor_main', 'tabindex': '0'});
 		this.refocus();
-		this.redraw(true);
+		this.redraw(true, false);
 	}
 
 	// whether or not menu commands are being received; no means that it's in dialog/editing mode
@@ -203,7 +203,15 @@ export class EditMixture extends wmk.Widget
 	{
 		this.layout = null;
 		this.pointScale = DEFAULT_SCALE;
-		this.redraw(true);
+		this.redraw(true, true);
+	}
+
+	// rescale to fit & recentre/with a limit to the size
+	public zoomNormal():void
+	{
+		this.layout = null;
+		this.pointScale = DEFAULT_SCALE;
+		this.redraw(true, false);
 	}
 
 	// select the given component index (programmatically)
@@ -525,7 +533,7 @@ export class EditMixture extends wmk.Widget
 
 	// ------------ private methods ------------
 
-	protected redraw(rescale = false):void
+	protected redraw(rescale = false, fit = false):void
 	{
 		this.filthy = false;
 
@@ -551,7 +559,7 @@ export class EditMixture extends wmk.Widget
 			this.layout.norm = new NormMixture(this.mixture);
 			this.layout.norm.analyse();
 			this.layout.arrange();
-			if (rescale) this.scaleToFit();
+			if (rescale) this.scaleToFit(fit);
 		}
 
 		if (this.delayedSelect)
@@ -576,17 +584,25 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// assuming that layout is already defined, modifies the offset/scale so that
-	protected scaleToFit():void
+	protected scaleToFit(mustFit:boolean):void
 	{
 		let width = this.contentDOM.width(), height = this.contentDOM.height(), pad = 4;
-		if (this.layout.width > width - pad || this.layout.height > height - pad)
+		if (mustFit)
 		{
-			let scale = Math.min((width - pad) / this.layout.width, (height - pad) / this.layout.height);
-			this.pointScale *= scale;
-			this.layout.scaleComponents(scale);
+			if (this.layout.width > width - pad || this.layout.height > height - pad)
+			{
+				let scale = Math.min((width - pad) / this.layout.width, (height - pad) / this.layout.height);
+				this.pointScale *= scale;
+				this.layout.scaleComponents(scale);
+			}
+			this.offsetX = 0.5 * (width - this.layout.width);
+			this.offsetY = 0.5 * (height - this.layout.height);
 		}
-		this.offsetX = 0.5 * (width - this.layout.width);
-		this.offsetY = 0.5 * (height - this.layout.height);
+		else
+		{
+			this.offsetX = Math.max(pad, 0.5 * (width - this.layout.width));
+			this.offsetY = 0.5 * (height - this.layout.height);
+		}
 	}
 
 	// mouse has moved: see if we need to update the hover

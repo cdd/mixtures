@@ -16,8 +16,8 @@
 			"args": 
 			[
 				//"play/mixture7.mixfile",
-				//"play/mixture9.mixfile",
-				"play/collection.json",
+				"play/mixture9.mixfile",
+				//"play/collection.json",
 				//"play/typecodes1.json",
 				//"play/typecodes2.json",
 				"--inchi", "${env:HOME}/bin/inchi-1"
