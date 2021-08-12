@@ -69,6 +69,10 @@ export const MIXFILE_COMPONENT_FIELDS =
 	'name', 'description', 'synonyms', 'formula', 'molfile', 'inchi', 'inchiKey', 'smiles',
 	'ratio', 'quantity', 'units', 'relation', 'identifiers', 'links', 'contents'
 ];
+export const MIXFILE_ROOT_FIELDS =
+[
+	'mixfileVersion', ...MIXFILE_COMPONENT_FIELDS
+];
 
 /* orignal example of what the format might look like (1st draft):
 {

@@ -831,8 +831,12 @@ export class EditMixture extends wmk.Widget
 
 		if (!event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey)
 		{
-			if (key == 'Escape') {} // escape
-			if (key == 'ArrowLeft') this.navigateDirection('left');
+			if (key == 'Enter') 
+			{
+				if (this.selectedIndex >= 0) this.editDetails();
+			}
+			else if (key == 'Escape') {} // escape
+			else if (key == 'ArrowLeft') this.navigateDirection('left');
 			else if (key == 'ArrowRight') this.navigateDirection('right');
 			else if (key == 'ArrowUp') this.navigateDirection('up');
 			else if (key == 'ArrowDown') this.navigateDirection('down');
@@ -840,6 +844,7 @@ export class EditMixture extends wmk.Widget
 			else return;
 
 			event.preventDefault();
+			event.stopPropagation();
 		}
 	}
 	protected keyUp(event:KeyboardEvent):void
