@@ -311,7 +311,7 @@ export class EditMixture extends wmk.Widget
 	public lookupCurrent():void
 	{
 		if (this.selectedIndex < 0) return;
-		
+
 		let origin = this.layout.components[this.selectedIndex].origin;
 		let comp = this.mixture.getComponent(origin);
 		let curX = this.contentDOM.width(), curY = this.contentDOM.height();
@@ -564,8 +564,12 @@ export class EditMixture extends wmk.Widget
 
 		if (this.delayedSelect)
 		{
-			for (let n = 0; n < this.layout.components.length; n++)
-				if (Vec.equals(this.delayedSelect, this.layout.components[n].origin)) {this.selectedIndex = n; break;}
+			for (let n = 0; n < this.layout.components.length; n++) if (Vec.equals(this.delayedSelect, this.layout.components[n].origin))
+			{
+				this.selectedIndex = n;
+				this.ensureComponentVisible(n);
+				break;
+			}
 			this.delayedSelect = null;
 		}
 
@@ -603,6 +607,20 @@ export class EditMixture extends wmk.Widget
 			this.offsetX = Math.max(pad, 0.5 * (width - this.layout.width));
 			this.offsetY = 0.5 * (height - this.layout.height);
 		}
+	}
+
+	// make sure the indicated component is fully visible onscreen
+	private ensureComponentVisible(idx:number):void
+	{
+		let width = this.contentDOM.width(), height = this.contentDOM.height(), pad = 4;
+		let comp = this.layout.components[idx];
+		let box = comp.boundary.withOffsetBy(this.offsetX, this.offsetY);
+
+		if (box.minX() < pad) this.offsetX -= box.minX() - pad;
+		else if (box.maxX() > width - pad) this.offsetX += width - pad - box.maxX();
+
+		if (box.minY() < pad) this.offsetY -= box.minY() - pad;
+		else if (box.maxY() > height - pad) this.offsetY += height - pad - box.maxY();
 	}
 
 	// mouse has moved: see if we need to update the hover
@@ -697,7 +715,11 @@ export class EditMixture extends wmk.Widget
 			}
 		}
 
-		if (newIndex >= 0 && newIndex < this.layout.components.length) this.selectComponent(newIndex);
+		if (newIndex >= 0 && newIndex < this.layout.components.length)
+		{
+			this.delayedSelect = this.layout.components[newIndex].origin;
+			this.delayedRedraw();
+		}
 	}
 
 	// collapses or un-collapses the indicated position
@@ -778,11 +800,14 @@ export class EditMixture extends wmk.Widget
 			return;
 		}
 
-		let [x, y] = eventCoords(event, this.contentDOM);
-		let idx = this.pickComponent(x, y);
-		if (idx == this.activeIndex) this.selectedIndex = idx;
-		this.activeIndex = -1;
-		this.delayedRedraw();
+		if (this.dragReason != DragReason.Pan)
+		{
+			let [x, y] = eventCoords(event, this.contentDOM);
+			let idx = this.pickComponent(x, y);
+			if (idx == this.activeIndex) this.selectedIndex = idx;
+			this.activeIndex = -1;
+			this.delayedRedraw();
+		}
 
 		this.dragReason = DragReason.None;
 	}
@@ -831,7 +856,7 @@ export class EditMixture extends wmk.Widget
 
 		if (!event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey)
 		{
-			if (key == 'Enter') 
+			if (key == 'Enter')
 			{
 				if (this.selectedIndex >= 0) this.editDetails();
 			}
