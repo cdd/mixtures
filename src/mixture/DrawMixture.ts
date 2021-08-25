@@ -53,7 +53,10 @@ export class DrawMixture
 	{
 		let x1 = parent.boundary.maxX(), x2 = child.boundary.minX();
 		let y1 = parent.boundary.midY(), y2 = child.boundary.midY();
-		let xm = 0.5 * (x1 + x2), ym = 0.5 * (y1 + y2), d = 4, xd = d, yd = y1 < y2 - 1 ? -d : y1 > y2 + 1 ? d : 0;
+		//let xm = 0.5 * (x1 + x2);
+		let xm = x1 + 0.25 * this.scale;
+		let ym = 0.5 * (y1 + y2);
+		let d = 4, xd = d, yd = y1 < y2 - 1 ? -d : y1 > y2 + 1 ? d : 0;
 
 		let px = [x1, xm - xd, xm, xm, xm, xm, xm + xd, x2];
 		let py = [y1, y1, y1, y1 - yd, y2 + yd, y2, y2, y2];

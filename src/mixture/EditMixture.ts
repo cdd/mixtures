@@ -556,6 +556,7 @@ export class EditMixture extends wmk.Widget
 			this.layout = new ArrangeMixture(this.mixture, measure, policy);
 			this.layout.showCollapsors = true;
 			this.layout.collapsedBranches = this.collapsedBranches;
+			this.layout.packBranches = new wmk.Size(0.8 * this.contentDOM.width(), 0.8 * this.contentDOM.height());
 			this.layout.norm = new NormMixture(this.mixture);
 			this.layout.norm.analyse();
 			this.layout.arrange();

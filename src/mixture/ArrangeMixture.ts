@@ -61,6 +61,7 @@ export class ArrangeMixture
 	public minBoxSize:wmk.Size = null;
 	public showCollapsors = false; // if true, boxes for [+]/[-] will be created for interactive use
 	public collapsedBranches:number[][] = []; // any origin specified in this list will not display its children
+	public packBranches:wmk.Size = null; // if defined, makes an effort to pack branches into the box size
 	public hardwrapName:number; // name width guaranteed not longer than this
 	public softwrapName:number; // name wrapping at selected characters kicks in after this width
 
@@ -358,15 +359,36 @@ export class ArrangeMixture
 		if (branchBlock.length == 0) return wholeBranch;
 
 		let hspace = HSPACE * this.scale, vspace = VSPACE * this.scale;
-
 		totalHeight += vspace * (branchBlock.length - 1);
 
 		let cbox = this.components[idx].boundary;
 		let x = cbox.maxX() + hspace;
-		let y = cbox.midY() - 0.5 * totalHeight;
+
+		// special case: may try to pack the boxes into a smaller area rather than vertically on top of each other
+		if (this.packBranches && branchBlock.length > 2 && totalHeight > this.packBranches.h)
+		{
+			let sq = new SquarePacking(this.packBranches, branchBox, /*hspace*/ vspace, vspace);
+			if (sq.pack())
+			{
+				let y = cbox.midY() - 0.5 * sq.outline.h;
+				for (let n = 0; n < branchBlock.length; n++)
+				{
+					let box = sq.layout[n];
+					let dx = x + box.x, dy = y + box.y;
+					for (let i of branchBlock[n])
+					{
+						this.components[i].boundary.x += dx;
+						this.components[i].boundary.y += dy;
+					}
+				}
+				return wholeBranch;
+			}
+		}
+
 		// !! note: not guaranteed that x is high enough to not interfere with other boxes; will need a post-check of some kind, maybe here,
 		//    maybe further down the line
 
+		let y = cbox.midY() - 0.5 * totalHeight;
 		for (let n = 0; n < branchBlock.length; n++)
 		{
 			let dx = x - branchBox[n].x, dy = y - branchBox[n].y;
