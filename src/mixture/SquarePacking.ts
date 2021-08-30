@@ -117,7 +117,7 @@ export class SquarePacking
 
 		this.outline = best.outline;
 		this.layout = best.layout;
-		let minY = this.layout[0].y;
+		let minY = Vec.min(this.layout.map((b) => b.y));
 		for (let box of this.layout) box.y -= minY;
 
 		return true;

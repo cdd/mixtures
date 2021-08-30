@@ -374,7 +374,7 @@ export class ArrangeMixture
 				for (let n = 0; n < branchBlock.length; n++)
 				{
 					let box = sq.layout[n];
-					let dx = x + box.x, dy = y + box.y;
+					let dx = x - branchBox[n].x + box.x, dy = y - branchBox[n].y + box.y;
 					for (let i of branchBlock[n])
 					{
 						this.components[i].boundary.x += dx;
