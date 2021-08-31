@@ -107,7 +107,7 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 	{
 		let proto = (Mixtures as any)[panelClass];
 		if (!proto) throw 'Unknown class: ' + panelClass;
-		main = new (proto as any)(root, proxyClip);
+		main = new (proto as any)(root, proxyClip, proxyMenu);
 	}
 
 	main.loadFile(filename);
