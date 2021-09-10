@@ -282,6 +282,7 @@ export class ExportMInChI
 		if (relation != null) bits.push(relation);
 
 		let values:number[] = typeof quantity == 'number' ? [quantity as number] : quantity;
+		if (error != null) values.push(error);
 
 		let [mnemonic, scaled] = Units.convertToMInChI(unitURI, values);
 		if (!mnemonic) return;
@@ -289,7 +290,11 @@ export class ExportMInChI
 		let exp = this.determineExponent(scaled, 4);
 
 		bits.push(mantissa(scaled[0], exp));
-		if (scaled.length > 1) {bits.push(':'); bits.push(mantissa(scaled[1], exp));}
+		if (scaled.length > 1)
+		{
+			if (Array.isArray(quantity)) bits.push(':'); else bits.push('?');
+			bits.push(mantissa(scaled[1], exp));
+		}
 		bits.push(mnemonic);
 		bits.push(exp.toString());
 

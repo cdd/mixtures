@@ -201,13 +201,15 @@ export class MixturePanel extends MainPanel
 
 	protected actionFileOpen():void
 	{
-		const electron = require('electron');
+		const path = require('path');
 		const remote:Electron.Remote = require('@electron/remote');
 		const dialog = remote.dialog;
+		let filedir = this.filename && this.filename.indexOf(path.sep) ? this.filename.substring(0, this.filename.lastIndexOf(path.sep)) : undefined;
 		let params:Electron.OpenDialogOptions =
 		{
 			'title': 'Open Mixture',
 			'properties': ['openFile'],
+			'defaultPath': filedir,
 			'filters':
 			[
 				{'name': 'Mixfile', 'extensions': ['mixfile']},

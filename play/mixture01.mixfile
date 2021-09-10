@@ -9,7 +9,8 @@
             "quantity": 1.7,
             "units": "mol/L",
             "inchi": "InChI=1S/C4H9.Li/c1-4(2)3;/h1-3H3;/q-1;+1",
-            "inchiKey": "InChIKey=UBJFKNSINUCEAL-UHFFFAOYSA-N"
+            "inchiKey": "InChIKey=UBJFKNSINUCEAL-UHFFFAOYSA-N",
+            "error": 0.05
         },
         {
             "name": "pentane",
