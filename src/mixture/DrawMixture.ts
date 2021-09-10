@@ -84,8 +84,8 @@ export class DrawMixture
 			let x = box.x + comp.nameBox.midX(), y = box.y + comp.nameBox.y;
 			for (let line of comp.nameLines)
 			{
-				let wad = this.measure.measureText(line, comp.fontSize);
-				this.vg.drawText(x, y, line, comp.fontSize, 0x000000, wmk.TextAlign.Centre | wmk.TextAlign.Top);
+				let wad = this.measure.measureText(line.text, comp.fontSize);
+				this.vg.drawText(x, y, line.text, comp.fontSize, line.col, wmk.TextAlign.Centre | wmk.TextAlign.Top);
 				y += wad[1] + 2 * wad[2];
 			}
 		}

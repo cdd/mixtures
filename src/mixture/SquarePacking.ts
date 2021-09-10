@@ -208,7 +208,9 @@ export class SquarePacking
 		let loY = Vec.min(cand.layout.map((box) => box.minY())), hiY = Vec.max(cand.layout.map((box) => box.maxY()));
 		cand.outline = new wmk.Size(hiX - loX, hiY - loY);
 		let ratio = cand.outline.w / cand.outline.h;
-		cand.score = Math.abs(ratio - this.wantRatio) * (cand.outline.w + cand.outline.h) + Vec.sum((cand.layout.map((box) => box.x)));
+		cand.score = Math.abs(ratio - this.wantRatio) * (cand.outline.w + cand.outline.h);
+		cand.score += Vec.sum((cand.layout.map((box) => box.x)));
+		for (let n = 0; n < cand.layout.length - 1; n++) cand.score += Math.max(0, cand.layout[n].minY() - cand.layout[n].maxY());
 	}
 
 	private mergeSegmentAbove(segs:SquarePackingSegment[], merge:SquarePackingSegment):void

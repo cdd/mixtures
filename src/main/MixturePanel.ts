@@ -343,6 +343,8 @@ export class MixturePanel extends MainPanel
 			let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
 			let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
 			layout.collapsedBranches = this.editor.getCollapsedBranches();
+			// TODO: decide whether to pack the branches...
+			layout.packBranches = new wmk.Size(0.8 * this.editor.contentDOM.width(), 0.8 * this.editor.contentDOM.height());
 			layout.arrange();
 
 			let gfx = new wmk.MetaVector();

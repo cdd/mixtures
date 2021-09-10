@@ -166,7 +166,7 @@ export class MetadataWidget extends wmk.Widget
 	private pickNewTerm(divParent:DOM):void
 	{
 		let branchList:wmk.OntologyTreeTerm[] = [];
-		const ROOTS = ['http://mixtures.org/rdf#MixtureMetadata'];
+		const ROOTS = ['http://mixtures.io/rdf#MixtureMetadata'];
 		for (let rootURI of ROOTS) branchList.push(...wmk.OntologyTree.main.getBranchList(rootURI));
 		let popup = new wmk.Popup(divParent);
 		popup.callbackPopulate = () =>
@@ -184,7 +184,7 @@ export class MetadataWidget extends wmk.Widget
 	private pickExtraTerm(divParent:DOM, line:MetadataWidgetLine, isProperty:boolean):void
 	{
 		let branchList:wmk.OntologyTreeTerm[] = [];
-		const ROOTS_ASSERT = ['http://mixtures.org/rdf#MixtureMetadata'];
+		const ROOTS_ASSERT = ['http://mixtures.io/rdf#MixtureMetadata'];
 		const ROOTS_PROP = ['http://purl.obolibrary.org/obo/UO_0000000'];
 		for (let rootURI of (isProperty ? ROOTS_PROP : ROOTS_ASSERT)) branchList.push(...wmk.OntologyTree.main.getBranchList(rootURI));
 		let popup = new wmk.Popup(divParent);
@@ -213,9 +213,9 @@ export class MetadataWidget extends wmk.Widget
 			if (term.depth > 0)
 			{
 				div.css({'margin-left': (term.depth - 0.5) + 'em'});
-				dom('<span>\u{279E}&nbsp;</span>').appendTo(div).css({'color': '#A0A0A0'});
+				dom('<span>\u{279E}</span>').appendTo(div).css({'color': '#A0A0A0', 'margin-right': '0.5em'});
 			}
-			let span = dom('<span class="wmk-metadataitem"/>').appendTo(div);
+			let span = dom('<span/>').appendTo(div).class('wmk-metadataitem');
 			span.setText(term.label);
 			wmk.addTooltip(span, escapeHTML(term.uri), null, 2000);
 			span.onClick(() =>

@@ -16,6 +16,12 @@ namespace Mixtures /* BOF */ {
 	Arranging a Mixfile: will create a tree layout for all of the components, according to parameters.
 */
 
+export interface ArrangeMixtureLine
+{
+	text:string;
+	col:number;
+}
+
 export interface ArrangeMixtureComponent
 {
 	origin:number[];
@@ -29,7 +35,7 @@ export interface ArrangeMixtureComponent
 	molBox?:wmk.Box;
 
 	nameBox?:wmk.Box;
-	nameLines?:string[];
+	nameLines?:ArrangeMixtureLine[];
 	fontSize?:number;
 
 	outline?:wmk.Box; // inner boundary (surrounds molecule, names, etc.)
@@ -257,14 +263,14 @@ export class ArrangeMixture
 
 			// handle name, or other content needing representation
 			comp.nameLines = [];
-			if (mixcomp.name) this.wrapSplitName(comp.nameLines, mixcomp.name);
+			if (mixcomp.name) this.wrapSplitName(comp.nameLines, mixcomp.name, 0x000000);
 
 			// (... synonyms, and linewrapping ...)
 			let qline = ArrangeMixture.formatQuantity(mixcomp);
-			if (qline) comp.nameLines.push(qline);
+			if (qline) comp.nameLines.push({'text': qline, 'col': 0x000000});
 
 			qline = this.formatNormQuantity(comp.origin);
-			if (qline) comp.nameLines.push(`(${qline})`);
+			if (qline) comp.nameLines.push({'text': `(${qline})`, 'col': 0x808080});
 
 			if (mixcomp.identifiers) for (let key in mixcomp.identifiers)
 			{
@@ -275,14 +281,27 @@ export class ArrangeMixture
 					for (let n = 0; n < val.length; n++) line += (n == 0 ? '' : ', ') + val[n];
 				}
 				else line += val;
-				comp.nameLines.push(this.truncateEllipsis(line));
+				comp.nameLines.push({'text': this.truncateEllipsis(line), 'col': 0x42007E});
+			}
+			if (mixcomp.metadata) for (let meta of mixcomp.metadata)
+			{
+				let metaString = (m:string | number):string =>
+				{
+					if (typeof m == 'number') return wmk.formatDouble(m, 4);
+					let branch = wmk.OntologyTree.main.getBranch(m);
+					if (Vec.notBlank(branch)) return branch[0].label;
+					return m;
+				};
+				let bits:string[] = [];
+				if (Array.isArray(meta)) bits = meta.map((m) => metaString(m)); else bits = [metaString(meta as string | number)];
+				comp.nameLines.push({'text': bits.join(' '), 'col': 0x002B88});
 			}
 
 			comp.nameBox = new wmk.Box(padding, padding);
 			comp.fontSize = this.nameFontSize;
 			for (let n = 0; n < comp.nameLines.length; n++)
 			{
-				let wad = this.measure.measureText(comp.nameLines[n], comp.fontSize);
+				let wad = this.measure.measureText(comp.nameLines[n].text, comp.fontSize);
 				comp.nameBox.w = Math.max(comp.nameBox.w, wad[0]);
 				comp.nameBox.h += wad[1] + (n > 0 ? wad[2] * 2 : 0);
 			}
@@ -367,7 +386,10 @@ export class ArrangeMixture
 		// special case: may try to pack the boxes into a smaller area rather than vertically on top of each other
 		if (this.packBranches && branchBlock.length > 2 && totalHeight > this.packBranches.h)
 		{
-			let sq = new SquarePacking(this.packBranches, branchBox, /*hspace*/ vspace, vspace);
+			let packSize = this.packBranches.clone();
+			for (let box of branchBox) packSize.h = Math.max(packSize.h, box.h); // if a sub-box is bigger than overall, no need to limit it further
+
+			let sq = new SquarePacking(packSize, branchBox, /*hspace*/ vspace, vspace);
 			if (sq.pack())
 			{
 				let y = cbox.midY() - 0.5 * sq.outline.h;
@@ -405,13 +427,13 @@ export class ArrangeMixture
 
 	// if the given string is longer than the soft/hard limit, looks to break it up into smaller pieces; each of them is
 	// appended to the list parameter
-	private wrapSplitName(list:string[], txt:string):void
+	private wrapSplitName(list:ArrangeMixtureLine[], text:string, col:number):void
 	{
-		if (!txt) return;
-		let xpos = wmk.FontData.measureWidths(txt, this.nameFontSize);
+		if (!text) return;
+		let xpos = wmk.FontData.measureWidths(text, this.nameFontSize);
 		if (Vec.last(xpos) <= this.softwrapName)
 		{
-			list.push(txt);
+			list.push({text, col});
 			return;
 		}
 
@@ -419,7 +441,7 @@ export class ArrangeMixture
 		for (; xpos[p] < this.softwrapName; p++) {}
 		for (; xpos[p] < this.hardwrapName; p++)
 		{
-			let ch = txt.charAt(p);
+			let ch = text.charAt(p);
 			if (' ,;-/'.includes(ch))
 			{
 				p++;
@@ -427,8 +449,8 @@ export class ArrangeMixture
 			}
 		}
 
-		list.push(txt.substring(0, p).trim());
-		this.wrapSplitName(list, txt.substring(p).trim());
+		list.push({'text': text.substring(0, p).trim(), col});
+		this.wrapSplitName(list, text.substring(p).trim(), col);
 	}
 
 	// if the line is longer than the hard wrap limit, just truncate with ellipsis
