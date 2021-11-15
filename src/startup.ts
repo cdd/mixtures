@@ -22,19 +22,14 @@ export let ON_DESKTOP = false; // by default assume it's running in a regular we
 	Startup: gets the ball rolling, and provide some high level window handling.
 */
 
-let BASE_APP = ''; // base URL location for the app's program files (could be URL or filename)
-
-export function runMixfileEditor(resURL:string, rootID:string):void
+export async function runMixfileEditor(resURL:string, rootID:string):Promise<void>
 {
 	let root = DOM.find('#' + rootID);
 
 	ON_DESKTOP = true;
 	wmk.initWebMolKit(resURL);
-	(async () => 
-	{
-		await wmk.OntologyTree.init();
-		await wmk.OntologyTree.main.loadFromURL(resURL + '/data/ontology/metacategory.onto');
-	})();
+	await wmk.OntologyTree.init();
+	await wmk.OntologyTree.main.loadFromURL(resURL + '/data/ontology/metacategory.onto');
 
 	// node/electron imports; note these are defined inside the function so as not to perturb normal web-access, which does not
 	// include these libraries
@@ -44,8 +39,6 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 	const remote:Electron.Remote = require('@electron/remote');
 
 	process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
-
-	BASE_APP = path.normalize('file:/' + __dirname);
 
 	let url = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
 	wmk.Theme.RESOURCE_URL = path.normalize(url + '/res');
@@ -119,13 +112,14 @@ export function runMixfileEditor(resURL:string, rootID:string):void
 // high level functionality for opening a window, with a given panel as content
 export function openNewWindow(panelClass:string, filename?:string):void
 {
-	const electron = require('electron');
+	const electron = require('electron'), path = require('path');
 	const remote:Electron.Remote = require('@electron/remote');
 
 	const WEBPREF = {'nodeIntegration': true, 'contextIsolation': false, 'enableRemoteModule': true, 'spellcheck': false};
 	let iconFN = __dirname + '/img/icon.png';
 	let bw = new remote.BrowserWindow({'width': 900, 'height': 800, 'icon': iconFN, 'webPreferences': WEBPREF});
-	let url = BASE_APP + '/index.html?panel=' + panelClass;
+	let baseApp = path.normalize('file:/' + __dirname);
+	let url = baseApp + '/index.html?panel=' + panelClass;
 	if (filename) url += '&fn=' + encodeURIComponent(filename);
 	bw.loadURL(url);
 	/*bw.on('closed', function() {bw = null;});*/

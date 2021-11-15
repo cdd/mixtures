@@ -47,4 +47,4 @@ http://mixtures.io/rdf#MixtureMetadata metadata
 - - http://www.bioassayontology.org/bao#BAO_0000192 Ki
 - - http://www.bioassayontology.org/bao#BAO_0000201 percent inhibition
 - - http://mixtures.io/rdf#IsActive is active
-- - http://mixtures.io/rdf#IsInActive is inactive
+- - http://mixtures.io/rdf#IsInactive is inactive

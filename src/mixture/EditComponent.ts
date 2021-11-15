@@ -53,8 +53,6 @@ export class EditComponent extends wmk.Dialog
 	private unitValues:string[];
 	private unitLabels:string[];
 
-	private fakeTextArea:HTMLTextAreaElement = null; // for temporarily bogarting the clipboard
-
 	private callbackSave:(source?:EditComponent) => void = null;
 	private callbackSketch:(source?:EditComponent) => void = null;
 

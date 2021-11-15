@@ -288,6 +288,7 @@ export class ArrangeMixture
 				let metaString = (m:string | number):string =>
 				{
 					if (typeof m == 'number') return wmk.formatDouble(m, 4);
+					if (!wmk.OntologyTree.main) return m;
 					let branch = wmk.OntologyTree.main.getBranch(m);
 					if (Vec.notBlank(branch)) return branch[0].label;
 					return m;
