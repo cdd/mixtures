@@ -46,6 +46,7 @@ export abstract class MainPanel
 	public menuAction(cmd:string):void
 	{
 		if (cmd == MenuBannerCommand.NewMixture) openNewWindow('MixturePanel');
+		else if (cmd == MenuBannerCommand.NewCollection) openNewWindow('CollectionPanel');
 		else if (cmd == MenuBannerCommand.Open) this.actionFileOpen();
 		else if (cmd == MenuBannerCommand.Save) this.actionFileSave();
 		else if (cmd == MenuBannerCommand.SaveAs) this.actionFileSaveAs();
