@@ -141,6 +141,7 @@ export class WebWidget extends wmk.Widget
 		{
 			this.editor.callbackStructureEditor = (mol, callbackSuccess:(mol:wmk.Molecule) => void) =>
 			{
+				this.proxyClip.pushHandler(null);
 				if (!mol) mol = new wmk.Molecule();
 				let molfile = new wmk.MDLMOLWriter(mol).write();
 				this.editor.setEditing(true);
@@ -152,6 +153,7 @@ export class WebWidget extends wmk.Widget
 					},
 					():void =>
 					{
+						this.proxyClip.popHandler();
 						this.editor.setEditing(false);
 						this.editor.refocus();
 					});

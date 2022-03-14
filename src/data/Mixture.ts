@@ -94,12 +94,12 @@ export class Mixture
 	public getComponent(origin:number[]):MixfileComponent
 	{
 		if (origin.length == 0) return this.mixfile;
-		let find:MixfileComponent = null, look = this.mixfile.contents;
+		let find:MixfileComponent = null, look = this.mixfile.contents || [];
 		for (let o of origin)
 		{
 			find = look[o];
 			if (!find) return null;
-			look = find.contents;
+			look = find.contents || [];
 		}
 		return find;
 	}
@@ -126,7 +126,7 @@ export class Mixture
 	}
 
 	// returns an array that is equal in size to the number of nodes; each entry contains origin of that node
-	public 	getOrigins():number[][]
+	public getOrigins():number[][]
 	{
 		let origins:number[][] = [];
 

@@ -172,12 +172,15 @@ export class EditComponent extends wmk.Dialog
 		});
 		editLinks.render(dom('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
 
-		this.createFieldName(grid2, ++row, 'Metadata', true);
-		let editMetadata = new MetadataWidget(this.component.metadata, (metadata) =>
+		if (wmk.OntologyTree.main && wmk.OntologyTree.main.getRoots().length > 0)
 		{
-			this.component.metadata = Vec.notBlank(metadata) ? metadata : undefined;
-		});
-		editMetadata.render(dom('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
+			this.createFieldName(grid2, ++row, 'Metadata', true);
+			let editMetadata = new MetadataWidget(this.component.metadata, (metadata) =>
+			{
+				this.component.metadata = Vec.notBlank(metadata) ? metadata : undefined;
+			});
+			editMetadata.render(dom('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
+		}
 
 		this.lineName.grabFocus();
 
