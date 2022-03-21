@@ -81,7 +81,7 @@ export class MenuBanner
 
 	// ------------ public methods ------------
 
-	constructor(private commands:MenuBannerButton[][], private onAction:(cmd:string) => void)
+	constructor(private commands:MenuBannerButton[][], private callbackAction:(cmd:string) => void)
 	{
 		wmk.installInlineCSS('mixtures-menubanner', CSS_MENUBANNER);
 	}
@@ -135,6 +135,14 @@ export class MenuBanner
 		this.mapDiv[cmd].css({'background-color': 'transparent'});
 	}
 
+	// fetch the position of the given icon, relative to the banner overall
+	public iconPosition(cmd:MenuBannerCommand):wmk.Box
+	{
+		let div = this.mapDiv[cmd];
+		if (!div) return null;
+		return new wmk.Box(div.elHTML.offsetLeft, div.elHTML.offsetTop, div.width(), div.height());
+	}
+
 	// ------------ private methods ------------
 
 	private createCommand(btn:MenuBannerButton):DOM[]
@@ -165,7 +173,7 @@ export class MenuBanner
 		{
 			if (this.callbackRefocus) this.callbackRefocus();
 			if (!this.mapActive[btn.cmd]) return;
-			this.onAction(btn.cmd);
+			this.callbackAction(btn.cmd);
 		});
 		if (btn.tip) wmk.addTooltip(div, escapeHTML(btn.tip));
 

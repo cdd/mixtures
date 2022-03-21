@@ -22,9 +22,6 @@ namespace Mixtures /* BOF */ {
 
 const BANNER:MenuBannerButton[][] =
 [
-	/*[
-		{'icon': 'CommandSave.svg', 'tip': 'Save', 'cmd': MenuBannerCommand.Save},
-	],*/
 	[
 		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
 		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
@@ -55,6 +52,30 @@ const BANNER:MenuBannerButton[][] =
 	],
 ];
 
+const CSS_WIDGET =
+`
+	*.mixtures-webwidget-overlay
+	{
+		opacity: 0;
+	}
+	*.mixtures-webwidget-overlay-fadein
+	{
+		opacity: 1;
+		transition: opacity 1s;
+	}
+	*.mixtures-webwidget-overlay-fadeout
+	{
+		opacity: 0;
+		transition: opacity 1s;
+	}
+`;
+
+interface WebWidgetPopover
+{
+	anchor:MenuBannerCommand; // null = the root component; otherwise one of the icons on the menu banner
+	textLines:string[]; // some number of lines to show
+}
+
 export class WebWidget extends wmk.Widget
 {
 	public callbackGoBack:() => void = null; // optional: gets an icon if defined
@@ -62,9 +83,13 @@ export class WebWidget extends wmk.Widget
 	public callbackEditStructure:(molfile:string, callbackSuccess:(molfile:string) => void, callbackClose:() => void) => void = null;
 	public callbackFreeformKey:(edit:EditMixture, event:KeyboardEvent) => void = null;
 
-	//public proxyClip = new wmk.ClipboardProxyWeb();
 	public banner:MenuBanner;
 	public editor:EditMixtureWeb = null;
+
+	private divMenu:DOM;
+	private divMain:DOM;
+
+	private initialPopovers:WebWidgetPopover[] = [];
 
 	// ------------ public methods ------------
 
@@ -93,7 +118,10 @@ export class WebWidget extends wmk.Widget
 	{
 		super.render(parent);
 
+		wmk.installInlineCSS('mixtures-webwidget', CSS_WIDGET);
+
 		let content = this.contentDOM;
+		content.el.id = 'mixtureEditorWidget';
 
 		let bannerContent = deepClone(BANNER);
 		if (this.callbackGoBack)
@@ -160,19 +188,21 @@ export class WebWidget extends wmk.Widget
 			};
 		}
 
-		//content.css({'width': width, 'height': height});
 		if (width) content.setCSS('width', `${width}px`);
 		if (height) content.setCSS('height', `${height}px`);
-		content.css({'border': '1px solid black', 'display': 'flex', 'flex-direction': 'column'});
+		content.css({'border': '1px solid black', 'display': 'grid'});
+		content.css({'grid-template-rows': '[start banner] auto [editor] 1fr [end]'});
 
-		let divMenu = dom('<div style="width: 100%; flex-grow: 0;"/>').appendTo(content);
-		let divMain = dom('<div style="width: 100%; flex: 1 1 0; height: 100%; position: relative;"/>').appendTo(content);
-		let divMainX = dom('<div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"/>').appendTo(divMain); // workaround
+		this.divMenu = dom('<div/>').appendTo(content).css({'grid-area': 'banner / 1'});
+		this.divMain = dom('<div/>').appendTo(content).css({'grid-area': 'editor / 1', 'position': 'relative'});
+		let divMainX = dom('<div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"/>').appendTo(this.divMain); // workaround
 
-		this.banner.render(divMenu);
+		this.banner.render(this.divMenu);
 		this.editor.render(divMainX);
 
 		this.banner.callbackRefocus = () => this.editor.refocus();
+
+		setTimeout(() => this.displayPopovers(), 100);
 	}
 
 	public cleanup():void
@@ -199,6 +229,8 @@ export class WebWidget extends wmk.Widget
 
 	public menuAction(cmd:MenuBannerCommand):void
 	{
+		if (this.editor.callbackInteraction) this.editor.callbackInteraction();
+
 		let dlg = this.editor.compoundEditor();
 		if (dlg)
 		{
@@ -242,17 +274,14 @@ export class WebWidget extends wmk.Widget
 		else if (cmd == MenuBannerCommand.Back) this.callbackGoBack();
 	}
 
+	// specify a popup that should be displayed at the beginning of the session
+	public addInitialPopover(anchor:MenuBannerCommand, textLines:string[]):void
+	{
+		this.initialPopovers.push({anchor, textLines});
+	}
+
 	// ------------ private methods ------------
 
-	/*private actionClear():void
-	{
-		this.editor.setMixture(new Mixture(), true, true);
-	}
-	private actionSave():void
-	{
-		let str = this.editor.getMixture().serialise();
-		this.downloadFile('mixture.mixfile', str);
-	}*/
 	private actionExportSDF():void
 	{
 		let mixture = this.editor.getMixture();
@@ -288,6 +317,106 @@ export class WebWidget extends wmk.Widget
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
+	}
+
+	private displayPopovers():void
+	{
+		if (!this.editor.getMixture().isEmpty()) return;
+
+		wmk.FontData.main.initNativeFont();
+
+		let divCover = dom('<div/>').appendTo(this.contentDOM).css({'grid-area': 'start / 1 / end / 1', 'pointer-events': 'none', 'z-index': '1000'}).class('mixtures-webwidget-overlay');
+		setTimeout(() => divCover.addClass('mixtures-webwidget-overlay-fadein'), 200);
+
+		for (let popover of this.initialPopovers)
+		{
+			let box:wmk.Box;
+			if (popover.anchor)
+			{
+				box = this.banner.iconPosition(popover.anchor);
+				box.x += this.divMenu.elHTML.offsetLeft;
+				box.y += this.divMenu.elHTML.offsetTop;
+			}
+			else
+			{
+				box = this.editor.getComponentPosition([]);
+				box.x += this.divMain.elHTML.offsetLeft;
+				box.y += this.divMain.elHTML.offsetTop;
+			}
+			this.renderPopover(divCover, box, popover.textLines);
+		}
+
+		let removeCover = ():void =>
+		{
+			if (!divCover) return;
+			let div = divCover;
+			divCover = null;
+
+			div.addClass('mixtures-webwidget-overlay-fadeout');
+			setTimeout(() => div.remove(), 1100);
+		};
+
+		this.editor.callbackInteraction = removeCover;
+	}
+
+	private renderPopover(parent:DOM, avoidBox:wmk.Box, textLines:string[]):void
+	{
+		const FONT = 'sans-serif', FSZ = 15;
+
+		let outerW = parent.width(), outerH = parent.height();
+
+		let textW = 0, ascent = 0, descent = 0;
+		for (let line of textLines)
+		{
+			let wad = wmk.FontData.measureTextNative(line, FONT, FSZ);
+			textW = Math.max(textW, wad[0]);
+			[ascent, descent] = [wad[1], wad[2]];
+		}
+		const BETW = 3;
+		let lineH = ascent + descent + BETW, textH = lineH * textLines.length - BETW - descent;
+
+		const PADDING = 6, NIPPLEW = 5, NIPPLEH = 10, ROUND = 4;
+
+		let totalW = textW + 2 * PADDING, totalH = textH + 2 * PADDING + NIPPLEH;
+
+		let box = new wmk.Box(avoidBox.midX() - 0.5 * totalW, avoidBox.maxY() + 2, totalW, totalH);
+		box.x = Math.min(outerW - totalW, Math.max(0, box.x));
+
+		let div = dom('<div/>').appendTo(parent).css({'position': 'absolute'});
+		div.setBoundaryPixels(box.x, box.y, box.w, box.h);
+
+		let gfx = new wmk.MetaVector();
+		gfx.setSize(totalW, totalH);
+
+		let nx = avoidBox.midX() - box.x;
+		let x1 = 0.5, x2 = ROUND, x3 = nx - NIPPLEW, x4 = nx, x5 = nx + NIPPLEW, x6 = box.w - ROUND, x7 = box.w - 0.5;
+		let y1 = 0.5, y2 = NIPPLEH, y3 = NIPPLEH + ROUND, y4 = box.h - ROUND, y5 = box.h - 0.5;
+		let ptlist:[number, number, boolean][] =
+		[
+			[x4, y1, false],
+			[x3, y2, false],
+			[x2, y2, false],
+			[x1, y2, true],
+			[x1, y3, false],
+			[x1, y4, false],
+			[x1, y5, true],
+			[x2, y5, false],
+			[x6, y5, false],
+			[x7, y5, true],
+			[x7, y4, false],
+			[x7, y3, false],
+			[x7, y2, true],
+			[x6, y2, false],
+			[x5, y2, false],
+		];
+		gfx.drawPath(ptlist.map((pt) => pt[0]), ptlist.map((pt) => pt[1]), ptlist.map((pt) => pt[2]), true, 0x000000, 1, 0xC0E0FF, false);
+
+		for (let n = 0; n < textLines.length; n++)
+		{
+			let x = PADDING, y = NIPPLEH + PADDING + lineH * n + ascent;
+			gfx.drawTextNative(x, y, textLines[n], FONT, FSZ, 0x000000);
+		}
+		dom(gfx.createSVG()).appendTo(div).css({'pointer-events': 'none', 'display': 'block'});
 	}
 }
 

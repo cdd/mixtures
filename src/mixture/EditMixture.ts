@@ -16,7 +16,7 @@ namespace Mixtures /* BOF */ {
 	High level widget for the editing area for a mixture.
 */
 
-const DEFAULT_SCALE = 20;
+const DEFAULT_SCALE = 25;
 const UNDO_SIZE = 10;
 
 enum DragReason
@@ -29,6 +29,7 @@ enum DragReason
 export class EditMixture extends wmk.Widget
 {
 	public callbackUpdateTitle:() => void = null;
+	public callbackInteraction:() => void = null;
 
 	protected mixture = new Mixture();
 	protected policy = wmk.RenderPolicy.defaultColourOnWhite();
@@ -742,6 +743,8 @@ export class EditMixture extends wmk.Widget
 	// interactivity
 	protected mouseClick(event:MouseEvent):void
 	{
+		if (this.isEditing) return;
+
 		if (event.ctrlKey)
 		{
 			event.preventDefault();
@@ -754,6 +757,8 @@ export class EditMixture extends wmk.Widget
 	}
 	protected mouseDoubleClick(event:MouseEvent):void
 	{
+		if (this.isEditing) return;
+
 		event.stopImmediatePropagation();
 
 		let [x, y] = eventCoords(event, this.contentDOM);
@@ -769,6 +774,9 @@ export class EditMixture extends wmk.Widget
 	}
 	protected mouseDown(event:MouseEvent):void
 	{
+		if (this.isEditing) return;
+
+		if (this.callbackInteraction) this.callbackInteraction();
 		//event.preventDefault();
 
 		if (event.which != 1) return;
@@ -795,6 +803,8 @@ export class EditMixture extends wmk.Widget
 	}
 	protected mouseUp(event:MouseEvent):void
 	{
+		if (this.isEditing) return;
+
 		if (event.ctrlKey)
 		{
 			event.preventDefault();
@@ -814,15 +824,21 @@ export class EditMixture extends wmk.Widget
 	}
 	protected mouseOver(event:MouseEvent):void
 	{
+		if (this.isEditing) return;
+
 		this.updateHoverCursor(event);
 	}
 	protected mouseOut(event:MouseEvent):void
 	{
+		if (this.isEditing) return;
+
 		this.updateHoverCursor(event);
 		this.dragReason = DragReason.None;
 	}
 	protected mouseMove(event:MouseEvent):void
 	{
+		if (this.isEditing) return;
+
 		this.updateHoverCursor(event);
 
 		if (this.dragReason == DragReason.Any && this.dragIndex < 0)
@@ -850,6 +866,10 @@ export class EditMixture extends wmk.Widget
 	}
 	protected keyDown(event:KeyboardEvent):void
 	{
+		if (this.isEditing) return;
+
+		if (this.callbackInteraction) this.callbackInteraction();
+
 		if (!this.isReceivingCommands()) return;
 
 		let key = event.key;
@@ -879,6 +899,8 @@ export class EditMixture extends wmk.Widget
 	}
 	protected mouseWheel(event:WheelEvent):void
 	{
+		if (this.callbackInteraction) this.callbackInteraction();
+
 		let [x, y] = eventCoords(event, this.contentDOM);
 		let delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
 		let scale = 1 + Math.abs(delta) * 0.05;
@@ -896,6 +918,8 @@ export class EditMixture extends wmk.Widget
 	}
 	protected contextMenu(event:MouseEvent):void
 	{
+		if (this.callbackInteraction) this.callbackInteraction();
+
 		event.preventDefault();
 		if (!this.isReceivingCommands()) return;
 

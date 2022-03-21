@@ -137,7 +137,7 @@ export class EditMixtureWeb extends EditMixture
 		else if (event.key == '0' && mod == 'X') this.zoomFull();
 		else if (event.key == '=' && mod == 'X') this.zoom(1.25);
 		else if (event.key == '-' && mod == 'X') this.zoom(0.8);
-		else if (this.callbackFreeformKey && !mod && /^[A-Za-z0-9 ]$/.test(event.key)) this.callbackFreeformKey(this, event);
+		else if (this.callbackFreeformKey && (!mod || mod == 'S') && /^[A-Za-z0-9 ]$/.test(event.key)) this.callbackFreeformKey(this, event);
 		else
 		{
 			super.keyDown(event);
@@ -161,8 +161,10 @@ export class EditMixtureWeb extends EditMixture
 		let comp = this.mixture.getComponent(origin);
 		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
 
+		this.isEditing = true;
 		this.callbackStructureEditor(mol, (mol) =>
 		{
+			this.isEditing = false;
 			wmk.CoordUtil.normaliseBondDistances(mol);
 			let molfile = mol && mol.numAtoms > 0 ? wmk.MoleculeStream.writeMDLMOL(mol) : undefined;
 			if (!molfile) molfile = null;

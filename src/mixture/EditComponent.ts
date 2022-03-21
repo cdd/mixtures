@@ -47,6 +47,7 @@ export class EditComponent extends wmk.Dialog
 	private areaDescr:DOM = null;
 	private areaSyn:DOM = null;
 	private lineFormula:DOM;
+	private divWeight:DOM;
 	private lineInChI:DOM;
 	private lineSMILES:DOM;
 
@@ -139,9 +140,16 @@ export class EditComponent extends wmk.Dialog
 		let grid2 = this.fieldGrid().appendTo(vertical);
 		let row = 0;
 
+		//this.createFieldName(grid2, ++row, 'Formula', false);
+		row++;
 		this.createFieldName(grid2, ++row, 'Formula', false);
-		this.lineFormula = this.createValueLine(grid2, row);
+		let divFormula = this.createDiv(grid2, row).css({'display': 'flex', 'align-items': 'center'});
+		this.lineFormula = dom('<input/>').appendTo(divFormula).css({'flex-grow': '1', 'font': 'inherit'});
 		this.lineFormula.setValue(this.component.formula);
+		this.lineFormula.elInput.placeholder = this.calculateFormula();
+		this.lineFormula.onInput(() => this.calculateWeight());
+		this.divWeight = dom('<div/>').appendTo(divFormula).css({'flex-grow': '0'});
+		this.calculateWeight();
 
 		this.createFieldName(grid2, ++row, 'InChI', false);
 		this.lineInChI = this.createValueLine(grid2, row);
@@ -298,7 +306,7 @@ export class EditComponent extends wmk.Dialog
 	{
 		let div = dom('<div/>').appendTo(parent).css({'grid-area': `${row} / value`});
 		let input = dom('<input/>').appendTo(div);
-		input.css({'width': '100%', 'padding': '0', 'font': 'inherit'});
+		input.css({'width': 'calc(100% - 4px)', 'padding': '0', 'font': 'inherit'});
 		return input;
 	}
 	private createValueMultiline(parent:DOM, row:number):DOM
@@ -306,7 +314,7 @@ export class EditComponent extends wmk.Dialog
 		let div = dom('<div/>').appendTo(parent).css({'grid-area': `${row} / value`});
 		let area = dom('<textarea/>').appendTo(div);
 		area.attr({'rows': '5'});
-		area.css({'width': '100%', 'padding': '0', 'font': 'inherit'});
+		area.css({'width': 'calc(100% - 4px)', 'padding': '0', 'font': 'inherit'});
 		return area;
 	}
 
@@ -530,6 +538,52 @@ export class EditComponent extends wmk.Dialog
 			this.lineInChI.setValue(inchi);
 		}
 		catch (ex) {alert('InChI generation failed: ' + ex);}
+	}
+
+	// if there is a structure, calculate MF
+	private calculateFormula():string
+	{
+		if (!this.component.molfile) return '';
+		let mol = wmk.MoleculeStream.readUnknown(this.component.molfile);
+		if (wmk.MolUtil.isBlank(mol)) return '';
+		for (let n = mol.numAtoms; n >= 1; n--) if (mol.atomicNumber(n) == 0) mol.deleteAtomAndBonds(n);
+		return wmk.MolUtil.molecularFormula(mol);
+	}
+
+	// derive from MF field, if any
+	private calculateWeight():void
+	{
+		let mw = 0;
+
+		let mf = this.lineFormula.getValue();
+		if (!mf) mf = this.lineFormula.elInput.placeholder;
+
+		while (mf)
+		{
+			let match = mf.match(/^([A-Z][a-z]?)(\d*)(.*?)$/);
+			if (!match) {mw = 0; break;}
+			let atno = wmk.Chemistry.ELEMENTS.indexOf(match[1]);
+			if (atno <= 0) {mw = 0; break;}
+			let num = 1;
+			if (match[2])
+			{
+				num = parseInt(match[2]);
+				if (num <= 0) {mw = 0; break;}
+			}
+			mw += wmk.Chemistry.NATURAL_ATOMIC_WEIGHTS[atno] * num;
+			mf = match[3];
+		}
+
+		if (mw > 0)
+		{
+			this.divWeight.css({'padding-left': '0.5em'});
+			this.divWeight.setText(mw.toFixed(3) + ' g/mol');
+		}
+		else
+		{
+			this.divWeight.css({'padding-left': '0'});
+			this.divWeight.setText('');
+		}
 	}
 }
 

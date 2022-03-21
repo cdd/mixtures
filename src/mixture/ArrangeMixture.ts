@@ -245,7 +245,7 @@ export class ArrangeMixture
 		let padding = PADDING * this.scale;
 
 		// do the sizing for each component
-		for (let comp of this.components)
+		for (let [idx, comp] of this.components.entries())
 		{
 			let mixcomp = comp.content;
 
@@ -319,7 +319,8 @@ export class ArrangeMixture
 
 			if (this.minBoxSize)
 			{
-				let dw = this.minBoxSize.w - comp.outline.w, dh = this.minBoxSize.h - comp.outline.h;
+				let minsz = this.minBoxSize;
+				let dw = minsz.w - comp.outline.w, dh = minsz.h - comp.outline.h;
 				if (dw > 0)
 				{
 					comp.outline.w += dw;
