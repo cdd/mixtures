@@ -165,11 +165,14 @@ export class EditMixtureWeb extends EditMixture
 		this.callbackStructureEditor(mol, (mol) =>
 		{
 			this.isEditing = false;
+
+			comp = deepClone(comp);
+			this.checkStructureIntegrity(comp, mol);
+
 			wmk.CoordUtil.normaliseBondDistances(mol);
 			let molfile = mol && mol.numAtoms > 0 ? wmk.MoleculeStream.writeMDLMOL(mol) : undefined;
 			if (!molfile) molfile = null;
 
-			comp = deepClone(comp);
 			comp.molfile = molfile;
 			let modmix = this.mixture.clone();
 			if (modmix.setComponent(origin, comp))

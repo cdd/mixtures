@@ -58,6 +58,8 @@ export class EditMixture extends wmk.Widget
 	protected isEditing = false;
 	protected dlgCompound:wmk.EditCompound = null;
 
+	protected structureIntegrity:Record<string, string> = {}; // metadata key -> name for those which are sensitive to changes to structure
+
 	// ------------ public methods ------------
 
 	constructor(protected proxyClip:wmk.ClipboardProxy, protected proxyMenu:wmk.MenuProxy)
@@ -106,6 +108,12 @@ export class EditMixture extends wmk.Widget
 	public isReceivingCommands():boolean {return !this.isEditing;}
 	public setEditing(isEditing:boolean):void {this.isEditing = isEditing;}
 	public compoundEditor():wmk.EditCompound {return this.dlgCompound;}
+
+	// add a metadata key that can potentially stop being valid when the structure is changed
+	public addStructureIntegrityKey(key:string, description:string):void
+	{
+		this.structureIntegrity[key] = description;
+	}
 
 	// access to current state
 	public getMixture():Mixture {return this.mixture;}
@@ -247,10 +255,13 @@ export class EditMixture extends wmk.Widget
 		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule(), this.contentDOM);
 		this.dlgCompound.onSave(() =>
 		{
-			let molfile = wmk.MoleculeStream.writeMDLMOL(this.dlgCompound.getMolecule());
+			let mol = this.dlgCompound.getMolecule();
+			comp = deepClone(comp);
+			this.checkStructureIntegrity(comp, mol);
+
+			let molfile = wmk.MoleculeStream.writeMDLMOL(mol);
 			if (!molfile) molfile = null;
 
-			comp = deepClone(comp);
 			comp.molfile = molfile;
 			let modmix = this.mixture.clone();
 			if (modmix.setComponent(origin, comp))
@@ -974,6 +985,30 @@ export class EditMixture extends wmk.Widget
 		}
 
 		menu.popup({'window': remote.getCurrentWindow()});
+	}
+
+	// given that the structure may have changed, see if any metadata is potentially invalidated - and ask the user; the component parameter
+	// may be modified
+	protected checkStructureIntegrity(comp:MixfileComponent, newMol:wmk.Molecule):void
+	{
+		let integKeys = Object.keys(this.structureIntegrity).filter((key) => (comp.identifiers && comp.identifiers[key]) || (comp.links && comp.links[key]));
+		if (integKeys.length == 0) return;
+
+		let oldMol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
+		if (wmk.MolUtil.isBlank(oldMol) && wmk.MolUtil.isBlank(newMol)) return;
+		if (oldMol && newMol && wmk.CoordUtil.sketchMappable(oldMol, newMol)) return;
+
+		let msg = wmk.MolUtil.isBlank(newMol) ? 'Structure has been removed.' : 'Structure has changed.';
+		msg += `\nThe following reference${integKeys.length == 1 ? '' : 's'} may have become stale:`;
+		for (let key of integKeys) msg += '\n    ' + this.structureIntegrity[key];
+		msg += integKeys.length == 1 ? '\nRemove this reference?' : '\nRemove these references?';
+		if (!confirm(msg)) return;
+
+		for (let key of integKeys) 
+		{
+			if (comp.identifiers) delete comp.identifiers[key];
+			if (comp.links) delete comp.links[key];
+		}
 	}
 }
 
