@@ -321,7 +321,7 @@ export class WebWidget extends wmk.Widget
 
 	private displayPopovers():void
 	{
-		if (!this.editor.getMixture().isEmpty()) return;
+		if (!this.editor.getMixture().isEmpty() || !this.contentDOM) return;
 
 		wmk.FontData.main.initNativeFont();
 
