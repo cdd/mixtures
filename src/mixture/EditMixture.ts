@@ -48,7 +48,7 @@ export class EditMixture extends wmk.Widget
 	protected collapsedBranches:number[][] = [];
 	protected hoverIndex = -1; // component over which the mouse is hovering
 	protected activeIndex = -1; // component that is currently being clicked upon
-	protected selectedIndex = -1; // selected component (having been previously clicked)
+	protected selectedIndex = 0; // selected component (having been previously clicked)
 	protected delayedSelect:number[] = null; // if set to an origin vector: to rederive selectedIndex next time the layout is evaluated
 
 	protected dragReason = DragReason.None;
@@ -1004,7 +1004,7 @@ export class EditMixture extends wmk.Widget
 		msg += integKeys.length == 1 ? '\nRemove this reference?' : '\nRemove these references?';
 		if (!confirm(msg)) return;
 
-		for (let key of integKeys) 
+		for (let key of integKeys)
 		{
 			if (comp.identifiers) delete comp.identifiers[key];
 			if (comp.links) delete comp.links[key];
