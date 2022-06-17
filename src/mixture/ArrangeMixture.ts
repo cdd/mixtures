@@ -88,6 +88,7 @@ export class ArrangeMixture
 	{
 		this.createComponents();
 		this.layoutSubComponents(0);
+		this.contractComponents();
 
 		// normalize boundaries
 		let outline:wmk.Box = null;
@@ -425,6 +426,56 @@ export class ArrangeMixture
 		}
 
 		return wholeBranch;
+	}
+
+	// component layout is done, but may be able to "reel in" some of the branches to make it smaller
+	private contractComponents():void
+	{
+		let allChildren:number[][] = [];
+		for (let n = 0; n < this.components.length; n++) 
+		{
+			allChildren.push([]);
+			for (let idx = this.components[n].parentIdx; idx >= 0; idx = this.components[idx].parentIdx) allChildren[idx].push(n);
+		}
+
+		let hspace = HSPACE * this.scale, padding = PADDING * this.scale;
+
+		while (true)
+		{
+			let anything = false;
+
+			for (let n = 1; n < allChildren.length; n++)
+			{
+				let pidx = this.components[n].parentIdx;
+				let boundX = this.components[pidx].boundary.maxX() + hspace;
+				let dx = this.components[n].boundary.minX() - boundX; // how far to move to the left
+				if (dx < 1) continue; // no room to contract
+
+				let idxInside = [n, ...allChildren[n]];
+				let idxOutside = Vec.identity0(allChildren.length).filter((idx) => !idxInside.includes(idx));
+
+				for (let i of idxInside)
+				{
+					let box1 = this.components[i].boundary.withGrow(padding, padding);
+					for (let j of idxOutside)
+					{
+						let box2 = this.components[j].boundary;
+						if (box2.minX() > box1.maxX()) continue;
+						if (box1.minY() > box2.maxY() || box1.maxY() < box2.minY()) continue;
+
+						dx = Math.min(dx, box1.minX() - box2.maxX());
+					}
+				}
+
+				if (dx > 1)
+				{
+					for (let n of idxInside) this.components[n].boundary.x -= dx;
+					anything = true;
+				}
+			}
+
+			if (!anything) break;
+		}
 	}
 
 	// if the given string is longer than the soft/hard limit, looks to break it up into smaller pieces; each of them is

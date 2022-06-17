@@ -352,7 +352,7 @@ export class MixturePanel extends MainPanel
 			let gfx = new wmk.MetaVector();
 			new DrawMixture(layout, gfx).draw();
 			gfx.normalise();
-			let svg = gfx.createSVG(true);
+			let svg = gfx.createSVG(true, true);
 
 			const fs = require('fs');
 			fs.writeFile(value.filePath, svg, (err:any):void =>

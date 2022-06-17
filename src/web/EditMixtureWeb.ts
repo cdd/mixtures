@@ -25,11 +25,18 @@ export class EditMixtureWeb extends EditMixture
 	public callbackStructureEditor:(mol:wmk.Molecule, onSuccess:(mol:wmk.Molecule) => void) => void = null; // optional editor replacement
 	public callbackFreeformKey:(edit:EditMixture, event:KeyboardEvent) => void = null;
 
+	private isMacKeyboard:boolean;
+
 	// ------------ public methods ------------
 
 	constructor(proxyClip:wmk.ClipboardProxy, proxyMenu?:wmk.MenuProxy)
 	{
 		super(proxyClip, proxyMenu);
+
+		// the 'navigator' object is being overhauled: it should have a more structured userAgentData property on most browsers; if not it
+		// falls back to the older .platform property, which will trigger a deprecation warning on a browser; but for Electron context, it's OK
+		let nav = navigator as any; 
+		this.isMacKeyboard = nav.userAgentData ? nav.userAgentData.platform == 'macOS' : nav.platform.startsWith('Mac');
 	}
 
 	public render(parent:any):void
@@ -109,7 +116,17 @@ export class EditMixtureWeb extends EditMixture
 		let mod = '';
 		if (event.shiftKey) mod += 'S';
 		if (event.altKey) mod += 'A';
-		if (/^(Mac|iPhone|iPod|iPad)/i.test(navigator.platform))
+		/*if (/^(Mac|iPhone|iPod|iPad)/i.test(navigator.platform))
+		{
+			if (event.metaKey) mod += 'X';
+			if (event.ctrlKey) mod += 'C';
+		}
+		else
+		{
+			if (event.ctrlKey) mod += 'X';
+		}*/
+		//if (event.ctrlKey || event.metaKey) mod += 'X';
+		if (this.isMacKeyboard)
 		{
 			if (event.metaKey) mod += 'X';
 			if (event.ctrlKey) mod += 'C';

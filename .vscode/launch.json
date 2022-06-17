@@ -15,7 +15,7 @@
 			"console": "integratedTerminal",
 			"args": 
 			[
-				"play/mixture09.mixfile",
+				"play/mixture11.mixfile",
 				//"play/collection.json",
 				//"play/typecodes1.json",
 				//"play/typecodes2.json",

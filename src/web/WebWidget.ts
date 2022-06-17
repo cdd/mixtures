@@ -91,6 +91,8 @@ export class WebWidget extends wmk.Widget
 
 	private initialPopovers:WebWidgetPopover[] = [];
 
+	private isMacKeyboard:boolean;
+
 	// ------------ public methods ------------
 
 	constructor(public proxyClip?:wmk.ClipboardProxy, public proxyMenu?:wmk.MenuProxy)
@@ -99,6 +101,11 @@ export class WebWidget extends wmk.Widget
 
 		if (!this.proxyClip) this.proxyClip = new wmk.ClipboardProxyWeb();
 		if (!this.proxyMenu) this.proxyMenu = new wmk.MenuProxyWeb();
+
+		// the 'navigator' object is being overhauled: it should have a more structured userAgentData property on most browsers; if not it
+		// falls back to the older .platform property, which will trigger a deprecation warning on a browser; but for Electron context, it's OK
+		let nav = navigator as any; 
+		this.isMacKeyboard = nav.userAgentData ? nav.userAgentData.platform == 'macOS' : nav.platform.startsWith('Mac');
 
 		let handler = new wmk.ClipboardProxyHandler();
 		handler.copyEvent = (andCut:boolean, proxy:wmk.ClipboardProxy):boolean =>
@@ -133,7 +140,7 @@ export class WebWidget extends wmk.Widget
 		let mapButton:Record<string, MenuBannerButton> = {};
 		for (let list of bannerContent) for (let btn of list) mapButton[btn.cmd] = btn;
 
-		let action = /^(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? 'Command' : 'Ctrl';
+		let action = this.isMacKeyboard ? 'Command' : 'Ctrl';
 
 		mapButton[MenuBannerCommand.EditDetails].tip += ` (${action}+Enter)`;
 		mapButton[MenuBannerCommand.EditStructure].tip += ' (Shift+Enter)';
@@ -326,7 +333,10 @@ export class WebWidget extends wmk.Widget
 		wmk.FontData.main.initNativeFont();
 
 		let divCover = dom('<div/>').appendTo(this.contentDOM).css({'grid-area': 'start / 1 / end / 1', 'pointer-events': 'none', 'z-index': '1000'}).class('mixtures-webwidget-overlay');
-		setTimeout(() => divCover.addClass('mixtures-webwidget-overlay-fadein'), 200);
+		setTimeout(() => 
+		{
+			if (divCover) divCover.addClass('mixtures-webwidget-overlay-fadein');
+		}, 200);
 
 		for (let popover of this.initialPopovers)
 		{
