@@ -10,7 +10,11 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {CoordUtil} from '../../wmk/data/CoordUtil';
+import {DataSheet} from '../../wmk/data/DataSheet';
+import {MDLSDFReader} from '../../wmk/data/MDLReader';
+import {Molecule} from '../../wmk/data/Molecule';
+import {MolUtil} from '../../wmk/data/MolUtil';
 
 /*
 	Searching PubChem via the REST API, using names to track down other information, primarily structure.
@@ -21,7 +25,7 @@ const BASE_COMPOUND = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound';
 
 export interface PubChemSearchResult
 {
-	mol:wmk.Molecule;
+	mol:Molecule;
 	names:string[];
 	formula:string;
 	inchi:string;
@@ -130,13 +134,13 @@ export class PubChemSearch
 	{
 		if (this.stopped) return;
 
-		let ds = new wmk.MDLSDFReader(data).parse();
+		let ds = new MDLSDFReader(data).parse();
 		for (let n = 0; n < ds.numRows; n++) this.unpackCompound(ds, n);
 
 		this.fetchNext();
 	}
 
-	private unpackCompound(ds:wmk.DataSheet, row:number):void
+	private unpackCompound(ds:DataSheet, row:number):void
 	{
 		let result:PubChemSearchResult =
 		{
@@ -149,8 +153,8 @@ export class PubChemSearch
 
 		if (result.mol)
 		{
-			wmk.MolUtil.stripHydrogens(result.mol);
-			wmk.CoordUtil.normaliseBondDistances(result.mol);
+			MolUtil.stripHydrogens(result.mol);
+			CoordUtil.normaliseBondDistances(result.mol);
 		}
 
 		const NAMECOLS = ['PUBCHEM_IUPAC_TRADITIONAL_NAME', 'PUBCHEM_IUPAC_SYSTEMATIC_NAME',
@@ -165,5 +169,3 @@ export class PubChemSearch
 		this.callbackResult(result);
 	}
 }
-
-/* EOF */ }

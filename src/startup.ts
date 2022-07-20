@@ -10,13 +10,18 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='decl/node.d.ts'/>
-///<reference path='main/MixturePanel.ts'/>
-
-namespace Mixtures /* BOF */ {
+import {MainPanel} from './main/MainPanel';
+import {MixturePanel} from './main/MixturePanel';
+import {initWebMolKit, Theme} from '../wmk/util/Theme';
+import {DOM} from '../wmk/util/dom';
+import {OntologyTree} from '../wmk/data/OntologyTree';
+import {CollectionPanel} from './main/CollectionPanel';
+import {ClipboardProxy} from '../wmk/ui/ClipboardProxy';
+import {MenuProxy, MenuProxyContext} from '../wmk/ui/MenuProxy';
 
 export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally
 							   // executed window version
+export function setOnDesktop(value:boolean) {ON_DESKTOP = value;}
 
 /*
 	Startup: gets the ball rolling, and provide some high level window handling.
@@ -27,9 +32,9 @@ export async function runMixfileEditor(resURL:string, rootID:string):Promise<voi
 	let root = DOM.find('#' + rootID);
 
 	ON_DESKTOP = true;
-	wmk.initWebMolKit(resURL);
-	await wmk.OntologyTree.init();
-	await wmk.OntologyTree.main.loadFromURL(resURL + '/data/ontology/metacategory.onto');
+	initWebMolKit(resURL);
+	await OntologyTree.init();
+	await OntologyTree.main.loadFromURL(resURL + '/data/ontology/metacategory.onto');
 
 	// node/electron imports; note these are defined inside the function so as not to perturb normal web-access, which does not
 	// include these libraries
@@ -41,7 +46,7 @@ export async function runMixfileEditor(resURL:string, rootID:string):Promise<voi
 	process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
 
 	let url = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
-	wmk.Theme.RESOURCE_URL = path.normalize(url + '/res');
+	Theme.RESOURCE_URL = path.normalize(url + '/res');
 
 	// unpack web params: if present, they determine where to go from here
  	let params = window.location.search.substring(1).split('&');
@@ -58,7 +63,7 @@ export async function runMixfileEditor(resURL:string, rootID:string):Promise<voi
 
 	if (!panelClass && filename && filename.endsWith('.json')) panelClass = 'CollectionPanel';
 
-	let proxyClip = new wmk.ClipboardProxy();
+	let proxyClip = new ClipboardProxy();
 	const {clipboard} = electron;
 	proxyClip.getString = ():string => clipboard.readText();
 	proxyClip.setString = (str:string):void => clipboard.writeText(str);
@@ -66,11 +71,11 @@ export async function runMixfileEditor(resURL:string, rootID:string):Promise<voi
 	proxyClip.canSetHTML = ():boolean => true;
 	proxyClip.canAlwaysGet = ():boolean => true;
 
-	let proxyMenu = new wmk.MenuProxy();
+	let proxyMenu = new MenuProxy();
 	proxyMenu.hasContextMenu = () => true;
-	proxyMenu.openContextMenu = (menuItems:wmk.MenuProxyContext[], event:MouseEvent) =>
+	proxyMenu.openContextMenu = (menuItems:MenuProxyContext[], event:MouseEvent) =>
 	{
-		let populate = (emenu:Electron.Menu, itemList:wmk.MenuProxyContext[]):void =>
+		let populate = (emenu:Electron.Menu, itemList:MenuProxyContext[]):void =>
 		{
 			for (let item of itemList)
 			{
@@ -92,16 +97,16 @@ export async function runMixfileEditor(resURL:string, rootID:string):Promise<voi
 	};
 
 	let main:MainPanel;
-	if (!panelClass)
-	{
-		let dw = main = new MixturePanel(root, proxyClip, proxyMenu);
-	}
-	else
+	if (!panelClass || panelClass == 'MixturePanel') main = new MixturePanel(root, proxyClip, proxyMenu);
+	else if (panelClass == 'CollectionPanel') main = new CollectionPanel(root, proxyClip, proxyMenu);
+	else throw 'Unexpected class:' + panelClass;
+
+	/*
 	{
 		let proto = (Mixtures as any)[panelClass];
 		if (!proto) throw 'Unknown class: ' + panelClass;
 		main = new (proto as any)(root, proxyClip, proxyMenu);
-	}
+	}*/
 
 	main.loadFile(filename);
 
@@ -124,5 +129,3 @@ export function openNewWindow(panelClass:string, filename?:string):void
 	bw.loadURL(url);
 	/*bw.on('closed', function() {bw = null;});*/
 }
-
-/* EOF */ }

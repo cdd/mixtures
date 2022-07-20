@@ -10,7 +10,13 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {DataSheet, DataSheetColumn} from '../../wmk/data/DataSheet';
+import {MDLMOLReader} from '../../wmk/data/MDLReader';
+import {MDLSDFWriter} from '../../wmk/data/MDLWriter';
+import {Molecule} from '../../wmk/data/Molecule';
+import {Vec} from '../../wmk/util/Vec';
+import {Mixfile, MixfileComponent} from '../data/Mixfile';
+import {ExportMInChI} from './ExportMInChI';
 
 /*
 	Interoperability with SDfiles: conversion of the Mixfile hierarchy into a flattened SDfile is useful for presenting to
@@ -19,7 +25,7 @@ namespace Mixtures /* BOF */ {
 
 export class ExportSDFile
 {
-	private ds = new wmk.DataSheet();
+	private ds = new DataSheet();
 	private colMol:number;
 	private colName:number;
 	private colHier:number;
@@ -29,10 +35,10 @@ export class ExportSDFile
 
 	constructor()
 	{
-		this.colMol = this.ds.appendColumn('Molecule', wmk.DataSheetColumn.Molecule, '');
-		this.colName = this.ds.appendColumn('Name', wmk.DataSheetColumn.String, '');
-		this.colHier = this.ds.appendColumn('MINCHI$N', wmk.DataSheetColumn.String, '');
-		this.colConc = this.ds.appendColumn('MINCHI$C', wmk.DataSheetColumn.String, '');
+		this.colMol = this.ds.appendColumn('Molecule', DataSheetColumn.Molecule, '');
+		this.colName = this.ds.appendColumn('Name', DataSheetColumn.String, '');
+		this.colHier = this.ds.appendColumn('MINCHI$N', DataSheetColumn.String, '');
+		this.colConc = this.ds.appendColumn('MINCHI$C', DataSheetColumn.String, '');
 	}
 
 	// can add any number of mixtures, which will be numbered automatically
@@ -53,7 +59,7 @@ export class ExportSDFile
 	// return the SDF-serialised representation
 	public write():string
 	{
-		return new wmk.MDLSDFWriter(this.ds).write();
+		return new MDLSDFWriter(this.ds).write();
 	}
 
 	// ------------ private methods ------------
@@ -63,20 +69,20 @@ export class ExportSDFile
 	{
 		let row = this.ds.appendRow();
 
-		let mol:wmk.Molecule = null;
+		let mol:Molecule = null;
 		if (comp.molfile)
 		{
-			mol = wmk.Molecule.fromString(comp.molfile);
+			mol = Molecule.fromString(comp.molfile);
 			if (!mol)
 			{
 				try
 				{
-					mol = new wmk.MDLMOLReader(comp.molfile).parse();
+					mol = new MDLMOLReader(comp.molfile).parse();
 				}
 				catch (e) {}
 			}
 		}
-		if (!mol) mol = new wmk.Molecule();
+		if (!mol) mol = new Molecule();
 
 		this.ds.setMolecule(row, this.colMol, mol);
 		if (comp.name) this.ds.setString(row, this.colName, comp.name);
@@ -134,5 +140,3 @@ export class ExportSDFile
 		return ExportMInChI.formatConcentration(comp.quantity, comp.error, useRatio, comp.units, comp.relation);
 	}
 }
-
-/* EOF */ }

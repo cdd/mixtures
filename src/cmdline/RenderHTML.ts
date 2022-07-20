@@ -10,7 +10,14 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {OutlineMeasurement} from '../../wmk/gfx/ArrangeMeasurement';
+import {MetaVector} from '../../wmk/gfx/MetaVector';
+import {RenderPolicy} from '../../wmk/gfx/Rendering';
+import {escapeHTML} from '../../wmk/util/util';
+import {MixtureCollection} from '../data/MixtureCollection';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {DrawMixture} from '../mixture/DrawMixture';
+import {ExportMInChI, MInChISegment} from '../mixture/ExportMInChI';
 
 /*
 	Loads a mixture collection and emits it as visualisable HTML.
@@ -49,8 +56,8 @@ export class RenderHTML
 		
 		emitln('<body><table>');
 
-		let policy = wmk.RenderPolicy.defaultColourOnWhite(15);
-		let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
+		let policy = RenderPolicy.defaultColourOnWhite(15);
+		let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
 
 		for (let n = 0; n < mixlist.count; n++)
 		{
@@ -62,7 +69,7 @@ export class RenderHTML
 			let layout = new ArrangeMixture(mixture, measure, policy);
 			layout.arrange();
 
-			let gfx = new wmk.MetaVector();
+			let gfx = new MetaVector();
 			let draw = new DrawMixture(layout, gfx);
 			draw.draw();
 			gfx.normalise();
@@ -102,4 +109,3 @@ export class RenderHTML
 	// ------------ private methods ------------
 }
 
-/* EOF */ }

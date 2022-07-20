@@ -10,7 +10,18 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {OutlineMeasurement} from '../../wmk/gfx/ArrangeMeasurement';
+import {MetaVector} from '../../wmk/gfx/MetaVector';
+import {RenderPolicy} from '../../wmk/gfx/Rendering';
+import {Vec} from '../../wmk/util/Vec';
+import {Mixfile} from '../data/Mixfile';
+import {Mixture} from '../data/Mixture';
+import {InChI} from '../main/InChI';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {DrawMixture} from '../mixture/DrawMixture';
+import {ExportMInChI} from '../mixture/ExportMInChI';
+import {ExportSDFile} from '../mixture/ExportSDFile';
+import {ImportSDFile} from '../mixture/ImportSDFile';
 
 /*
 	Reads a stream of mixtures and writes it out as a stream, with format transformation as necessary.
@@ -230,12 +241,12 @@ export class TransformMixtures
 		}
 		else if (this.outputFormat == TransformMixtureFormat.SVG)
 		{
-			let policy = wmk.RenderPolicy.defaultColourOnWhite(20);
-			let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
+			let policy = RenderPolicy.defaultColourOnWhite(20);
+			let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
 			let layout = new ArrangeMixture(new Mixture(mixfile), measure, policy);
 			layout.arrange();
 
-			let gfx = new wmk.MetaVector();
+			let gfx = new MetaVector();
 			new DrawMixture(layout, gfx).draw();
 			gfx.normalise();
 			let svg = gfx.createSVG(false);
@@ -262,5 +273,3 @@ export class TransformMixtures
 	}
 
 }
-
-/* EOF */ }

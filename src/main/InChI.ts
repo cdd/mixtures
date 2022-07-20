@@ -10,7 +10,10 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {MDLMOLWriter} from '../../wmk/data/MDLWriter';
+import {Molecule} from '../../wmk/data/Molecule';
+import {MolUtil} from '../../wmk/data/MolUtil';
+import {ON_DESKTOP} from '../startup';
 
 /*
 	Interoperability with InChI technology: the generator program is a native binary, the location of which
@@ -73,13 +76,13 @@ export class InChI
 	// converts a molecule to an InChI string, if possible; should check the availability first, for graceful
 	// rejection; failure results in an exception; note that it is executed synchronously: if the executable takes
 	// a long time to run, this will be a problem for the UI; the return value is [InChI, InChIKey]
-	public static async makeInChI(mol:wmk.Molecule):Promise<[string, string]>
+	public static async makeInChI(mol:Molecule):Promise<[string, string]>
 	{
 		mol = mol.clone();
-		wmk.MolUtil.expandAbbrevs(mol, true);
+		MolUtil.expandAbbrevs(mol, true);
 		for (let n = 1; n <= mol.numBonds; n++) if (mol.bondOrder(n) < 1 || mol.bondOrder(n) > 3) mol.setBondOrder(n, 1);
 
-		let writer = new wmk.MDLMOLWriter(mol);
+		let writer = new MDLMOLWriter(mol);
 		writer.enhancedFields = false;
 		let mdlmol = writer.write();
 
@@ -108,5 +111,3 @@ export class InChI
 		return bits;
 	}
 }
-
-/* EOF */ }

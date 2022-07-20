@@ -1,6 +1,8 @@
 **/.DS_Store
 node_modules
 deprecated
-dist
 package-lock.json
-app/mixfile.js*
+dist/wmk
+dist/src
+dist/work
+dist/cdd

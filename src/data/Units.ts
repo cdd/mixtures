@@ -10,9 +10,9 @@
 	Made available under the Gnu Public License v3.0
 */
 
-/* eslint-disable @typescript-eslint/naming-convention */
+import {Vec} from '../../wmk/util/Vec';
 
-namespace Mixtures /* BOF */ {
+/* eslint-disable @typescript-eslint/naming-convention */
 
 /*
 	Unit definitions and conversions. Units are preferentially stored by URI, displayed by common name, and interconverted
@@ -183,5 +183,3 @@ export class Units
 		return [mnemonic, Vec.mul(values, scale)];
 	}
 }
-
-/* EOF */ }

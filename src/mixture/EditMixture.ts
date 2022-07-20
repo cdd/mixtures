@@ -10,7 +10,29 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {CoordUtil} from '../../wmk/data/CoordUtil';
+import {MDLMOLWriter} from '../../wmk/data/MDLWriter';
+import {Molecule} from '../../wmk/data/Molecule';
+import {MoleculeStream} from '../../wmk/data/MoleculeStream';
+import {MolUtil} from '../../wmk/data/MolUtil';
+import {EditCompound} from '../../wmk/dialog/EditCompound';
+import {OutlineMeasurement} from '../../wmk/gfx/ArrangeMeasurement';
+import {MetaVector} from '../../wmk/gfx/MetaVector';
+import {RenderPolicy} from '../../wmk/gfx/Rendering';
+import {ClipboardProxy} from '../../wmk/ui/ClipboardProxy';
+import {MenuProxy} from '../../wmk/ui/MenuProxy';
+import {Widget} from '../../wmk/ui/Widget';
+import {Box, Size} from '../../wmk/util/Geom';
+import {deepClone, eventCoords, newElement, pixelDensity} from '../../wmk/util/util';
+import {Vec} from '../../wmk/util/Vec';
+import {MixfileComponent} from '../data/Mixfile';
+import {Mixture} from '../data/Mixture';
+import {NormMixture} from '../data/NormMixture';
+import {ExtractCTABComponent} from '../lookup/ExtractCTABComponent';
+import {LookupCompoundDialog} from '../lookup/LookupCompoundDialog';
+import {ArrangeMixture} from './ArrangeMixture';
+import {DrawMixture} from './DrawMixture';
+import {EditComponent} from './EditComponent';
 
 /*
 	High level widget for the editing area for a mixture.
@@ -26,13 +48,13 @@ enum DragReason
 	Pan,
 }
 
-export class EditMixture extends wmk.Widget
+export class EditMixture extends Widget
 {
 	public callbackUpdateTitle:() => void = null;
 	public callbackInteraction:() => void = null;
 
 	protected mixture = new Mixture();
-	protected policy = wmk.RenderPolicy.defaultColourOnWhite();
+	protected policy = RenderPolicy.defaultColourOnWhite();
 	protected canvasMixture:HTMLCanvasElement;
 	protected canvasOver:HTMLCanvasElement;
 
@@ -56,13 +78,13 @@ export class EditMixture extends wmk.Widget
 	protected dragX = 0;
 	protected dragY = 0;
 	protected isEditing = false;
-	protected dlgCompound:wmk.EditCompound = null;
+	protected dlgCompound:EditCompound = null;
 
 	protected structureIntegrity:Record<string, string> = {}; // metadata key -> name for those which are sensitive to changes to structure
 
 	// ------------ public methods ------------
 
-	constructor(protected proxyClip:wmk.ClipboardProxy, protected proxyMenu:wmk.MenuProxy)
+	constructor(protected proxyClip:ClipboardProxy, protected proxyMenu:MenuProxy)
 	{
 		super();
 	}
@@ -107,7 +129,7 @@ export class EditMixture extends wmk.Widget
 	// whether or not menu commands are being received; no means that it's in dialog/editing mode
 	public isReceivingCommands():boolean {return !this.isEditing;}
 	public setEditing(isEditing:boolean):void {this.isEditing = isEditing;}
-	public compoundEditor():wmk.EditCompound {return this.dlgCompound;}
+	public compoundEditor():EditCompound {return this.dlgCompound;}
 
 	// add a metadata key that can potentially stop being valid when the structure is changed
 	public addStructureIntegrityKey(key:string, description:string):void
@@ -250,16 +272,16 @@ export class EditMixture extends wmk.Widget
 		let origin = this.layout.components[this.selectedIndex].origin;
 		let comp = this.mixture.getComponent(origin);
 
-		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
+		let mol = comp.molfile ? MoleculeStream.readUnknown(comp.molfile) : null;
 
-		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule(), this.contentDOM);
+		this.dlgCompound = new EditCompound(mol ? mol : new Molecule(), this.contentDOM);
 		this.dlgCompound.onSave(() =>
 		{
 			let mol = this.dlgCompound.getMolecule();
 			comp = deepClone(comp);
 			this.checkStructureIntegrity(comp, mol);
 
-			let molfile = wmk.MoleculeStream.writeMDLMOL(mol);
+			let molfile = MoleculeStream.writeMDLMOL(mol);
 			if (!molfile) molfile = null;
 
 			comp.molfile = molfile;
@@ -334,7 +356,7 @@ export class EditMixture extends wmk.Widget
 			comp = deepClone(modmix.getComponent(origin));
 			let name = dlg.getName(), mol = dlg.getMolecule();
 			if (name != null) comp.name = name;
-			if (mol != null) comp.molfile = new wmk.MDLMOLWriter(mol).write();
+			if (mol != null) comp.molfile = new MDLMOLWriter(mol).write();
 			if (modmix.setComponent(origin, comp))
 			{
 				this.setMixture(modmix);
@@ -476,14 +498,14 @@ export class EditMixture extends wmk.Widget
 		// see if it's just a regular singular molecule
 		if (!json)
 		{
-			let mol = wmk.MoleculeStream.readUnknown(str);
-			if (wmk.MolUtil.notBlank(mol))
+			let mol = MoleculeStream.readUnknown(str);
+			if (MolUtil.notBlank(mol))
 			{
 				let modmix = this.mixture.clone();
 				let comp = modmix.getComponent(origin);
 				if (comp)
 				{
-					comp.molfile = new wmk.MDLMOLWriter(mol).write();
+					comp.molfile = new MDLMOLWriter(mol).write();
 					this.setMixture(modmix);
 				}
 			}
@@ -531,7 +553,7 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// return the layout around onscreen for an indicated component
-	public getComponentPosition(origin:number[]):wmk.Box
+	public getComponentPosition(origin:number[]):Box
 	{
 		for (let comp of this.layout.components) if (Vec.equals(origin, comp.origin))
 		{
@@ -562,13 +584,13 @@ export class EditMixture extends wmk.Widget
 
 		if (!this.layout)
 		{
-			let measure = new wmk.OutlineMeasurement(0, 0, this.pointScale);
-			let policy = new wmk.RenderPolicy(deepClone(this.policy.data));
+			let measure = new OutlineMeasurement(0, 0, this.pointScale);
+			let policy = new RenderPolicy(deepClone(this.policy.data));
 			policy.data.pointScale = this.pointScale;
 			this.layout = new ArrangeMixture(this.mixture, measure, policy);
 			this.layout.showCollapsors = true;
 			this.layout.collapsedBranches = this.collapsedBranches;
-			this.layout.packBranches = new wmk.Size(0.8 * this.contentDOM.width(), 0.8 * this.contentDOM.height());
+			this.layout.packBranches = new Size(0.8 * this.contentDOM.width(), 0.8 * this.contentDOM.height());
 			this.layout.norm = new NormMixture(this.mixture);
 			this.layout.norm.analyse();
 			this.layout.arrange();
@@ -586,7 +608,7 @@ export class EditMixture extends wmk.Widget
 			this.delayedSelect = null;
 		}
 
-		let gfx = new wmk.MetaVector();
+		let gfx = new MetaVector();
 		let draw = new DrawMixture(this.layout, gfx);
 		draw.hoverIndex = this.hoverIndex;
 		draw.activeIndex = this.activeIndex;
@@ -989,16 +1011,16 @@ export class EditMixture extends wmk.Widget
 
 	// given that the structure may have changed, see if any metadata is potentially invalidated - and ask the user; the component parameter
 	// may be modified
-	protected checkStructureIntegrity(comp:MixfileComponent, newMol:wmk.Molecule):void
+	protected checkStructureIntegrity(comp:MixfileComponent, newMol:Molecule):void
 	{
 		let integKeys = Object.keys(this.structureIntegrity).filter((key) => (comp.identifiers && comp.identifiers[key]) || (comp.links && comp.links[key]));
 		if (integKeys.length == 0) return;
 
-		let oldMol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
-		if (wmk.MolUtil.isBlank(oldMol) && wmk.MolUtil.isBlank(newMol)) return;
-		if (oldMol && newMol && wmk.CoordUtil.sketchMappable(oldMol, newMol)) return;
+		let oldMol = comp.molfile ? MoleculeStream.readUnknown(comp.molfile) : null;
+		if (MolUtil.isBlank(oldMol) && MolUtil.isBlank(newMol)) return;
+		if (oldMol && newMol && CoordUtil.sketchMappable(oldMol, newMol)) return;
 
-		let msg = wmk.MolUtil.isBlank(newMol) ? 'Structure has been removed.' : 'Structure has changed.';
+		let msg = MolUtil.isBlank(newMol) ? 'Structure has been removed.' : 'Structure has changed.';
 		msg += `\nThe following reference${integKeys.length == 1 ? '' : 's'} may have become stale:`;
 		for (let key of integKeys) msg += '\n    ' + this.structureIntegrity[key];
 		msg += integKeys.length == 1 ? '\nRemove this reference?' : '\nRemove these references?';
@@ -1011,5 +1033,3 @@ export class EditMixture extends wmk.Widget
 		}
 	}
 }
-
-/* EOF */ }

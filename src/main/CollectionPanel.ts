@@ -10,10 +10,22 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='MenuBanner.ts'/>
-///<reference path='MainPanel.ts'/>
-
-namespace Mixtures /* BOF */ {
+import {OutlineMeasurement} from '../../wmk/gfx/ArrangeMeasurement';
+import {FontData} from '../../wmk/gfx/FontData';
+import {MetaVector, TextAlign} from '../../wmk/gfx/MetaVector';
+import {RenderPolicy} from '../../wmk/gfx/Rendering';
+import {ClipboardProxy} from '../../wmk/ui/ClipboardProxy';
+import {MenuProxy} from '../../wmk/ui/MenuProxy';
+import {dom, DOM} from '../../wmk/util/dom';
+import {Vec} from '../../wmk/util/Vec';
+import {Mixture} from '../data/Mixture';
+import {MixtureCollection} from '../data/MixtureCollection';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {DrawMixture} from '../mixture/DrawMixture';
+import {EditMixture} from '../mixture/EditMixture';
+import {openNewWindow} from '../startup';
+import {MainPanel} from './MainPanel';
+import {MenuBanner, MenuBannerButton, MenuBannerCommand} from './MenuBanner';
 
 /*
 	Browsing/editing a collection of mixtures.
@@ -76,7 +88,7 @@ export class CollectionPanel extends MainPanel
 	private banner:MenuBanner;
 	private divMain:DOM;
 	private divFooter:DOM;
-	private policy = wmk.RenderPolicy.defaultColourOnWhite(20);
+	private policy = RenderPolicy.defaultColourOnWhite(20);
 	private viewType = CollectionPanelView.Detail;
 
 	private selected = -1;
@@ -85,7 +97,7 @@ export class CollectionPanel extends MainPanel
 
 	// ------------ public methods ------------
 
-	constructor(root:DOM, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
+	constructor(root:DOM, private proxyClip:ClipboardProxy, private proxyMenu:MenuProxy)
 	{
 		super(root);
 
@@ -348,18 +360,18 @@ export class CollectionPanel extends MainPanel
 		divInner.css({'margin': '2px', 'padding': '2px', 'border-radius': '4px'});
 		divInner.css({'background-color': BG_NORMAL, 'border': '1px solid #808080'});
 
-		let measure = new wmk.OutlineMeasurement(0, 0, this.policy.data.pointScale);
+		let measure = new OutlineMeasurement(0, 0, this.policy.data.pointScale);
 		let layout = new ArrangeMixture(mixture, measure, this.policy);
 		layout.arrange();
 
-		let gfx = new wmk.MetaVector();
+		let gfx = new MetaVector();
 		let draw = new DrawMixture(layout, gfx);
 		draw.draw();
 
 		let tag = (idx + 1).toString(), fsz = 10, tpad = 2;
-		let wad = wmk.FontData.measureText(tag, fsz);
-		gfx.drawRect(0, 0, wad[0] + 2 * tpad, wad[1] + 2 * tpad, wmk.MetaVector.NOCOLOUR, 0, 0x000000);
-		gfx.drawText(0 + tpad, tpad, tag, fsz, 0xFFFFFF, wmk.TextAlign.Top | wmk.TextAlign.Left);
+		let wad = FontData.measureText(tag, fsz);
+		gfx.drawRect(0, 0, wad[0] + 2 * tpad, wad[1] + 2 * tpad, MetaVector.NOCOLOUR, 0, 0x000000);
+		gfx.drawText(0 + tpad, tpad, tag, fsz, 0xFFFFFF, TextAlign.Top | TextAlign.Left);
 
 		gfx.normalise();
 		let wrapSVG = dom('<div/>').appendTo(divInner).css({'display': 'inline-block'});
@@ -675,5 +687,3 @@ export class CollectionPanel extends MainPanel
 		}
 	}
 }
-
-/* EOF */ }
