@@ -124,7 +124,7 @@ export class WebWidget extends Widget
 
 		// the 'navigator' object is being overhauled: it should have a more structured userAgentData property on most browsers; if not it
 		// falls back to the older .platform property, which will trigger a deprecation warning on a browser; but for Electron context, it's OK
-		let nav = navigator as any; 
+		let nav = navigator as any;
 		this.isMacKeyboard = nav.userAgentData ? nav.userAgentData.platform == 'macOS' : nav.platform.startsWith('Mac');
 
 		let handler = new ClipboardProxyHandler();
@@ -353,7 +353,7 @@ export class WebWidget extends Widget
 		FontData.main.initNativeFont();
 
 		let divCover = dom('<div/>').appendTo(this.contentDOM).css({'grid-area': 'start / 1 / end / 1', 'pointer-events': 'none', 'z-index': '1000'}).class('mixtures-webwidget-overlay');
-		setTimeout(() => 
+		setTimeout(() =>
 		{
 			if (divCover) divCover.addClass('mixtures-webwidget-overlay-fadein');
 		}, 200);

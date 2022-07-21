@@ -445,7 +445,7 @@ export class ArrangeMixture
 	private contractComponents():void
 	{
 		let allChildren:number[][] = [];
-		for (let n = 0; n < this.components.length; n++) 
+		for (let n = 0; n < this.components.length; n++)
 		{
 			allChildren.push([]);
 			for (let idx = this.components[n].parentIdx; idx >= 0; idx = this.components[idx].parentIdx) allChildren[idx].push(n);

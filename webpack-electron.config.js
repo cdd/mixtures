@@ -22,7 +22,7 @@ module.exports =
 	{
 		path: path.resolve(__dirname, 'app'),
 		filename: 'mixtures-electron.js',
-		sourceMapFilename: 'mixtures.map',
+		sourceMapFilename: 'mixtures-electron.js.map',
 		library: 'Mixtures',
 	},
 	mode: 'development',

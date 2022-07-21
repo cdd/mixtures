@@ -9,17 +9,14 @@
 		"sourceMap": true,
 		"target": "ES6",
 		"lib": ["es2020", "dom"],
-		"types": [],
+		"types": ["node", "electron"],
 		"declaration": true,
 	},
 	"include": 
 	[
 		"src/*.ts",
 		"src/**/*.ts",
-
-		// imported from WebMolKit
-		//"../WebMolKit/src/**/*.ts",
-		"wmk/**/*.ts"
+		"wmk/**/*.ts",
 	],
 	"exclude":
 	[

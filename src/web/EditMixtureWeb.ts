@@ -40,7 +40,7 @@ export class EditMixtureWeb extends EditMixture
 
 		// the 'navigator' object is being overhauled: it should have a more structured userAgentData property on most browsers; if not it
 		// falls back to the older .platform property, which will trigger a deprecation warning on a browser; but for Electron context, it's OK
-		let nav = navigator as any; 
+		let nav = navigator as any;
 		this.isMacKeyboard = nav.userAgentData ? nav.userAgentData.platform == 'macOS' : nav.platform.startsWith('Mac');
 	}
 

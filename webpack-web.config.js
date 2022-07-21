@@ -22,7 +22,7 @@ module.exports =
 	{
 		path: path.resolve(__dirname, 'app'),
 		filename: 'mixtures-web.js',
-		sourceMapFilename: 'mixtures.map',
+		sourceMapFilename: 'mixtures-web.js.map',
 		library: 'Mixtures',
 	},
 	mode: 'development',

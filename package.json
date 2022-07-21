@@ -25,8 +25,9 @@
     },
     "scripts": {
         "eslint": "eslint -c ../WebMolKit/src/.eslintrc.js --ignore-pattern src/decl --quiet src/**/*.ts",
+        "build-tsc": "tsc",
         "build-web": "webpack --config webpack-web.config.js",
-        "build-electron": "webpack --config webpack-node.config.js",
-        "build": "webpack --config webpack-web.config.js && webpack --config webpack-electron.config.js"
+        "build-electron": "webpack --config webpack-electron.config.js",
+        "build": "tsc && webpack --config webpack-web.config.js && webpack --config webpack-electron.config.js"
     }
 }
