@@ -10,7 +10,9 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {deepClone} from '../../wmk/util/util';
+import {Vec} from '../../wmk/util/Vec';
+import {Mixfile, MixfileComponent, MIXFILE_VERSION} from './Mixfile';
 
 /*
 	Data container for mixtures: basically wraps the Mixfile interface, with additional functionality.
@@ -277,5 +279,3 @@ export class Mixture
 		return true;
 	}
 }
-
-/* EOF */ }

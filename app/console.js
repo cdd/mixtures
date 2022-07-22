@@ -10,6 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-let Mixtures = require(__dirname + '/mixfile.js');
+let Mixtures = require(__dirname + '/mixtures-electron.js');
 new Mixtures.Console(process.argv.slice(0)).run().then();
 

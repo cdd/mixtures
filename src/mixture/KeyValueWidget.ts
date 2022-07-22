@@ -10,7 +10,8 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Widget} from '../../wmk/ui/Widget';
+import {dom, DOM} from '../../wmk/util/dom';
 
 /*
 	Widget for editing a key/value pattern, whereby key/value pairs can be added and edited individually.
@@ -24,7 +25,7 @@ interface KeyValueWidgetLine
 	inputValue?:DOM;
 }
 
-export class KeyValueWidget extends wmk.Widget
+export class KeyValueWidget extends Widget
 {
 	private lines:KeyValueWidgetLine[] = [];
 
@@ -121,5 +122,3 @@ export class KeyValueWidget extends wmk.Widget
 		this.callbackChange(dict);
 	}
 }
-
-/* EOF */ }

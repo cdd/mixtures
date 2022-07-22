@@ -10,7 +10,20 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Molecule} from '../../wmk/data/Molecule';
+import {MoleculeStream} from '../../wmk/data/MoleculeStream';
+import {OntologyTree} from '../../wmk/data/OntologyTree';
+import {ArrangeMeasurement} from '../../wmk/gfx/ArrangeMeasurement';
+import {ArrangeMolecule} from '../../wmk/gfx/ArrangeMolecule';
+import {FontData} from '../../wmk/gfx/FontData';
+import {RenderPolicy} from '../../wmk/gfx/Rendering';
+import {Box, Size} from '../../wmk/util/Geom';
+import {formatDouble} from '../../wmk/util/util';
+import {Vec} from '../../wmk/util/Vec';
+import {MixfileComponent} from '../data/Mixfile';
+import {Mixture} from '../data/Mixture';
+import {NormMixture} from '../data/NormMixture';
+import {SquarePacking} from './SquarePacking';
 
 /*
 	Arranging a Mixfile: will create a tree layout for all of the components, according to parameters.
@@ -28,20 +41,20 @@ export interface ArrangeMixtureComponent
 	content:MixfileComponent;
 	parentIdx:number;
 
-	boundary?:wmk.Box; // outer boundary (position on canvas)
+	boundary?:Box; // outer boundary (position on canvas)
 
-	mol?:wmk.Molecule;
-	molLayout?:wmk.ArrangeMolecule;
-	molBox?:wmk.Box;
+	mol?:Molecule;
+	molLayout?:ArrangeMolecule;
+	molBox?:Box;
 
-	nameBox?:wmk.Box;
+	nameBox?:Box;
 	nameLines?:ArrangeMixtureLine[];
 	fontSize?:number;
 
-	outline?:wmk.Box; // inner boundary (surrounds molecule, names, etc.)
+	outline?:Box; // inner boundary (surrounds molecule, names, etc.)
 
 	isCollapsed?:boolean;
-	collapseBox?:wmk.Box;
+	collapseBox?:Box;
 }
 
 const PADDING = 0.25;
@@ -64,17 +77,17 @@ export class ArrangeMixture
 	// parameters to influence the drawing
 	public limitStructW:number;
 	public limitStructH:number;
-	public minBoxSize:wmk.Size = null;
+	public minBoxSize:Size = null;
 	public showCollapsors = false; // if true, boxes for [+]/[-] will be created for interactive use
 	public collapsedBranches:number[][] = []; // any origin specified in this list will not display its children
-	public packBranches:wmk.Size = null; // if defined, makes an effort to pack branches into the box size
+	public packBranches:Size = null; // if defined, makes an effort to pack branches into the box size
 	public hardwrapName:number; // name width guaranteed not longer than this
 	public softwrapName:number; // name wrapping at selected characters kicks in after this width
 
 	// --------------------- public methods ---------------------
 
 	// sets up the object with the mandatory information
-	constructor(public mixture:Mixture, public measure:wmk.ArrangeMeasurement, public policy:wmk.RenderPolicy)
+	constructor(public mixture:Mixture, public measure:ArrangeMeasurement, public policy:RenderPolicy)
 	{
 		this.scale = policy.data.pointScale;
 		this.nameFontSize = 0.5 * this.scale;
@@ -91,7 +104,7 @@ export class ArrangeMixture
 		this.contractComponents();
 
 		// normalize boundaries
-		let outline:wmk.Box = null;
+		let outline:Box = null;
 		for (let comp of this.components)
 		{
 			if (outline) outline = outline.union(comp.boundary); else outline = comp.boundary;
@@ -251,16 +264,16 @@ export class ArrangeMixture
 			let mixcomp = comp.content;
 
 			// handle molecule, if any
-			if (mixcomp.molfile) comp.mol = wmk.MoleculeStream.readUnknown(mixcomp.molfile);
+			if (mixcomp.molfile) comp.mol = MoleculeStream.readUnknown(mixcomp.molfile);
 			if (comp.mol)
 			{
-				comp.molLayout = new wmk.ArrangeMolecule(comp.mol, this.measure, this.policy);
+				comp.molLayout = new ArrangeMolecule(comp.mol, this.measure, this.policy);
 				comp.molLayout.arrange();
 				comp.molLayout.squeezeInto(0, 0, this.limitStructW, this.limitStructH);
 				let bounds = comp.molLayout.determineBoundary();
-				comp.molBox = new wmk.Box(padding, padding, Math.ceil(bounds[2] - bounds[0]), Math.ceil(bounds[3] - bounds[1]));
+				comp.molBox = new Box(padding, padding, Math.ceil(bounds[2] - bounds[0]), Math.ceil(bounds[3] - bounds[1]));
 			}
-			else comp.molBox = wmk.Box.zero();
+			else comp.molBox = Box.zero();
 
 			// handle name, or other content needing representation
 			comp.nameLines = [];
@@ -288,9 +301,9 @@ export class ArrangeMixture
 			{
 				let metaString = (m:string | number):string =>
 				{
-					if (typeof m == 'number') return wmk.formatDouble(m, 4);
-					if (!wmk.OntologyTree.main) return m;
-					let branch = wmk.OntologyTree.main.getBranch(m);
+					if (typeof m == 'number') return formatDouble(m, 4);
+					if (!OntologyTree.main) return m;
+					let branch = OntologyTree.main.getBranch(m);
 					if (Vec.notBlank(branch)) return branch[0].label;
 					return m;
 				};
@@ -299,7 +312,7 @@ export class ArrangeMixture
 				comp.nameLines.push({'text': bits.join(' '), 'col': 0x002B88});
 			}
 
-			comp.nameBox = new wmk.Box(padding, padding);
+			comp.nameBox = new Box(padding, padding);
 			comp.fontSize = this.nameFontSize;
 			for (let n = 0; n < comp.nameLines.length; n++)
 			{
@@ -308,7 +321,7 @@ export class ArrangeMixture
 				comp.nameBox.h += wad[1] + (n > 0 ? wad[2] * 2 : 0);
 			}
 
-			comp.outline = wmk.Box.zero();
+			comp.outline = Box.zero();
 			comp.outline.w = Math.max(comp.molBox.w, comp.nameBox.w) + 2 * padding;
 			comp.outline.h = comp.molBox.h + comp.nameBox.h + 2 * padding;
 			if (comp.molBox.notEmpty() && comp.nameBox.notEmpty())
@@ -340,7 +353,7 @@ export class ArrangeMixture
 			if ((this.showCollapsors || comp.isCollapsed) && Vec.notBlank(comp.content.contents))
 			{
 				let gap = COLLAPSE_GAP * this.scale, wh = COLLAPSE_SIZE * this.scale;
-				comp.collapseBox = new wmk.Box(comp.boundary.maxX() + gap, comp.boundary.midY() - 0.5 * wh, wh, wh);
+				comp.collapseBox = new Box(comp.boundary.maxX() + gap, comp.boundary.midY() - 0.5 * wh, wh, wh);
 				comp.boundary.w += gap + wh;
 			}
 		}
@@ -352,7 +365,7 @@ export class ArrangeMixture
 	{
 		let wholeBranch:number[] = [idx];
 		let branchBlock:number[][] = [];
-		let branchBox:wmk.Box[] = [];
+		let branchBox:Box[] = [];
 
 		let totalWidth = 0, totalHeight = 0;
 
@@ -364,7 +377,7 @@ export class ArrangeMixture
 			let branch = this.layoutSubComponents(n);
 			if (branch.length == 0) continue;
 
-			let box:wmk.Box = null;
+			let box:Box = null;
 			for (let i of branch)
 			{
 				wholeBranch.push(i);
@@ -432,7 +445,7 @@ export class ArrangeMixture
 	private contractComponents():void
 	{
 		let allChildren:number[][] = [];
-		for (let n = 0; n < this.components.length; n++) 
+		for (let n = 0; n < this.components.length; n++)
 		{
 			allChildren.push([]);
 			for (let idx = this.components[n].parentIdx; idx >= 0; idx = this.components[idx].parentIdx) allChildren[idx].push(n);
@@ -483,7 +496,7 @@ export class ArrangeMixture
 	private wrapSplitName(list:ArrangeMixtureLine[], text:string, col:number):void
 	{
 		if (!text) return;
-		let xpos = wmk.FontData.measureWidths(text, this.nameFontSize);
+		let xpos = FontData.measureWidths(text, this.nameFontSize);
 		if (Vec.last(xpos) <= this.softwrapName)
 		{
 			list.push({text, col});
@@ -509,13 +522,11 @@ export class ArrangeMixture
 	// if the line is longer than the hard wrap limit, just truncate with ellipsis
 	private truncateEllipsis(txt:string):string
 	{
-		let xpos = wmk.FontData.measureWidths(txt, this.nameFontSize);
+		let xpos = FontData.measureWidths(txt, this.nameFontSize);
 		if (Vec.last(xpos) <= this.hardwrapName) return txt;
-		let ellipsis = '...', ellw = wmk.FontData.measureText(ellipsis, this.nameFontSize)[0];
+		let ellipsis = '...', ellw = FontData.measureText(ellipsis, this.nameFontSize)[0];
 		let keep = 1;
 		for (; keep < txt.length; keep++) if (xpos[keep] + ellw > this.hardwrapName) break;
 		return txt.substring(0, keep) + ellipsis;
 	}
 }
-
-/* EOF */ }

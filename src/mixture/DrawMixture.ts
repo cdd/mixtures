@@ -10,7 +10,11 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {ArrangeMeasurement} from '../../wmk/gfx/ArrangeMeasurement';
+import {DrawMolecule} from '../../wmk/gfx/DrawMolecule';
+import {MetaVector, TextAlign} from '../../wmk/gfx/MetaVector';
+import {RenderPolicy} from '../../wmk/gfx/Rendering';
+import {ArrangeMixture, ArrangeMixtureComponent} from './ArrangeMixture';
 
 /*
 	Drawing a Mixfile, which has been rendered.
@@ -22,15 +26,15 @@ export class DrawMixture
 	public activeIndex = -1; // component that is actively engaged with UI
 	public selectedIndex = -1; // component that is passively selected
 
-	private measure:wmk.ArrangeMeasurement;
-	private policy:wmk.RenderPolicy;
+	private measure:ArrangeMeasurement;
+	private policy:RenderPolicy;
 
 	private scale:number;
 	private invScale:number;
 
 	// --------------------- public methods ---------------------
 
-	constructor(private layout:ArrangeMixture, private vg:wmk.MetaVector)
+	constructor(private layout:ArrangeMixture, private vg:MetaVector)
 	{
 		this.measure = layout.measure;
 		this.policy = layout.policy;
@@ -61,7 +65,7 @@ export class DrawMixture
 		let px = [x1, xm - xd, xm, xm, xm, xm, xm + xd, x2];
 		let py = [y1, y1, y1, y1 - yd, y2 + yd, y2, y2, y2];
 		let lsz = this.scale * 0.1;
-		this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, lsz, wmk.MetaVector.NOCOLOUR, false);
+		this.vg.drawPath(px, py, [false, false, true, false, false, true, false, false], false, 0x000000, lsz, MetaVector.NOCOLOUR, false);
 	}
 
 	private drawComponent(idx:number):void
@@ -77,7 +81,7 @@ export class DrawMixture
 
 		this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, bg);
 
-		if (comp.molLayout) new wmk.DrawMolecule(comp.molLayout, this.vg).draw();
+		if (comp.molLayout) new DrawMolecule(comp.molLayout, this.vg).draw();
 
 		if (comp.nameLines.length > 0)
 		{
@@ -85,7 +89,7 @@ export class DrawMixture
 			for (let line of comp.nameLines)
 			{
 				let wad = this.measure.measureText(line.text, comp.fontSize);
-				this.vg.drawText(x, y, line.text, comp.fontSize, line.col, wmk.TextAlign.Centre | wmk.TextAlign.Top);
+				this.vg.drawText(x, y, line.text, comp.fontSize, line.col, TextAlign.Centre | TextAlign.Top);
 				y += wad[1] + 2 * wad[2];
 			}
 		}
@@ -102,4 +106,3 @@ export class DrawMixture
 	}
 }
 
-/* EOF */ }

@@ -10,7 +10,22 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Chemistry} from '../../wmk/data/Chemistry';
+import {MoleculeStream} from '../../wmk/data/MoleculeStream';
+import {MolUtil} from '../../wmk/data/MolUtil';
+import {OntologyTree} from '../../wmk/data/OntologyTree';
+import {Dialog} from '../../wmk/dialog/Dialog';
+import {ClipboardProxy, ClipboardProxyHandler} from '../../wmk/ui/ClipboardProxy';
+import {OptionList} from '../../wmk/ui/OptionList';
+import {dom, DOM} from '../../wmk/util/dom';
+import {deepClone} from '../../wmk/util/util';
+import {Vec} from '../../wmk/util/Vec';
+import {MixfileComponent} from '../data/Mixfile';
+import {Mixture} from '../data/Mixture';
+import {Units} from '../data/Units';
+import {InChI} from '../main/InChI';
+import {KeyValueWidget} from './KeyValueWidget';
+import {MetadataWidget} from './MetadataWidget';
 
 /*
 	High level widget for the editing area for a mixture.
@@ -25,9 +40,9 @@ enum QuantityType
 const RELATION_VALUES:string[] = ['=', '~', '<', '<=', '>', '>='];
 const RELATION_LABELS:string[] = ['=', '~', '&lt;', '&le;', '&gt;', '&ge;'];
 
-export class EditComponent extends wmk.Dialog
+export class EditComponent extends Dialog
 {
-	public proxyClip:wmk.ClipboardProxy = null;
+	public proxyClip:ClipboardProxy = null;
 
 	private component:MixfileComponent;
 
@@ -37,9 +52,9 @@ export class EditComponent extends wmk.Dialog
 	private btnCopy:DOM;
 	private btnSave:DOM;
 
-	//private sketcher:wmk.Sketcher;
+	//private sketcher:Sketcher;
 	private lineName:DOM;
-	private optQuantType:wmk.OptionList;
+	private optQuantType:OptionList;
 	private dropQuantRel:DOM;
 	private lineQuantVal1:DOM;
 	private lineQuantVal2:DOM;
@@ -86,7 +101,7 @@ export class EditComponent extends wmk.Dialog
 	// builds the dialog content
 	protected populate():void
 	{
-		if (this.proxyClip) this.proxyClip.pushHandler(new wmk.ClipboardProxyHandler());
+		if (this.proxyClip) this.proxyClip.pushHandler(new ClipboardProxyHandler());
 
 		let buttons = this.buttonsDOM(), body = this.bodyDOM();
 
@@ -180,7 +195,7 @@ export class EditComponent extends wmk.Dialog
 		});
 		editLinks.render(dom('<div/>').appendTo(grid2).css({'grid-area': `${row} / value`}));
 
-		if (wmk.OntologyTree.main && wmk.OntologyTree.main.getRoots().length > 0)
+		if (OntologyTree.main && OntologyTree.main.getRoots().length > 0)
 		{
 			this.createFieldName(grid2, ++row, 'Metadata', true);
 			let editMetadata = new MetadataWidget(this.component.metadata, (metadata) =>
@@ -350,7 +365,7 @@ export class EditComponent extends wmk.Dialog
 		flex.css({'display': 'flex', 'align-items': 'center'});
 		let box = ():DOM => dom('<div style="padding-left: 0.5em;"/>').appendTo(flex);
 
-		this.optQuantType = new wmk.OptionList([QuantityType.Value, QuantityType.Range, QuantityType.Ratio]);
+		this.optQuantType = new OptionList([QuantityType.Value, QuantityType.Range, QuantityType.Ratio]);
 		this.optQuantType.render(flex);
 
 		this.dropQuantRel = this.makeDropdownGroup(box(), this.component.relation, RELATION_VALUES, RELATION_LABELS,
@@ -525,8 +540,8 @@ export class EditComponent extends wmk.Dialog
 	{
 		if (!InChI.isAvailable()) return;
 		//let mol = this.sketcher.getMolecule();
-		let mol = wmk.MoleculeStream.readUnknown(this.component.molfile);
-		if (wmk.MolUtil.isBlank(mol))
+		let mol = MoleculeStream.readUnknown(this.component.molfile);
+		if (MolUtil.isBlank(mol))
 		{
 			//alert('Draw a molecule first, then calculate the InChI.');
 			return;
@@ -544,10 +559,10 @@ export class EditComponent extends wmk.Dialog
 	private calculateFormula():string
 	{
 		if (!this.component.molfile) return '';
-		let mol = wmk.MoleculeStream.readUnknown(this.component.molfile);
-		if (wmk.MolUtil.isBlank(mol)) return '';
+		let mol = MoleculeStream.readUnknown(this.component.molfile);
+		if (MolUtil.isBlank(mol)) return '';
 		for (let n = mol.numAtoms; n >= 1; n--) if (mol.atomicNumber(n) == 0) mol.deleteAtomAndBonds(n);
-		return wmk.MolUtil.molecularFormula(mol);
+		return MolUtil.molecularFormula(mol);
 	}
 
 	// derive from MF field, if any
@@ -562,7 +577,7 @@ export class EditComponent extends wmk.Dialog
 		{
 			let match = mf.match(/^([A-Z][a-z]?)(\d*)(.*?)$/);
 			if (!match) {mw = 0; break;}
-			let atno = wmk.Chemistry.ELEMENTS.indexOf(match[1]);
+			let atno = Chemistry.ELEMENTS.indexOf(match[1]);
 			if (atno <= 0) {mw = 0; break;}
 			let num = 1;
 			if (match[2])
@@ -570,7 +585,7 @@ export class EditComponent extends wmk.Dialog
 				num = parseInt(match[2]);
 				if (num <= 0) {mw = 0; break;}
 			}
-			mw += wmk.Chemistry.NATURAL_ATOMIC_WEIGHTS[atno] * num;
+			mw += Chemistry.NATURAL_ATOMIC_WEIGHTS[atno] * num;
 			mf = match[3];
 		}
 
@@ -586,5 +601,3 @@ export class EditComponent extends wmk.Dialog
 		}
 	}
 }
-
-/* EOF */ }

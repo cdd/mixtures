@@ -10,10 +10,26 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='MenuBanner.ts'/>
-///<reference path='MainPanel.ts'/>
-
-namespace Mixtures /* BOF */ {
+import {Dialog} from '../../wmk/dialog/Dialog';
+import {OutlineMeasurement} from '../../wmk/gfx/ArrangeMeasurement';
+import {MetaVector} from '../../wmk/gfx/MetaVector';
+import {RenderPolicy} from '../../wmk/gfx/Rendering';
+import {ClipboardProxy, ClipboardProxyHandler} from '../../wmk/ui/ClipboardProxy';
+import {MenuProxy} from '../../wmk/ui/MenuProxy';
+import {dom, DOM} from '../../wmk/util/dom';
+import {Size} from '../../wmk/util/Geom';
+import {yieldDOM} from '../../wmk/util/util';
+import {MIXFILE_VERSION} from '../data/Mixfile';
+import {Mixture} from '../data/Mixture';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {DrawMixture} from '../mixture/DrawMixture';
+import {EditMixture} from '../mixture/EditMixture';
+import {ExportMInChI, MInChISegment} from '../mixture/ExportMInChI';
+import {ExportSDFile} from '../mixture/ExportSDFile';
+import {openNewWindow} from '../startup';
+import {InChI} from './InChI';
+import {MainPanel} from './MainPanel';
+import {MenuBanner, MenuBannerButton, MenuBannerCommand} from './MenuBanner';
 
 /*
 	Viewing/editing window: dedicated entirely to the sketching of a mixture.
@@ -63,7 +79,7 @@ export class MixturePanel extends MainPanel
 
 	// ------------ public methods ------------
 
-	constructor(root:DOM, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
+	constructor(root:DOM, private proxyClip:ClipboardProxy, private proxyMenu:MenuProxy)
 	{
 		super(root);
 
@@ -341,15 +357,15 @@ export class MixturePanel extends MainPanel
 		dialog.showSaveDialog(params).then((value) =>
 		{
 			if (value.canceled) return;
-			let policy = wmk.RenderPolicy.defaultColourOnWhite();
-			let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
+			let policy = RenderPolicy.defaultColourOnWhite();
+			let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
 			let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
 			layout.collapsedBranches = this.editor.getCollapsedBranches();
 			// TODO: decide whether to pack the branches...
-			layout.packBranches = new wmk.Size(0.8 * this.editor.contentDOM.width(), 0.8 * this.editor.contentDOM.height());
+			layout.packBranches = new Size(0.8 * this.editor.contentDOM.width(), 0.8 * this.editor.contentDOM.height());
 			layout.arrange();
 
-			let gfx = new wmk.MetaVector();
+			let gfx = new MetaVector();
 			new DrawMixture(layout, gfx).draw();
 			gfx.normalise();
 			let svg = gfx.createSVG(true, true);
@@ -372,7 +388,7 @@ export class MixturePanel extends MainPanel
 
 		let maker = new ExportMInChI(this.editor.getMixture().mixfile);
 		let self = this;
-		class MInChIDialog extends wmk.Dialog
+		class MInChIDialog extends Dialog
 		{
 			constructor()
 			{
@@ -381,7 +397,7 @@ export class MixturePanel extends MainPanel
 			}
 			protected populate():void
 			{
-				self.proxyClip.pushHandler(new wmk.ClipboardProxyHandler());
+				self.proxyClip.pushHandler(new ClipboardProxyHandler());
 				this.bodyDOM().setText('Calculating...');
 				(async () => await this.renderResult())();
 			}
@@ -392,19 +408,19 @@ export class MixturePanel extends MainPanel
 			}
 			private async renderResult():Promise<void>
 			{
-				await wmk.yieldDOM();
+				await yieldDOM();
 				await maker.fillInChI();
 				maker.formulate();
 
 				let body = this.bodyDOM();
 				body.empty();
 
-				let divOuter = wmk.dom('<div/>').appendTo(body);
-				let pre = wmk.dom('<span/>').appendTo(divOuter).css({'font-family': 'monospace', 'padding-top': '0.5em', 'word-break': 'break-all'});
+				let divOuter = dom('<div/>').appendTo(body);
+				let pre = dom('<span/>').appendTo(divOuter).css({'font-family': 'monospace', 'padding-top': '0.5em', 'word-break': 'break-all'});
 				let minchi = maker.getResult(), segment = maker.getSegment();
 				for (let n = 0; n < minchi.length; n++)
 				{
-					let span = wmk.dom('<span/>').appendTo(pre);
+					let span = dom('<span/>').appendTo(pre);
 					span.setText(minchi[n]);
 					if (segment[n] == MInChISegment.Header) span.setCSS('background-color', '#FFC0C0');
 					else if (segment[n] == MInChISegment.Component) span.setCSS('background-color', '#C0C0FF');
@@ -413,7 +429,7 @@ export class MixturePanel extends MainPanel
 					pre.appendHTML('<wbr/>');
 				}
 
-				let btnCopy = wmk.dom('<button class="wmk-button wmk-button-small wmk-button-default">Copy</button>').appendTo(divOuter).css({'margin-left': '0.5em'});
+				let btnCopy = dom('<button class="wmk-button wmk-button-small wmk-button-default">Copy</button>').appendTo(divOuter).css({'margin-left': '0.5em'});
 				btnCopy.onClick(() => self.proxyClip.setString(minchi));
 			}
 		}
@@ -430,5 +446,3 @@ export class MixturePanel extends MainPanel
 		document.title = title;
 	}
 }
-
-/* EOF */ }

@@ -10,7 +10,13 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {MDLMOLReader, MDLReaderGroupMixture, MDLReaderLinkNode} from '../../wmk/data/MDLReader';
+import {MDLMOLWriter} from '../../wmk/data/MDLWriter';
+import {Molecule} from '../../wmk/data/Molecule';
+import {MolUtil} from '../../wmk/data/MolUtil';
+import {deepClone} from '../../wmk/util/util';
+import {Vec} from '../../wmk/util/Vec';
+import {MixfileComponent} from '../data/Mixfile';
 
 /*
 	Checks the supplied string to see if it is a CTAB (V2000/V3000) with features that make enumerable. If so,
@@ -19,13 +25,13 @@ namespace Mixtures /* BOF */ {
 
 interface ProtoMolecule
 {
-	mol:wmk.Molecule;
+	mol:Molecule;
 	children:ProtoMolecule[];
 	attachAny:Map<number, number[]>; // bond -> list of atom indices
 	stereoRacemic:number[][]; // blocks of atoms which are racemic
 	stereoRelative:number[][]; // blocks of atoms which exist in their drawn configuration OR the opposite
-	linkNodes:wmk.MDLReaderLinkNode[]; // so-called link nodes, aka repeating atom
-	mixtures:wmk.MDLReaderGroupMixture[]; // mixture collections, which may overlap
+	linkNodes:MDLReaderLinkNode[]; // so-called link nodes, aka repeating atom
+	mixtures:MDLReaderGroupMixture[]; // mixture collections, which may overlap
 }
 
 export class ExtractCTABComponent
@@ -41,7 +47,7 @@ export class ExtractCTABComponent
 	// or is just a plain ordinary single molecule, returns null
 	public extract():MixfileComponent
 	{
-		let ctab = new wmk.MDLMOLReader(this.text);
+		let ctab = new MDLMOLReader(this.text);
 		try {ctab.parse();}
 		catch (ex) {return null;}
 
@@ -85,7 +91,7 @@ export class ExtractCTABComponent
 		let emit = (comp:MixfileComponent, proto:ProtoMolecule):void =>
 		{
 			let subComp:MixfileComponent = {};
-			if (proto.mol) subComp.molfile = new wmk.MDLMOLWriter(proto.mol).write();
+			if (proto.mol) subComp.molfile = new MDLMOLWriter(proto.mol).write();
 			comp.contents.push(subComp);
 			if (proto.children)
 			{
@@ -159,7 +165,7 @@ export class ExtractCTABComponent
 		for (let n = 1; n <= mol.numBonds; n++) if (affected.has(mol.bondFrom(n)) || affected.has(mol.bondTo(n)))
 		{
 			let bt = mol.bondType(n);
-			if (bt == wmk.Molecule.BONDTYPE_INCLINED || bt == wmk.Molecule.BONDTYPE_DECLINED) bonds.push(n);
+			if (bt == Molecule.BONDTYPE_INCLINED || bt == Molecule.BONDTYPE_DECLINED) bonds.push(n);
 		}
 
 		let nperm = Math.min(256, 1 << bonds.length);
@@ -172,7 +178,7 @@ export class ExtractCTABComponent
 				if (n & bitand)
 				{
 					let bt = rmol.bondType(bonds[i]);
-					bt = bt == wmk.Molecule.BONDTYPE_INCLINED ? wmk.Molecule.BONDTYPE_DECLINED : wmk.Molecule.BONDTYPE_INCLINED;
+					bt = bt == Molecule.BONDTYPE_INCLINED ? Molecule.BONDTYPE_DECLINED : Molecule.BONDTYPE_INCLINED;
 					rmol.setBondType(bonds[i], bt);
 				}
 				bitand = bitand << 1;
@@ -196,8 +202,8 @@ export class ExtractCTABComponent
 		for (let n = 1; n <= molinv.numBonds; n++) if (affected.has(molinv.bondFrom(n)) || affected.has(molinv.bondTo(n)))
 		{
 			let bt = molinv.bondType(n);
-			if (bt == wmk.Molecule.BONDTYPE_INCLINED) molinv.setBondType(n, wmk.Molecule.BONDTYPE_DECLINED);
-			else if (bt == wmk.Molecule.BONDTYPE_DECLINED) molinv.setBondType(n, wmk.Molecule.BONDTYPE_INCLINED);
+			if (bt == Molecule.BONDTYPE_INCLINED) molinv.setBondType(n, Molecule.BONDTYPE_DECLINED);
+			else if (bt == Molecule.BONDTYPE_DECLINED) molinv.setBondType(n, Molecule.BONDTYPE_INCLINED);
 		}
 
 		return [proto, this.protoClone(proto, molinv)];
@@ -295,7 +301,7 @@ export class ExtractCTABComponent
 			let atommask = nonemask.slice(0);
 			for (let a of mixtures[n].atoms) atommask[a - 1] = true;
 
-			let mixmol = wmk.MolUtil.subgraphMask(mol, atommask);
+			let mixmol = MolUtil.subgraphMask(mol, atommask);
 			let node = {'mol': mixmol} as ProtoMolecule;
 			mapTree.get(mixtures[n].parent).children.push(node);
 		}
@@ -305,7 +311,7 @@ export class ExtractCTABComponent
 	}
 
 	// makes a copy of the prototype's fields, and copies over the replacement molecule
-	private protoClone(proto:ProtoMolecule, mol:wmk.Molecule):ProtoMolecule
+	private protoClone(proto:ProtoMolecule, mol:Molecule):ProtoMolecule
 	{
 		let dup:ProtoMolecule =
 		{
@@ -330,5 +336,3 @@ export class ExtractCTABComponent
 		}
 	}
 }
-
-/* EOF */ }

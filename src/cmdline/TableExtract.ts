@@ -10,7 +10,18 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {AssayProvenance} from '../../wmk/aspect/AssayProvenance';
+import {MeasurementData} from '../../wmk/aspect/MeasurementData';
+import {Mixture as wmkMixture} from '../../wmk/aspect/Mixture';
+import {DataSheet} from '../../wmk/data/DataSheet';
+import {DataSheetStream} from '../../wmk/data/DataSheetStream';
+import {MDLSDFReader} from '../../wmk/data/MDLReader';
+import {MDLMOLWriter} from '../../wmk/data/MDLWriter';
+import {Molecule} from '../../wmk/data/Molecule';
+import {Vec} from '../../wmk/util/Vec';
+import {MixfileComponent} from '../data/Mixfile';
+import {Mixture} from '../data/Mixture';
+import {MixtureCollection} from '../data/MixtureCollection';
 
 /*
 	Table extraction: create Mixfile instances from tabular data sources, with the help of directions for placing columns into
@@ -45,11 +56,11 @@ export class TableExtract
 	private fs = require('fs');
 	private path = require('path');
 
-	private table:wmk.DataSheet = null;
-	private aprov:wmk.AssayProvenance = null;
-	private mdata:wmk.MeasurementData = null;
+	private table:DataSheet = null;
+	private aprov:AssayProvenance = null;
+	private mdata:MeasurementData = null;
 
-	private lookup:Map<string, wmk.Molecule> = null;
+	private lookup:Map<string, Molecule> = null;
 	private mappings:TableExtractMapping[] = [];
 
 	constructor(private tableFile:string, private lookupFile:string, private mappingFile:string, private verbose:boolean)
@@ -62,14 +73,14 @@ export class TableExtract
 		try {content = this.fs.readFileSync(this.tableFile).toString();}
 		catch (ex) {throw 'Unable to read file ' + this.tableFile + ': ' + ex;}
 
-		if (this.tableFile.endsWith('.ds')) this.table = wmk.DataSheetStream.readXML(content);
-		else if (this.tableFile.endsWith('.sdf')) this.table = new wmk.MDLSDFReader(content).parse();
+		if (this.tableFile.endsWith('.ds')) this.table = DataSheetStream.readXML(content);
+		else if (this.tableFile.endsWith('.sdf')) this.table = new MDLSDFReader(content).parse();
 		else if (this.tableFile.endsWith('.csv')) this.table = this.parseLines(',', true);
 		else if (this.tableFile.endsWith('.tsv') || this.tableFile.endsWith('.tab')) this.table = this.parseLines('\t', false);
 		if (!this.table) throw 'Unable to parse: ' + this.tableFile;
 
-		if (wmk.AssayProvenance.isAssayProvenance(this.table)) this.aprov = new wmk.AssayProvenance(this.table, false);
-		if (wmk.MeasurementData.isMeasurementData(this.table)) this.mdata = new wmk.MeasurementData(this.table, false);
+		if (AssayProvenance.isAssayProvenance(this.table)) this.aprov = new AssayProvenance(this.table, false);
+		if (MeasurementData.isMeasurementData(this.table)) this.mdata = new MeasurementData(this.table, false);
 
 		if (this.lookupFile)
 		{
@@ -98,9 +109,9 @@ export class TableExtract
 	// ------------ private methods ------------
 
 	// read TSV/CSV file, which is presumed to have column headings, and may include escape sequences
-	private parseLines(sep:string, escaped:boolean):wmk.DataSheet
+	private parseLines(sep:string, escaped:boolean):DataSheet
 	{
-		let ds = new wmk.DataSheet();
+		let ds = new DataSheet();
 
 		// !! load each line, split into strings, apply columns then rows...
 		// !! anything that's all {int} or {real} gets changed retroactively
@@ -111,9 +122,9 @@ export class TableExtract
 	// extract column-to-mixture information embedded in the initial datasheet, if possible
 	private initialMapping():void
 	{
-		if (!wmk.Mixture.isMixture(this.table)) return;
+		if (!wmkMixture.isMixture(this.table)) return;
 
-		let aspect = new wmk.Mixture(this.table, false);
+		let aspect = new wmkMixture(this.table, false);
 		for (let attr of aspect.getHeader().attributes)
 		{
 			let map:TableExtractMapping =
@@ -174,7 +185,7 @@ export class TableExtract
 			if (map.type == TableExtractType.Structure)
 			{
 				let mol = this.table.getMolecule(row, col);
-				comp.molfile = new wmk.MDLMOLWriter(mol).write();
+				comp.molfile = new MDLMOLWriter(mol).write();
 			}
 			else if (map.type == TableExtractType.Name)
 			{
@@ -183,7 +194,7 @@ export class TableExtract
 			else if (map.type == TableExtractType.Quantity)
 			{
 				// if aspected: can extract more information
-				if (this.aprov && map.column == wmk.AssayProvenance.COLNAME_VALUE)
+				if (this.aprov && map.column == AssayProvenance.COLNAME_VALUE)
 				{
 					comp.quantity = this.aprov.getValue(row);
 					let error = this.aprov.getError(row);
@@ -292,4 +303,3 @@ export class TableExtract
 	}
 }
 
-/* EOF */ }
