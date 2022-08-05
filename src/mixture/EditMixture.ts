@@ -31,8 +31,10 @@ export class EditMixture extends wmk.Widget
 	public callbackUpdateTitle:() => void = null;
 	public callbackInteraction:() => void = null;
 
+	public monochrome = false;
+
 	protected mixture = new Mixture();
-	protected policy = wmk.RenderPolicy.defaultColourOnWhite();
+	protected policy:wmk.RenderPolicy = null
 	protected canvasMixture:HTMLCanvasElement;
 	protected canvasOver:HTMLCanvasElement;
 
@@ -563,9 +565,8 @@ export class EditMixture extends wmk.Widget
 		if (!this.layout)
 		{
 			let measure = new wmk.OutlineMeasurement(0, 0, this.pointScale);
-			let policy = new wmk.RenderPolicy(deepClone(this.policy.data));
-			policy.data.pointScale = this.pointScale;
-			this.layout = new ArrangeMixture(this.mixture, measure, policy);
+			this.policy = this.monochrome ? wmk.RenderPolicy.defaultBlackOnWhite(this.pointScale) : wmk.RenderPolicy.defaultColourOnWhite(this.pointScale);
+			this.layout = new ArrangeMixture(this.mixture, measure, this.policy);
 			this.layout.showCollapsors = true;
 			this.layout.collapsedBranches = this.collapsedBranches;
 			this.layout.packBranches = new wmk.Size(0.8 * this.contentDOM.width(), 0.8 * this.contentDOM.height());

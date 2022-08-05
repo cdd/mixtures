@@ -85,6 +85,7 @@ export class WebWidget extends wmk.Widget
 
 	public banner:MenuBanner;
 	public editor:EditMixtureWeb = null;
+	public monochrome = false;
 
 	private divMenu:DOM;
 	private divMain:DOM;
@@ -168,6 +169,7 @@ export class WebWidget extends wmk.Widget
 		this.banner = new MenuBanner(bannerContent, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
 		this.editor = new EditMixtureWeb(this.proxyClip, this.proxyMenu);
+		this.editor.monochrome = this.monochrome;
 		this.editor.callbackUpdateTitle = () => {};
 		this.editor.callbackFreeformKey = this.callbackFreeformKey;
 		this.editor.callbackLookup = this.callbackLookup;
