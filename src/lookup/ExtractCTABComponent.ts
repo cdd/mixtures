@@ -30,7 +30,6 @@ interface ProtoMolecule
 
 export class ExtractCTABComponent
 {
-
 	// ------------ public methods ------------
 
 	constructor(private text:string)
