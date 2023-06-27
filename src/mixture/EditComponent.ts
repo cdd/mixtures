@@ -16,6 +16,26 @@ namespace Mixtures /* BOF */ {
 	High level widget for the editing area for a mixture.
 */
 
+const CSS_EDITCOMPONENT = `
+	*.wmk-editcomponent-input
+	{
+	}
+	*.wmk-editcomponent-input::placeholder
+	{
+		font-size: 70%;
+		color: #D0D0D0;
+	}
+	*.wmk-editcomponent-units
+	{
+		cursor: pointer;
+	}
+	*.wmk-editcomponent-units:hover
+	{
+		background-color: #C0C0FF;
+		cursor: pointer;
+	}
+`;
+
 enum QuantityType
 {
 	Value = 'Value',
@@ -31,28 +51,22 @@ export class EditComponent extends wmk.Dialog
 
 	private component:MixfileComponent;
 
-	//private btnClear:DOM;
 	private btnSketch:DOM;
-	private btnPaste:DOM;
-	private btnCopy:DOM;
 	private btnSave:DOM;
 
-	//private sketcher:wmk.Sketcher;
 	private lineName:DOM;
 	private optQuantType:wmk.OptionList;
 	private dropQuantRel:DOM;
 	private lineQuantVal1:DOM;
 	private lineQuantVal2:DOM;
-	private dropQuantUnits:DOM;
+	private lineQuantUnits:DOM;
+	private btnQuantUnits:DOM;
 	private areaDescr:DOM = null;
 	private areaSyn:DOM = null;
 	private lineFormula:DOM;
 	private divWeight:DOM;
 	private lineInChI:DOM;
 	private lineSMILES:DOM;
-
-	private unitValues:string[];
-	private unitLabels:string[];
 
 	private callbackSave:(source?:EditComponent) => void = null;
 	private callbackSketch:(source?:EditComponent) => void = null;
@@ -70,6 +84,8 @@ export class EditComponent extends wmk.Dialog
 		this.maxPortionWidth = 95;
 		//this.maximumWidth = parentSize[0];
 		//this.maximumHeight = parentSize[1];
+
+		wmk.installInlineCSS('editcomponent', CSS_EDITCOMPONENT);
 	}
 
 	public onSave(callback:(source?:EditComponent) => void):void
@@ -236,11 +252,13 @@ export class EditComponent extends wmk.Dialog
 		{
 			if (strQuant1) this.component.quantity = parseFloat(strQuant1);
 			if (strQuant2) this.component.error = parseFloat(strQuant2);
+			this.component.units = this.lineQuantUnits.getValue().trim();
 		}
 		else if (qtype == QuantityType.Range)
 		{
 			this.component.quantity = [parseFloat(strQuant1), parseFloat(strQuant2)];
 			this.component.relation = null;
+			this.component.units = this.lineQuantUnits.getValue().trim();
 		}
 		else if (qtype == QuantityType.Ratio)
 		{
@@ -356,39 +374,42 @@ export class EditComponent extends wmk.Dialog
 		this.dropQuantRel = this.makeDropdownGroup(box(), this.component.relation, RELATION_VALUES, RELATION_LABELS,
 									(value:string, label:string) => {this.component.relation = value;});
 
-		this.lineQuantVal1 = dom('<input/>').appendTo(box());
+		this.lineQuantVal1 = dom('<input/>').appendTo(box()).class('wmk-editcomponent-input');
 		this.lineQuantVal1.attr({'size': '10'});
-		this.lineQuantVal1.css({'font': 'inherit'});
 		this.lineQuantVal1.onChange(() => this.interpretQuantString());
 
 		let spanGap = dom('<span/>').appendTo(flex).css({'padding': '0 0.5em 0 0.5em'});
 
-		this.lineQuantVal2 = dom('<input/>').appendTo(box());
+		this.lineQuantVal2 = dom('<input/>').appendTo(box()).class('wmk-editcomponent-input');
 		this.lineQuantVal2.attr({'size': '10'});
-		this.lineQuantVal2.css({'font': 'inherit'});
 
-		this.unitValues = Vec.prepend(Units.standardList(), '');
-		this.unitLabels = Vec.prepend(Units.commonNames(), '');
-		this.dropQuantUnits = this.makeDropdownGroup(box(), this.component.units, this.unitValues, this.unitLabels,
-									(value:string, label:string) => {this.component.units = label;});
+		let qubox = box();
+		this.lineQuantUnits = dom('<input/>').appendTo(qubox).class('wmk-editcomponent-input');
+		this.lineQuantUnits.attr({'size': '10', 'placeholder': 'units'});
+		this.btnQuantUnits = dom('<button class="wmk-button wmk-button-small wmk-button-default"/>').appendTo(qubox).css({'margin-left': '0.2em'});
+		this.btnQuantUnits.setText('\u{25BC}');
+		this.btnQuantUnits.onClick(() => this.selectDropUnits());
 
 		let changeToValue = ():void =>
 		{
 			this.dropQuantRel.setCSS('display', 'block');
 			spanGap.setHTML('&plusmn;');
-			this.dropQuantUnits.setCSS('display', 'block');
+			this.lineQuantUnits.setCSS('display', 'inline-block');
+			this.btnQuantUnits.setCSS('display', 'inline-block');
 		};
 		let changeToRange = ():void =>
 		{
 			this.dropQuantRel.setCSS('display', 'none');
 			spanGap.setHTML('to');
-			this.dropQuantUnits.setCSS('display', 'block');
+			this.lineQuantUnits.setCSS('display', 'inline-block');
+			this.btnQuantUnits.setCSS('display', 'inline-block');
 		};
 		let changeToRatio = ():void =>
 		{
 			this.dropQuantRel.setCSS('display', 'none');
 			spanGap.setHTML('/');
-			this.dropQuantUnits.setCSS('display', 'none');
+			this.lineQuantUnits.setCSS('display', 'none');
+			this.btnQuantUnits.setCSS('display', 'none');
 		};
 
 		if (this.component.ratio != null)
@@ -408,6 +429,7 @@ export class EditComponent extends wmk.Dialog
 			let [low, high] = this.component.quantity;
 			if (low != null) this.lineQuantVal1.setValue(low.toString());
 			if (high != null) this.lineQuantVal2.setValue(high.toString());
+			this.lineQuantUnits.setValue(this.component.units);
 			changeToRange();
 		}
 		else
@@ -415,6 +437,7 @@ export class EditComponent extends wmk.Dialog
 			this.optQuantType.setSelectedValue(QuantityType.Value);
 			if (this.component.quantity != null) this.lineQuantVal1.setValue(this.component.quantity.toString());
 			if (this.component.error != null) this.lineQuantVal2.setValue(this.component.error.toString());
+			this.lineQuantUnits.setValue(this.component.units);
 			changeToValue();
 		}
 
@@ -442,6 +465,26 @@ export class EditComponent extends wmk.Dialog
 		return drop;
 	}
 
+	private selectDropUnits():void
+	{
+		let popup = new wmk.Popup(this.btnQuantUnits);
+		popup.callbackPopulate = () =>
+		{
+			let body = popup.bodyDOM();
+			for (let label of Units.commonNames())
+			{
+				let div = dom('<div/>').appendTo(body).class('wmk-editcomponent-units');
+				div.setText(label);
+				div.onClick(() =>
+				{
+					this.lineQuantUnits.setValue(label);
+					popup.close();
+				});
+			}
+		};
+		popup.open();
+	}
+
 	// special deal: when typing in extended content to the regular value entry box, optionally break up strings that contain
 	// a more complete description, e.g. quantity *and* units; returns true if it did something interesting
 	private interpretQuantString():boolean
@@ -464,7 +507,7 @@ export class EditComponent extends wmk.Dialog
 			let match = regex.exec(qstr);
 			if (!match) continue;
 			qstr = match[1];
-			units = uri;
+			units = Units.URI_TO_NAME[uri];
 			break;
 		}
 
@@ -514,9 +557,8 @@ export class EditComponent extends wmk.Dialog
 		this.dropQuantRel.setValue(Math.max(0, RELATION_VALUES.indexOf(rel)).toString());
 		this.lineQuantVal1.setValue(qnum1);
 		this.lineQuantVal2.setValue(qnum2);
-		let uidx = Math.max(this.unitValues.indexOf(units), 0);
-		this.dropQuantUnits.setValue(uidx.toString());
-		this.component.units = this.unitLabels[uidx];
+		this.lineQuantUnits.setValue(units);
+		this.component.units = units;
 		return true;
 	}
 

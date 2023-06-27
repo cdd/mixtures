@@ -43,7 +43,7 @@ export class MetadataWidget extends wmk.Widget
 
 		if (metadata) for (let datum of metadata) this.lines.push({'datum': datum});
 
-		if (!wmk.hasInlineCSS('metadatawidget')) wmk.installInlineCSS('metadatawidget', CSS_METADATAWIDGET);
+		wmk.installInlineCSS('metadatawidget', CSS_METADATAWIDGET);
 	}
 
 	public render(parent:any):void

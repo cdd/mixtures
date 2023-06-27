@@ -151,6 +151,7 @@ export class ArrangeMixture
 	{
 		let prec = (val:number):string =>
 		{
+			if (val == null) return '';
 			if (val > 10000) return Math.round(val).toString();
 			let str = val.toPrecision(6);
 			if (str.indexOf('e') >= 0 || str.indexOf('.') < 0) return str;

@@ -15,15 +15,14 @@
 			"console": "integratedTerminal",
 			"args": 
 			[
-				"play/mixture11.mixfile",
+				"play/mixture01.mixfile",
 				//"play/collection.json",
 				//"play/typecodes1.json",
 				//"play/typecodes2.json",
 				//"~/Dropbox/Mixtures/nivea.mixfile",
 				//"/tmp/test.mixfile",
 				"--inchi", "${env:HOME}/bin/inchi-1"
-			],
-			"protocol": "inspector"
+			]
 		},
 		{
 			"type": "node",
