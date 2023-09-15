@@ -22,36 +22,36 @@ namespace Mixtures /* BOF */ {
 const BANNER:MenuBannerButton[][] =
 [
 	[
-		{'icon': 'CommandSave.svg', 'tip': 'Save', 'cmd': MenuBannerCommand.Save},
+		{icon: 'CommandSave.svg', tip: 'Save', cmd: MenuBannerCommand.Save},
 	],
 	[
-		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
-		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
-		{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
-		{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'cmd': MenuBannerCommand.ExportSVG},
+		{icon: 'CommandEdit.svg', tip: 'Edit component', cmd: MenuBannerCommand.EditDetails},
+		{icon: 'CommandStructure.svg', tip: 'Edit structure', cmd: MenuBannerCommand.EditStructure},
+		{icon: 'CommandLookup.svg', tip: 'Lookup compound', cmd: MenuBannerCommand.Lookup},
+		{icon: 'CommandPicture.svg', tip: 'Export graphics', cmd: MenuBannerCommand.ExportSVG},
 	],
 	[
-		{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'cmd': MenuBannerCommand.Append},
-		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'cmd': MenuBannerCommand.Prepend},
-		{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'cmd': MenuBannerCommand.Delete},
-		{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'cmd': MenuBannerCommand.MoveUp},
-		{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'cmd': MenuBannerCommand.MoveDown},
+		{icon: 'CommandAppend.svg', tip: 'Append component', cmd: MenuBannerCommand.Append},
+		{icon: 'CommandPrepend.svg', tip: 'Prepend component', cmd: MenuBannerCommand.Prepend},
+		{icon: 'CommandDelete.svg', tip: 'Delete', cmd: MenuBannerCommand.Delete},
+		{icon: 'CommandMoveUp.svg', tip: 'Move Up', cmd: MenuBannerCommand.MoveUp},
+		{icon: 'CommandMoveDown.svg', tip: 'Move Down', cmd: MenuBannerCommand.MoveDown},
 	],
 	[
-		{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'cmd': MenuBannerCommand.Undo},
-		{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'cmd': MenuBannerCommand.Redo},
+		{icon: 'CommandUndo.svg', tip: 'Undo', cmd: MenuBannerCommand.Undo},
+		{icon: 'CommandRedo.svg', tip: 'Redo', cmd: MenuBannerCommand.Redo},
 	],
 	[
-		{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'cmd': MenuBannerCommand.Copy},
-		{'icon': 'CommandCut.svg', 'tip': 'Cut', 'cmd': MenuBannerCommand.Cut},
-		{'icon': 'CommandPaste.svg', 'tip': 'Paste', 'cmd': MenuBannerCommand.Paste},
+		{icon: 'CommandCopy.svg', tip: 'Copy', cmd: MenuBannerCommand.Copy},
+		{icon: 'CommandCut.svg', tip: 'Cut', cmd: MenuBannerCommand.Cut},
+		{icon: 'CommandPaste.svg', tip: 'Paste', cmd: MenuBannerCommand.Paste},
 	],
 	[
-		{'icon': 'CommandViewDetail.svg', 'tip': 'Detail', 'cmd': MenuBannerCommand.ViewDetail},
-		{'icon': 'CommandViewCard.svg', 'tip': 'Cards', 'cmd': MenuBannerCommand.ViewCard},
-		{'icon': 'CommandZoomNormal.svg', 'tip': 'Zoom full', 'cmd': MenuBannerCommand.ZoomFull},
-		{'icon': 'CommandZoomIn.svg', 'tip': 'Zoom in', 'cmd': MenuBannerCommand.ZoomIn},
-		{'icon': 'CommandZoomOut.svg', 'tip': 'Zoom out', 'cmd': MenuBannerCommand.ZoomOut},
+		{icon: 'CommandViewDetail.svg', tip: 'Detail', cmd: MenuBannerCommand.ViewDetail},
+		{icon: 'CommandViewCard.svg', tip: 'Cards', cmd: MenuBannerCommand.ViewCard},
+		{icon: 'CommandZoomNormal.svg', tip: 'Zoom full', cmd: MenuBannerCommand.ZoomFull},
+		{icon: 'CommandZoomIn.svg', tip: 'Zoom in', cmd: MenuBannerCommand.ZoomIn},
+		{icon: 'CommandZoomOut.svg', tip: 'Zoom out', cmd: MenuBannerCommand.ZoomOut},
 	],
 ];
 
@@ -442,11 +442,11 @@ export class CollectionPanel extends MainPanel
 		const dialog = remote.dialog;
 		let params:any =
 		{
-			'title': 'Save Mixfile Collection',
+			title: 'Save Mixfile Collection',
 			//defaultPath...
-			'filters':
+			filters:
 			[
-				{'name': 'Mixfile Collection', 'extensions': ['json']}
+				{name: 'Mixfile Collection', extensions: ['json']}
 			]
 		};
 		dialog.showSaveDialog({}).then((value) =>

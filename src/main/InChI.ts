@@ -95,7 +95,7 @@ export class InChI
 		const proc = require('child_process'), path = require('path');
 
 		let cmd = inchi.inchiPath.replace(/ /g, '\\\ '); // very crude escaping of spaces
-		let result = proc.spawnSync(cmd, ['-STDIO', '-AuxNone', '-NoLabels', '-Key'], {'input': mdlmol});
+		let result = proc.spawnSync(cmd, ['-STDIO', '-AuxNone', '-NoLabels', '-Key'], {input: mdlmol});
 		let raw = result.stdout.toString(), bits = raw.split('\n');
 
 		if (bits.length < 2 || !bits[0].startsWith('InChI='))

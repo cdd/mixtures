@@ -23,32 +23,32 @@ namespace Mixtures /* BOF */ {
 const BANNER:MenuBannerButton[][] =
 [
 	[
-		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
-		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
-		{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
-		//{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'cmd': MenuBannerCommand.ExportSVG},
+		{icon: 'CommandEdit.svg', tip: 'Edit component', cmd: MenuBannerCommand.EditDetails},
+		{icon: 'CommandStructure.svg', tip: 'Edit structure', cmd: MenuBannerCommand.EditStructure},
+		{icon: 'CommandLookup.svg', tip: 'Lookup compound', cmd: MenuBannerCommand.Lookup},
+		//{icon: 'CommandPicture.svg', tip: 'Export graphics', cmd: MenuBannerCommand.ExportSVG},
 	],
 	[
-		{'icon': 'CommandAppend.svg', 'tip': 'Append component', 'cmd': MenuBannerCommand.Append},
-		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component', 'cmd': MenuBannerCommand.Prepend},
-		{'icon': 'CommandInsertBefore.svg', 'tip': 'Insert component above', 'cmd': MenuBannerCommand.InsertBefore},
-		{'icon': 'CommandInsertAfter.svg', 'tip': 'Append component below', 'cmd': MenuBannerCommand.InsertAfter},
-		{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'cmd': MenuBannerCommand.Delete},
-		{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'cmd': MenuBannerCommand.MoveUp},
-		{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'cmd': MenuBannerCommand.MoveDown},
+		{icon: 'CommandAppend.svg', tip: 'Append component', cmd: MenuBannerCommand.Append},
+		{icon: 'CommandPrepend.svg', tip: 'Prepend component', cmd: MenuBannerCommand.Prepend},
+		{icon: 'CommandInsertBefore.svg', tip: 'Insert component above', cmd: MenuBannerCommand.InsertBefore},
+		{icon: 'CommandInsertAfter.svg', tip: 'Append component below', cmd: MenuBannerCommand.InsertAfter},
+		{icon: 'CommandDelete.svg', tip: 'Delete', cmd: MenuBannerCommand.Delete},
+		{icon: 'CommandMoveUp.svg', tip: 'Move Up', cmd: MenuBannerCommand.MoveUp},
+		{icon: 'CommandMoveDown.svg', tip: 'Move Down', cmd: MenuBannerCommand.MoveDown},
 	],
 	[
-		{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'cmd': MenuBannerCommand.Undo},
-		{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'cmd': MenuBannerCommand.Redo},
+		{icon: 'CommandUndo.svg', tip: 'Undo', cmd: MenuBannerCommand.Undo},
+		{icon: 'CommandRedo.svg', tip: 'Redo', cmd: MenuBannerCommand.Redo},
 	],
 	[
-		{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'cmd': MenuBannerCommand.Copy},
-		{'icon': 'CommandCut.svg', 'tip': 'Cut', 'cmd': MenuBannerCommand.Cut},
+		{icon: 'CommandCopy.svg', tip: 'Copy', cmd: MenuBannerCommand.Copy},
+		{icon: 'CommandCut.svg', tip: 'Cut', cmd: MenuBannerCommand.Cut},
 	],
 	[
-		{'icon': 'CommandZoomNormal.svg', 'tip': 'Zoom full', 'cmd': MenuBannerCommand.ZoomFull},
-		{'icon': 'CommandZoomIn.svg', 'tip': 'Zoom in', 'cmd': MenuBannerCommand.ZoomIn},
-		{'icon': 'CommandZoomOut.svg', 'tip': 'Zoom out', 'cmd': MenuBannerCommand.ZoomOut},
+		{icon: 'CommandZoomNormal.svg', tip: 'Zoom full', cmd: MenuBannerCommand.ZoomFull},
+		{icon: 'CommandZoomIn.svg', tip: 'Zoom in', cmd: MenuBannerCommand.ZoomIn},
+		{icon: 'CommandZoomOut.svg', tip: 'Zoom out', cmd: MenuBannerCommand.ZoomOut},
 	],
 ];
 
@@ -134,7 +134,7 @@ export class WebWidget extends wmk.Widget
 		let bannerContent = deepClone(BANNER);
 		if (this.callbackGoBack)
 		{
-			let back:MenuBannerButton = {'icon': 'CommandBack.svg', 'tip': null/*'Back'*/, 'cmd': MenuBannerCommand.Back};
+			let back:MenuBannerButton = {icon: 'CommandBack.svg', tip: null/*'Back'*/, cmd: MenuBannerCommand.Back};
 			bannerContent.unshift([back]);
 		}
 
@@ -320,7 +320,7 @@ export class WebWidget extends wmk.Widget
 	private downloadFile(fn:string, content:string):void
 	{
 		let a = window.document.createElement('a');
-		a.href = window.URL.createObjectURL(new Blob([content], {'type': 'application/octet-stream'}));
+		a.href = window.URL.createObjectURL(new Blob([content], {type: 'application/octet-stream'}));
 		a.download = fn;
 
 		document.body.appendChild(a);

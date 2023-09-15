@@ -173,7 +173,7 @@ export class MetadataWidget extends wmk.Widget
 		{
 			this.populateBranch(popup, branchList, (term) =>
 			{
-				this.lines.push({'datum': term.uri});
+				this.lines.push({datum: term.uri});
 				this.rebuildGrid();
 				this.triggerModified();
 			});

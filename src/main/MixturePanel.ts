@@ -22,36 +22,36 @@ namespace Mixtures /* BOF */ {
 const BANNER:MenuBannerButton[][] =
 [
 	[
-		{'icon': 'CommandSave.svg', 'tip': 'Save', 'cmd': MenuBannerCommand.Save},
+		{icon: 'CommandSave.svg', tip: 'Save', cmd: MenuBannerCommand.Save},
 	],
 	[
-		{'icon': 'CommandEdit.svg', 'tip': 'Edit component', 'cmd': MenuBannerCommand.EditDetails},
-		{'icon': 'CommandStructure.svg', 'tip': 'Edit structure', 'cmd': MenuBannerCommand.EditStructure},
-		{'icon': 'CommandLookup.svg', 'tip': 'Lookup compound', 'cmd': MenuBannerCommand.Lookup},
-		{'icon': 'CommandPicture.svg', 'tip': 'Export graphics', 'cmd': MenuBannerCommand.ExportSVG},
+		{icon: 'CommandEdit.svg', tip: 'Edit component', cmd: MenuBannerCommand.EditDetails},
+		{icon: 'CommandStructure.svg', tip: 'Edit structure', cmd: MenuBannerCommand.EditStructure},
+		{icon: 'CommandLookup.svg', tip: 'Lookup compound', cmd: MenuBannerCommand.Lookup},
+		{icon: 'CommandPicture.svg', tip: 'Export graphics', cmd: MenuBannerCommand.ExportSVG},
 	],
 	[
-		{'icon': 'CommandAppend.svg', 'tip': 'Append component to the right', 'cmd': MenuBannerCommand.Append},
-		{'icon': 'CommandPrepend.svg', 'tip': 'Prepend component to the left', 'cmd': MenuBannerCommand.Prepend},
-		{'icon': 'CommandInsertBefore.svg', 'tip': 'Insert component above', 'cmd': MenuBannerCommand.InsertBefore},
-		{'icon': 'CommandInsertAfter.svg', 'tip': 'Append component below', 'cmd': MenuBannerCommand.InsertAfter},
-		{'icon': 'CommandDelete.svg', 'tip': 'Delete', 'cmd': MenuBannerCommand.Delete},
-		{'icon': 'CommandMoveUp.svg', 'tip': 'Move Up', 'cmd': MenuBannerCommand.MoveUp},
-		{'icon': 'CommandMoveDown.svg', 'tip': 'Move Down', 'cmd': MenuBannerCommand.MoveDown},
+		{icon: 'CommandAppend.svg', tip: 'Append component to the right', cmd: MenuBannerCommand.Append},
+		{icon: 'CommandPrepend.svg', tip: 'Prepend component to the left', cmd: MenuBannerCommand.Prepend},
+		{icon: 'CommandInsertBefore.svg', tip: 'Insert component above', cmd: MenuBannerCommand.InsertBefore},
+		{icon: 'CommandInsertAfter.svg', tip: 'Append component below', cmd: MenuBannerCommand.InsertAfter},
+		{icon: 'CommandDelete.svg', tip: 'Delete', cmd: MenuBannerCommand.Delete},
+		{icon: 'CommandMoveUp.svg', tip: 'Move Up', cmd: MenuBannerCommand.MoveUp},
+		{icon: 'CommandMoveDown.svg', tip: 'Move Down', cmd: MenuBannerCommand.MoveDown},
 	],
 	[
-		{'icon': 'CommandUndo.svg', 'tip': 'Undo', 'cmd': MenuBannerCommand.Undo},
-		{'icon': 'CommandRedo.svg', 'tip': 'Redo', 'cmd': MenuBannerCommand.Redo},
+		{icon: 'CommandUndo.svg', tip: 'Undo', cmd: MenuBannerCommand.Undo},
+		{icon: 'CommandRedo.svg', tip: 'Redo', cmd: MenuBannerCommand.Redo},
 	],
 	[
-		{'icon': 'CommandCopy.svg', 'tip': 'Copy', 'cmd': MenuBannerCommand.Copy},
-		{'icon': 'CommandCut.svg', 'tip': 'Cut', 'cmd': MenuBannerCommand.Cut},
-		{'icon': 'CommandPaste.svg', 'tip': 'Paste', 'cmd': MenuBannerCommand.Paste},
+		{icon: 'CommandCopy.svg', tip: 'Copy', cmd: MenuBannerCommand.Copy},
+		{icon: 'CommandCut.svg', tip: 'Cut', cmd: MenuBannerCommand.Cut},
+		{icon: 'CommandPaste.svg', tip: 'Paste', cmd: MenuBannerCommand.Paste},
 	],
 	[
-		{'icon': 'CommandZoomNormal.svg', 'tip': 'Zoom full', 'cmd': MenuBannerCommand.ZoomFull},
-		{'icon': 'CommandZoomIn.svg', 'tip': 'Zoom in', 'cmd': MenuBannerCommand.ZoomIn},
-		{'icon': 'CommandZoomOut.svg', 'tip': 'Zoom out', 'cmd': MenuBannerCommand.ZoomOut},
+		{icon: 'CommandZoomNormal.svg', tip: 'Zoom full', cmd: MenuBannerCommand.ZoomFull},
+		{icon: 'CommandZoomIn.svg', tip: 'Zoom in', cmd: MenuBannerCommand.ZoomIn},
+		{icon: 'CommandZoomOut.svg', tip: 'Zoom out', cmd: MenuBannerCommand.ZoomOut},
 	],
 ];
 
@@ -207,13 +207,13 @@ export class MixturePanel extends MainPanel
 		let filedir = this.filename && this.filename.indexOf(path.sep) ? this.filename.substring(0, this.filename.lastIndexOf(path.sep)) : undefined;
 		let params:Electron.OpenDialogOptions =
 		{
-			'title': 'Open Mixture',
-			'properties': ['openFile'],
-			'defaultPath': filedir,
-			'filters':
+			title: 'Open Mixture',
+			properties: ['openFile'],
+			defaultPath: filedir,
+			filters:
 			[
-				{'name': 'Mixfile', 'extensions': ['mixfile']},
-				{'name': 'Mixfile Collection', 'extensions': ['json']},
+				{name: 'Mixfile', extensions: ['mixfile']},
+				{name: 'Mixfile Collection', extensions: ['json']},
 			]
 		};
 		dialog.showOpenDialog(params).then((value) =>
@@ -254,11 +254,11 @@ export class MixturePanel extends MainPanel
 		const dialog = remote.dialog;
 		let params:Electron.SaveDialogOptions =
 		{
-			'title': 'Save Mixfile',
+			title: 'Save Mixfile',
 			//defaultPath...
-			'filters':
+			filters:
 			[
-				{'name': 'Mixfile', 'extensions': ['mixfile']}
+				{name: 'Mixfile', extensions: ['mixfile']}
 			]
 		};
 		dialog.showSaveDialog(params).then((value) =>
@@ -295,11 +295,11 @@ export class MixturePanel extends MainPanel
 
 		let params:Electron.SaveDialogOptions =
 		{
-			'title': 'Export as SDfile',
-			'defaultPath': defPath,
-			'filters':
+			title: 'Export as SDfile',
+			defaultPath: defPath,
+			filters:
 			[
-				{'name': 'SDfile', 'extensions': ['sdf']}
+				{name: 'SDfile', extensions: ['sdf']}
 			]
 		};
 		if (this.filename && this.filename.endsWith('.mixfile'))

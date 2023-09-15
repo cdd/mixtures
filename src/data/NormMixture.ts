@@ -55,7 +55,7 @@ export class NormMixture
 
 		for (let n = 0; n < origins.length; n++)
 		{
-			let note:NormMixtureNote = {'origin': origins[n]};
+			let note:NormMixtureNote = {origin: origins[n]};
 
 			// stereocentres get expanded out
 			let comp = compList[n];
@@ -228,7 +228,7 @@ export class NormMixture
 					let mol2:wmk.Molecule = null;
 					if (!mol.bondInRing(n))
 					{
-						let state:wmk.SketchState = {'mol': mol1, 'currentAtom': 0, 'currentBond': n, 'selectedMask': null};
+						let state:wmk.SketchState = {mol: mol1, currentAtom: 0, currentBond: n, selectedMask: null};
 						let activ = new wmk.MoleculeActivity(state, wmk.ActivityType.BondRotate, {});
 						activ.execute();
 						if (!activ.errmsg && activ.output.mol) mol2 = activ.output.mol;

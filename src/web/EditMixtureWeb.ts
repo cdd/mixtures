@@ -65,42 +65,42 @@ export class EditMixtureWeb extends EditMixture
 			let comp = this.layout.components[idx].content, origin = this.layout.components[idx].origin;
 			let sel = ():void => this.selectComponent(idx);
 
-			menu.push({'label': 'Edit Structure', 'click': () => {sel(); this.editStructure();}});
-			menu.push({'label': 'Edit Details', 'click': () => {sel(); this.editDetails();}});
+			menu.push({label: 'Edit Structure', click: () => {sel(); this.editStructure();}});
+			menu.push({label: 'Edit Details', click: () => {sel(); this.editDetails();}});
 			if (this.callbackLookup)
 			{
-				menu.push({'label': 'Lookup', 'click': () => this.callbackLookup(this)});
+				menu.push({label: 'Lookup', click: () => this.callbackLookup(this)});
 			}
-			menu.push({'label': 'Append', 'click': () => {sel(); this.appendToCurrent();}});
-			menu.push({'label': 'Prepend', 'click': () => {sel(); this.prependBeforeCurrent();}});
+			menu.push({label: 'Append', click: () => {sel(); this.appendToCurrent();}});
+			menu.push({label: 'Prepend', click: () => {sel(); this.prependBeforeCurrent();}});
 			if (origin.length > 0)
 			{
-				menu.push({'label': 'Insert Before', 'click': () => {sel(); this.insertBeforeCurrent();}});
-				menu.push({'label': 'Insert After', 'click': () => {sel(); this.insertAfterCurrent();}});
-				menu.push({'label': 'Delete', 'click': () => {sel(); this.deleteCurrent();}});
+				menu.push({label: 'Insert Before', click: () => {sel(); this.insertBeforeCurrent();}});
+				menu.push({label: 'Insert After', click: () => {sel(); this.insertAfterCurrent();}});
+				menu.push({label: 'Delete', click: () => {sel(); this.deleteCurrent();}});
 
 				if (origin[origin.length - 1] > 0)
-					menu.push({'label': 'Move Up', 'click': () => {sel(); this.reorderCurrent(-1);}});
+					menu.push({label: 'Move Up', click: () => {sel(); this.reorderCurrent(-1);}});
 				if (origin[origin.length - 1] < Vec.arrayLength(this.mixture.getParentComponent(origin).contents) - 1)
-					menu.push({'label': 'Move Down', 'click': () => {sel(); this.reorderCurrent(1);}});
+					menu.push({label: 'Move Down', click: () => {sel(); this.reorderCurrent(1);}});
 			}
 
-			menu.push({'label': 'Copy', 'click': () => {sel(); this.clipboardCopy(false);}});
+			menu.push({label: 'Copy', click: () => {sel(); this.clipboardCopy(false);}});
 			if (Vec.arrayLength(comp.contents) > 0)
-				menu.push({'label': 'Copy Branch', 'click': () => {sel(); this.clipboardCopy(false, true);}});
+				menu.push({label: 'Copy Branch', click: () => {sel(); this.clipboardCopy(false, true);}});
 			if (origin.length > 0)
-				menu.push({'label': 'Cut', 'click': () => {sel(); this.clipboardCopy(true);}});
+				menu.push({label: 'Cut', click: () => {sel(); this.clipboardCopy(true);}});
 
 			if (Vec.notBlank(comp.contents))
 			{
 				let label = this.layout.components[idx].isCollapsed ? 'Expand Branch' : 'Collapse Branch';
-				menu.push({'label': label, 'click': () => this.toggleCollapsed(idx)});
+				menu.push({label: label, click: () => this.toggleCollapsed(idx)});
 			}
 		}
 		else
 		{
-			menu.push({'label': 'Zoom In', 'click': () => this.zoom(1.25)});
-			menu.push({'label': 'Zoom Out', 'click': () => this.zoom(0.8)});
+			menu.push({label: 'Zoom In', click: () => this.zoom(1.25)});
+			menu.push({label: 'Zoom Out', click: () => this.zoom(0.8)});
 		}
 
 		this.proxyMenu.openContextMenu(menu, event);

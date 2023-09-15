@@ -80,8 +80,8 @@ export class EditMixture extends wmk.Widget
 		content.css({'position': 'relative', 'outline-width': '0'});
 
 		let canvasStyle = 'position: absolute; left: 0; top: 0; pointer-events: none;';
-		this.canvasMixture = newElement(content, 'canvas', {'style': canvasStyle}) as HTMLCanvasElement;
-		this.canvasOver = newElement(content, 'canvas', {'style': canvasStyle}) as HTMLCanvasElement;
+		this.canvasMixture = newElement(content, 'canvas', {style: canvasStyle}) as HTMLCanvasElement;
+		this.canvasOver = newElement(content, 'canvas', {style: canvasStyle}) as HTMLCanvasElement;
 
 		//content.onResize(() => this.redraw());
 
@@ -949,43 +949,43 @@ export class EditMixture extends wmk.Widget
 		{
 			let comp = this.layout.components[idx].content, origin = this.layout.components[idx].origin;
 			let sel = ():void => this.selectComponent(idx);
-			menu.append(new remote.MenuItem({'label': 'Edit Structure', 'click': () => {sel(); this.editStructure();}}));
-			menu.append(new remote.MenuItem({'label': 'Edit Details', 'click': () => {sel(); this.editDetails();}}));
-			menu.append(new remote.MenuItem({'label': 'Lookup Name', 'click': () => {sel(); this.lookupCurrent();}}));
-			menu.append(new remote.MenuItem({'label': 'Append', 'click': () => {sel(); this.appendToCurrent();}}));
-			menu.append(new remote.MenuItem({'label': 'Prepend', 'click': () => {sel(); this.prependBeforeCurrent();}}));
+			menu.append(new remote.MenuItem({label: 'Edit Structure', click: () => {sel(); this.editStructure();}}));
+			menu.append(new remote.MenuItem({label: 'Edit Details', click: () => {sel(); this.editDetails();}}));
+			menu.append(new remote.MenuItem({label: 'Lookup Name', click: () => {sel(); this.lookupCurrent();}}));
+			menu.append(new remote.MenuItem({label: 'Append', click: () => {sel(); this.appendToCurrent();}}));
+			menu.append(new remote.MenuItem({label: 'Prepend', click: () => {sel(); this.prependBeforeCurrent();}}));
 			if (origin.length > 0)
 			{
-				menu.append(new remote.MenuItem({'label': 'Insert Before', 'click': () => {sel(); this.insertBeforeCurrent();}}));
-				menu.append(new remote.MenuItem({'label': 'Insert After', 'click': () => {sel(); this.insertAfterCurrent();}}));
-				menu.append(new remote.MenuItem({'label': 'Delete', 'click': () => {this.selectComponent(idx); this.deleteCurrent();}}));
+				menu.append(new remote.MenuItem({label: 'Insert Before', click: () => {sel(); this.insertBeforeCurrent();}}));
+				menu.append(new remote.MenuItem({label: 'Insert After', click: () => {sel(); this.insertAfterCurrent();}}));
+				menu.append(new remote.MenuItem({label: 'Delete', click: () => {this.selectComponent(idx); this.deleteCurrent();}}));
 
 				if (origin[origin.length - 1] > 0)
-					menu.append(new remote.MenuItem({'label': 'Move Up', 'click': () => {sel(); this.reorderCurrent(-1);}}));
+					menu.append(new remote.MenuItem({label: 'Move Up', click: () => {sel(); this.reorderCurrent(-1);}}));
 				if (origin[origin.length - 1] < Vec.arrayLength(this.mixture.getParentComponent(origin).contents) - 1)
-					menu.append(new remote.MenuItem({'label': 'Move Down', 'click': () => {sel(); this.reorderCurrent(1);}}));
+					menu.append(new remote.MenuItem({label: 'Move Down', click: () => {sel(); this.reorderCurrent(1);}}));
 			}
 
-			menu.append(new remote.MenuItem({'label': 'Copy', 'click': () => {sel(); this.clipboardCopy(false);}}));
+			menu.append(new remote.MenuItem({label: 'Copy', click: () => {sel(); this.clipboardCopy(false);}}));
 			if (Vec.arrayLength(comp.contents) > 0)
-				menu.append(new remote.MenuItem({'label': 'Copy Branch', 'click': () => {sel(); this.clipboardCopy(false, true);}}));
+				menu.append(new remote.MenuItem({label: 'Copy Branch', click: () => {sel(); this.clipboardCopy(false, true);}}));
 			if (origin.length > 0)
-				menu.append(new remote.MenuItem({'label': 'Cut', 'click': () => {sel(); this.clipboardCopy(true);}}));
-			menu.append(new remote.MenuItem({'label': 'Paste', 'click': () => {sel(); this.clipboardPaste();}}));
+				menu.append(new remote.MenuItem({label: 'Cut', click: () => {sel(); this.clipboardCopy(true);}}));
+			menu.append(new remote.MenuItem({label: 'Paste', click: () => {sel(); this.clipboardPaste();}}));
 
 			if (Vec.notBlank(comp.contents))
 			{
 				let label = this.layout.components[idx].isCollapsed ? 'Expand Branch' : 'Collapse Branch';
-				menu.append(new remote.MenuItem({'label': label, 'click': () => this.toggleCollapsed(idx)}));
+				menu.append(new remote.MenuItem({label: label, click: () => this.toggleCollapsed(idx)}));
 			}
 		}
 		else
 		{
-			menu.append(new remote.MenuItem({'label': 'Zoom In', 'click': () => this.zoom(1.25)}));
-			menu.append(new remote.MenuItem({'label': 'Zoom Out', 'click': () => this.zoom(0.8)}));
+			menu.append(new remote.MenuItem({label: 'Zoom In', click: () => this.zoom(1.25)}));
+			menu.append(new remote.MenuItem({label: 'Zoom Out', click: () => this.zoom(0.8)}));
 		}
 
-		menu.popup({'window': remote.getCurrentWindow()});
+		menu.popup({window: remote.getCurrentWindow()});
 	}
 
 	// given that the structure may have changed, see if any metadata is potentially invalidated - and ask the user; the component parameter

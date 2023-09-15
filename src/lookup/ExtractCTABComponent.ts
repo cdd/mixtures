@@ -46,7 +46,7 @@ export class ExtractCTABComponent
 
 		if (!ctab.mol) return null;
 
-		let seed:Partial<ProtoMolecule> = {'mol': ctab.mol};
+		let seed:Partial<ProtoMolecule> = {mol: ctab.mol};
 		if (ctab.groupAttachAny.size > 0) seed.attachAny = ctab.groupAttachAny;
 		if (ctab.groupStereoRacemic.length > 0) seed.stereoRacemic = ctab.groupStereoRacemic;
 		if (ctab.groupStereoRelative.length > 0) seed.stereoRelative = ctab.groupStereoRelative;
@@ -93,7 +93,7 @@ export class ExtractCTABComponent
 			}
 		};
 
-		let comp:MixfileComponent = {'contents': []};
+		let comp:MixfileComponent = {contents: []};
 		if (ctab.molName) comp.name = ctab.molName;
 		for (let proto of prototypes) emit(comp, proto);
 
@@ -268,7 +268,7 @@ export class ExtractCTABComponent
 			if (i >= 0) leafmask[i] = false;
 		}
 
-		let root = {'children': []} as ProtoMolecule;
+		let root = {children: []} as ProtoMolecule;
 		let mapTree = new Map<number, ProtoMolecule>();
 		mapTree.set(0, root);
 		while (true)
@@ -278,7 +278,7 @@ export class ExtractCTABComponent
 			{
 				let parent = mapTree.get(mixtures[n].parent);
 				if (!parent) continue;
-				let node = {'children': []} as ProtoMolecule;
+				let node = {children: []} as ProtoMolecule;
 				parent.children.push(node);
 				mapTree.set(mixtures[n].index, node);
 				anything = true;
@@ -295,7 +295,7 @@ export class ExtractCTABComponent
 			for (let a of mixtures[n].atoms) atommask[a - 1] = true;
 
 			let mixmol = wmk.MolUtil.subgraphMask(mol, atommask);
-			let node = {'mol': mixmol} as ProtoMolecule;
+			let node = {mol: mixmol} as ProtoMolecule;
 			mapTree.get(mixtures[n].parent).children.push(node);
 		}
 

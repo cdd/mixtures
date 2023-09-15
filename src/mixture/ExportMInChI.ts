@@ -305,8 +305,8 @@ export class ExportMInChI
 
 	private assembleContents(mcomp:MInChIComponent, inchiList:string[]):MInChIBuilder
 	{
-		let tree:MInChIBuilder = {'layerN': '', 'layerG': ''};
-		let builder:MInChIBuilder = {'layerN': '', 'layerG': ''};
+		let tree:MInChIBuilder = {layerN: '', layerG: ''};
+		let builder:MInChIBuilder = {layerN: '', layerG: ''};
 
 		// emit sub-contents recursively
 		if (Vec.len(mcomp.contents) > 0)

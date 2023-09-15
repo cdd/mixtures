@@ -16,10 +16,19 @@ namespace Mixtures /* BOF */ {
 	Arranging a Mixfile: will create a tree layout for all of the components, according to parameters.
 */
 
+export enum ArrangeMixtureLineSource
+{
+	Name,
+	Quantity,
+	Identifier,
+	Meta,
+}
+
 export interface ArrangeMixtureLine
 {
 	text:string;
 	col:number;
+	source:ArrangeMixtureLineSource;
 }
 
 export interface ArrangeMixtureComponent
@@ -70,6 +79,7 @@ export class ArrangeMixture
 	public packBranches:wmk.Size = null; // if defined, makes an effort to pack branches into the box size
 	public hardwrapName:number; // name width guaranteed not longer than this
 	public softwrapName:number; // name wrapping at selected characters kicks in after this width
+	public includeIdentifiers = true; // if switched off, identifiers won't be included in text
 
 	// --------------------- public methods ---------------------
 
@@ -213,10 +223,10 @@ export class ArrangeMixture
 
 		let comp:MixfileComponent =
 		{
-			'quantity': note.concQuantity,
-			'error': note.concError,
-			'units': note.concUnits,
-			'relation': note.concRelation,
+			quantity: note.concQuantity,
+			error: note.concError,
+			units: note.concUnits,
+			relation: note.concRelation,
 		};
 		return ArrangeMixture.formatQuantity(comp);
 	}
@@ -229,7 +239,7 @@ export class ArrangeMixture
 		// assemble the components into a flat hierarchy
 		let examineBranch = (origin:number[], mixcomp:MixfileComponent, idx:number):void =>
 		{
-			let comp:ArrangeMixtureComponent = {'origin': origin, 'content': mixcomp, 'parentIdx': idx};
+			let comp:ArrangeMixtureComponent = {origin: origin, content: mixcomp, parentIdx: idx};
 			let parentIdx = this.components.push(comp) - 1;
 
 			// see if it's been indicated as collapsed
@@ -265,16 +275,16 @@ export class ArrangeMixture
 
 			// handle name, or other content needing representation
 			comp.nameLines = [];
-			if (mixcomp.name) this.wrapSplitName(comp.nameLines, mixcomp.name, 0x000000);
+			if (mixcomp.name) this.wrapSplitName(comp.nameLines, mixcomp.name, 0x000000, ArrangeMixtureLineSource.Name);
 
 			// (... synonyms, and linewrapping ...)
 			let qline = ArrangeMixture.formatQuantity(mixcomp);
-			if (qline) comp.nameLines.push({'text': qline, 'col': 0x000000});
+			if (qline) comp.nameLines.push({text: qline, col: 0x000000, source: ArrangeMixtureLineSource.Quantity});
 
 			qline = this.formatNormQuantity(comp.origin);
-			if (qline) comp.nameLines.push({'text': `(${qline})`, 'col': 0x808080});
+			if (qline) comp.nameLines.push({text: `(${qline})`, col: 0x808080, source: ArrangeMixtureLineSource.Quantity});
 
-			if (mixcomp.identifiers) for (let key in mixcomp.identifiers)
+			if (this.includeIdentifiers && mixcomp.identifiers) for (let key in mixcomp.identifiers)
 			{
 				let line = key + ' ';
 				let val = mixcomp.identifiers[key];
@@ -283,7 +293,7 @@ export class ArrangeMixture
 					for (let n = 0; n < val.length; n++) line += (n == 0 ? '' : ', ') + val[n];
 				}
 				else line += val;
-				comp.nameLines.push({'text': this.truncateEllipsis(line), 'col': 0x42007E});
+				comp.nameLines.push({text: this.truncateEllipsis(line), col: 0x42007E, source: ArrangeMixtureLineSource.Identifier});
 			}
 			if (mixcomp.metadata) for (let meta of mixcomp.metadata)
 			{
@@ -297,7 +307,7 @@ export class ArrangeMixture
 				};
 				let bits:string[] = [];
 				if (Array.isArray(meta)) bits = meta.map((m) => metaString(m)); else bits = [metaString(meta as string | number)];
-				comp.nameLines.push({'text': bits.join(' '), 'col': 0x002B88});
+				comp.nameLines.push({text: bits.join(' '), col: 0x002B88, source: ArrangeMixtureLineSource.Meta});
 			}
 
 			comp.nameBox = new wmk.Box(padding, padding);
@@ -481,13 +491,13 @@ export class ArrangeMixture
 
 	// if the given string is longer than the soft/hard limit, looks to break it up into smaller pieces; each of them is
 	// appended to the list parameter
-	private wrapSplitName(list:ArrangeMixtureLine[], text:string, col:number):void
+	private wrapSplitName(list:ArrangeMixtureLine[], text:string, col:number, source:ArrangeMixtureLineSource):void
 	{
 		if (!text) return;
 		let xpos = wmk.FontData.measureWidths(text, this.nameFontSize);
 		if (Vec.last(xpos) <= this.softwrapName)
 		{
-			list.push({text, col});
+			list.push({text, col, source});
 			return;
 		}
 
@@ -503,8 +513,8 @@ export class ArrangeMixture
 			}
 		}
 
-		list.push({'text': text.substring(0, p).trim(), col});
-		this.wrapSplitName(list, text.substring(p).trim(), col);
+		list.push({text: text.substring(0, p).trim(), col, source});
+		this.wrapSplitName(list, text.substring(p).trim(), col, source);
 	}
 
 	// if the line is longer than the hard wrap limit, just truncate with ellipsis

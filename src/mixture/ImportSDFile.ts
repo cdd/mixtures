@@ -100,7 +100,7 @@ export class ImportSDFile
 			let idx = origin.pop();
 			let parent = mixture.getComponent(origin);
 			if (!parent.contents) parent.contents = [];
-			let comp:MixfileComponent = {'name': incomp.name, 'molfile': molfile, 'contents': []};
+			let comp:MixfileComponent = {name: incomp.name, molfile: molfile, contents: []};
 			if (incomp.conc) this.decodeConcentration(incomp.conc, comp);
 			parent.contents[idx] = comp;
 		}

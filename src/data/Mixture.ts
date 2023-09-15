@@ -25,7 +25,7 @@ export class Mixture
 
 	constructor(public mixfile?:Mixfile)
 	{
-		if (!mixfile) this.mixfile = {'mixfileVersion': MIXFILE_VERSION};
+		if (!mixfile) this.mixfile = {mixfileVersion: MIXFILE_VERSION};
 		else if (!this.mixfile.mixfileVersion) this.mixfile.mixfileVersion = MIXFILE_VERSION;
 	}
 

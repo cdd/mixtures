@@ -97,7 +97,7 @@ export class KeyValueWidget extends wmk.Widget
 		btnAdd.setText('\u{271A}');
 		btnAdd.onClick(() =>
 		{
-			this.lines.push({'key': '', 'value': ''});
+			this.lines.push({key: '', value: ''});
 			this.rebuildGrid();
 			this.scrapeData();
 		});

@@ -75,7 +75,7 @@ export class SquarePacking
 		let num = this.boxes.length;
 		for (let n = 0; n < num; n++)
 		{
-			let cand:SquarePackingCandidate = {'idxStart': n, 'springs': Vec.anyArray(SquarePackingSpring.Weak, num)};
+			let cand:SquarePackingCandidate = {idxStart: n, springs: Vec.anyArray(SquarePackingSpring.Weak, num)};
 			cand.hash = cand.idxStart + '/' + cand.springs;
 			this.processCandidate(cand);
 			candidates.push(cand);
@@ -94,7 +94,7 @@ export class SquarePacking
 			{
 				for (let sp of [SquarePackingSpring.Strong, SquarePackingSpring.Medium, SquarePackingSpring.Weak]) if (cand.springs[n] != sp)
 				{
-					let mod:SquarePackingCandidate = {'idxStart': cand.idxStart, 'springs': cand.springs.slice(0)};
+					let mod:SquarePackingCandidate = {idxStart: cand.idxStart, springs: cand.springs.slice(0)};
 					mod.springs[n] = sp;
 					mod.hash = mod.idxStart + '/' + mod.springs;
 					if (hashes.has(mod.hash)) continue;
@@ -140,9 +140,9 @@ export class SquarePacking
 			{
 				let ref = cand.layout[n];
 				let newsegs:SquarePackingSegment[] = [];
-				if (ref.minX() > 0) newsegs.push({'y': ref.midY() - this.vspace, 'x1': 0, 'x2': ref.minX() - this.hspace});
-				newsegs.push({'y': ref.minY() - this.vspace, 'x1': Math.max(0, ref.minX() - this.hspace), 'x2': ref.maxX() + this.hspace});
-				newsegs.push({'y': ref.minY() - this.vspace + 0.5 * box.h, 'x1': ref.maxX() + this.hspace, 'x2': Number.POSITIVE_INFINITY});
+				if (ref.minX() > 0) newsegs.push({y: ref.midY() - this.vspace, x1: 0, x2: ref.minX() - this.hspace});
+				newsegs.push({y: ref.minY() - this.vspace, x1: Math.max(0, ref.minX() - this.hspace), x2: ref.maxX() + this.hspace});
+				newsegs.push({y: ref.minY() - this.vspace + 0.5 * box.h, x1: ref.maxX() + this.hspace, x2: Number.POSITIVE_INFINITY});
 				if (segs == null) segs = newsegs;
 				else for (let nseg of newsegs) this.mergeSegmentAbove(segs, nseg);
 			}
@@ -172,9 +172,9 @@ export class SquarePacking
 			{
 				let ref = cand.layout[n];
 				let newsegs:SquarePackingSegment[] = [];
-				if (ref.minX() > 0) newsegs.push({'y': ref.midY() + this.vspace, 'x1': 0, 'x2': ref.minX() - this.hspace});
-				newsegs.push({'y': ref.maxY() + this.vspace, 'x1': Math.max(0, ref.minX() - this.hspace), 'x2': ref.maxX() + this.hspace});
-				newsegs.push({'y': ref.maxY() + this.vspace - 0.5 * box.h, 'x1': ref.maxX() + this.hspace, 'x2': Number.POSITIVE_INFINITY});
+				if (ref.minX() > 0) newsegs.push({y: ref.midY() + this.vspace, x1: 0, x2: ref.minX() - this.hspace});
+				newsegs.push({y: ref.maxY() + this.vspace, x1: Math.max(0, ref.minX() - this.hspace), x2: ref.maxX() + this.hspace});
+				newsegs.push({y: ref.maxY() + this.vspace - 0.5 * box.h, x1: ref.maxX() + this.hspace, x2: Number.POSITIVE_INFINITY});
 				if (segs == null) segs = newsegs;
 				else for (let nseg of newsegs) this.mergeSegmentBelow(segs, nseg);
 			}
@@ -220,7 +220,7 @@ export class SquarePacking
 			if (merge.x1 >= look.x1 && merge.x1 <= look.x2 && merge.x2 >= look.x1 && merge.x2 <= look.x2)
 			{
 				if (merge.y > look.y) return; // completely buried
-				segs.push({'y': look.y, 'x1': merge.x2, 'x2': look.x2});
+				segs.push({y: look.y, x1: merge.x2, x2: look.x2});
 				look.x2 = merge.x1;
 				break;
 			}
@@ -247,7 +247,7 @@ export class SquarePacking
 			if (merge.x1 >= look.x1 && merge.x1 <= look.x2 && merge.x2 >= look.x1 && merge.x2 <= look.x2)
 			{
 				if (merge.y < look.y) return; // completely buried
-				segs.push({'y': look.y, 'x1': merge.x2, 'x2': look.x2});
+				segs.push({y: look.y, x1: merge.x2, x2: look.x2});
 				look.x2 = merge.x1;
 				break;
 			}

@@ -22,6 +22,8 @@ export class DrawMixture
 	public activeIndex = -1; // component that is actively engaged with UI
 	public selectedIndex = -1; // component that is passively selected
 
+	public callbackDrawNameLine:(comp:ArrangeMixtureComponent, line:ArrangeMixtureLine, gfx:wmk.MetaVector, box:wmk.Box) => boolean = null;
+
 	private measure:wmk.ArrangeMeasurement;
 	private policy:wmk.RenderPolicy;
 
@@ -81,12 +83,13 @@ export class DrawMixture
 
 		if (comp.nameLines.length > 0)
 		{
-			let x = box.x + comp.nameBox.midX(), y = box.y + comp.nameBox.y;
+			let x = box.x, cx = x + comp.nameBox.midX(), y = box.y + comp.nameBox.y;
 			for (let line of comp.nameLines)
 			{
-				let wad = this.measure.measureText(line.text, comp.fontSize);
-				this.vg.drawText(x, y, line.text, comp.fontSize, line.col, wmk.TextAlign.Centre | wmk.TextAlign.Top);
-				y += wad[1] + 2 * wad[2];
+				let wad = this.measure.measureText(line.text, comp.fontSize), h = wad[1] + 2 * wad[2];
+				let override = this.callbackDrawNameLine && this.callbackDrawNameLine(comp, line, this.vg, new wmk.Box(x, y, box.w, h));
+				if (!override) this.vg.drawText(cx, y, line.text, comp.fontSize, line.col, wmk.TextAlign.Centre | wmk.TextAlign.Top);
+				y += h;
 			}
 		}
 
