@@ -11,8 +11,7 @@
 */
 
 import {dom, DOM} from 'webmolkit/util/dom';
-import {MainPanel} from './MainPanel';
-import {MenuBanner, MenuBannerButton, MenuBannerCommand} from './MenuBanner';
+import {MenuBanner, MenuBannerButton, MenuBannerCommand} from '../web/MenuBanner';
 import {RenderPolicy} from 'webmolkit/gfx/Rendering';
 import {ClipboardProxy} from 'webmolkit/ui/ClipboardProxy';
 import {MenuProxy} from 'webmolkit/ui/MenuProxy';
@@ -26,9 +25,10 @@ import * as fs from 'fs';
 import {OpenDialogOptions, SaveDialogOptions} from 'electron';
 import {dialog as electronDialog} from '@electron/remote';
 import {MixtureCollection} from '../mixture/MixtureCollection';
-import {EditMixture} from './EditMixture';
 import {Mixture} from '../mixture/Mixture';
+import {MainPanel} from './MainPanel';
 import {openNewWindow} from './startup';
+import {EditMixtureDesktop} from './EditMixtureDesktop';
 
 /*
 	Browsing/editing a collection of mixtures.
@@ -96,7 +96,7 @@ export class CollectionPanel extends MainPanel
 
 	private selected = -1;
 	private mapMixDiv = new Map<number, DOM>(); // index-in-collection to rendered div
-	private editor:EditMixture = null; // when defined, refers to collection{selected}
+	private editor:EditMixtureDesktop = null; // when defined, refers to collection{selected}
 
 	// ------------ public methods ------------
 
@@ -514,7 +514,7 @@ export class CollectionPanel extends MainPanel
 	{
 		if (this.selected < 0) return;
 
-		this.editor = new EditMixture(this.inchi, this.proxyClip, this.proxyMenu);
+		this.editor = new EditMixtureDesktop(this.inchi, this.proxyClip, this.proxyMenu);
 
 		this.divMain.empty();
 		this.editor.render(this.divMain);

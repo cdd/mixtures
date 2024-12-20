@@ -24,11 +24,11 @@ import {MolUtil} from 'webmolkit/data/MolUtil';
 import {Chemistry} from 'webmolkit/data/Chemistry';
 import {MixfileComponent} from '../mixture/Mixfile';
 import {InChI} from '../nodejs/InChI';
-import {KeyValueWidget} from './KeyValueWidget';
 import {Mixture} from '../mixture/Mixture';
 import {Units} from '../mixture/Units';
-import {MetadataWidget} from './MetadataWidget';
 import {InChIDelegate} from '../mixture/InChIDelegate';
+import {KeyValueWidget} from './KeyValueWidget';
+import {MetadataWidget} from '../electron/MetadataWidget';
 
 /*
 	High level widget for the editing area for a mixture.

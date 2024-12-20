@@ -12,7 +12,7 @@
 
 import {dom, DOM} from 'webmolkit/util/dom';
 import {MainPanel} from './MainPanel';
-import {MenuBanner, MenuBannerButton, MenuBannerCommand} from './MenuBanner';
+import {MenuBanner, MenuBannerButton, MenuBannerCommand} from '../web/MenuBanner';
 import {ClipboardProxy, ClipboardProxyHandler} from 'webmolkit/ui/ClipboardProxy';
 import {MenuProxy} from 'webmolkit/ui/MenuProxy';
 import {ExportSDFile} from '../mixture/ExportSDFile';
@@ -29,12 +29,12 @@ import {Dialog as ElectronDialog, OpenDialogOptions, SaveDialogOptions, clipboar
 import {dialog as electronDialog, getCurrentWindow} from '@electron/remote';
 import * as fs from 'fs';
 import * as path from 'path';
-import {EditMixture} from './EditMixture';
 import {Mixture} from '../mixture/Mixture';
 import {MIXFILE_VERSION} from '../mixture/Mixfile';
 import {openNewWindow} from './startup';
 import {InChI} from '../nodejs/InChI';
 import {InChIDelegate} from '../mixture/InChIDelegate';
+import {EditMixtureDesktop} from './EditMixtureDesktop';
 
 /*
 	Viewing/editing window: dedicated entirely to the sketching of a mixture.
@@ -80,7 +80,7 @@ export class MixturePanel extends MainPanel
 {
 	private filename:string = null;
 	private banner:MenuBanner;
-	private editor:EditMixture;
+	private editor:EditMixtureDesktop;
 
 	// ------------ public methods ------------
 
@@ -90,7 +90,7 @@ export class MixturePanel extends MainPanel
 
 		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
-		this.editor = new EditMixture(this.inchi, this.proxyClip, this.proxyMenu);
+		this.editor = new EditMixtureDesktop(this.inchi, this.proxyClip, this.proxyMenu);
 		this.editor.callbackUpdateTitle = () => this.updateTitle();
 
 		let divFlex = dom('<div/>').appendTo(root).css({'display': 'flex'});

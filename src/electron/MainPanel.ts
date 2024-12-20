@@ -11,7 +11,7 @@
 */
 
 import {dom, DOM} from 'webmolkit/util/dom';
-import {MenuBannerCommand} from './MenuBanner';
+import {MenuBannerCommand} from '../web/MenuBanner';
 import {openNewWindow} from './startup';
 import {InChI} from '../nodejs/InChI';
 

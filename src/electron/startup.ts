@@ -20,7 +20,7 @@ import {MenuProxy, MenuProxyContext} from 'webmolkit/ui/MenuProxy';
 import * as path from 'path';
 import * as process from 'process';
 import {ipcRenderer} from 'electron';
-import {BrowserWindow, Menu as ElectronMenu, MenuItem as ElectronMenuItem, clipboard as electronClipboard, getCurrentWindow} from '@electron/remote';
+import {Menu as ElectronMenu, MenuItem as ElectronMenuItem, clipboard as electronClipboard, getCurrentWindow} from '@electron/remote';
 import {CollectionPanel} from './CollectionPanel';
 
 export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally
