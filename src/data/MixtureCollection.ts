@@ -10,7 +10,8 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Mixfile} from './Mixfile';
+import {Mixture} from './Mixture';
 
 /*
 	Collection of mixtures: convenience methods for handling an array thereof, including serialisation.
@@ -107,4 +108,3 @@ export class MixtureCollection
 
 }
 
-/* EOF */ }

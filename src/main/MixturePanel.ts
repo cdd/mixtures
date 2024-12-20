@@ -10,10 +10,30 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='MenuBanner.ts'/>
-///<reference path='MainPanel.ts'/>
-
-namespace Mixtures /* BOF */ {
+import {dom, DOM} from 'webmolkit/util/dom';
+import {EditMixture} from '../mixture/EditMixture';
+import {MainPanel} from './MainPanel';
+import {MenuBanner, MenuBannerButton, MenuBannerCommand} from './MenuBanner';
+import {ClipboardProxy, ClipboardProxyHandler} from 'webmolkit/ui/ClipboardProxy';
+import {MenuProxy} from 'webmolkit/ui/MenuProxy';
+import {Mixture} from '../data/Mixture';
+import {MIXFILE_VERSION} from '../data/Mixfile';
+import {openNewWindow} from '../startup';
+import {ExportSDFile} from '../mixture/ExportSDFile';
+import {RenderPolicy} from 'webmolkit/gfx/Rendering';
+import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {Size} from 'webmolkit/util/Geom';
+import {MetaVector} from 'webmolkit/gfx/MetaVector';
+import {DrawMixture} from '../mixture/DrawMixture';
+import {InChI} from '../data/InChI';
+import {ExportMInChI, MInChISegment} from '../mixture/ExportMInChI';
+import {Dialog} from 'webmolkit/dialog/Dialog';
+import {yieldDOM} from 'webmolkit/util/util';
+import {Dialog as ElectronDialog, OpenDialogOptions, SaveDialogOptions, clipboard as electronClipboard, ipcRenderer} from 'electron';
+import {dialog as electronDialog, getCurrentWindow} from '@electron/remote';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /*
 	Viewing/editing window: dedicated entirely to the sketching of a mixture.
@@ -63,7 +83,7 @@ export class MixturePanel extends MainPanel
 
 	// ------------ public methods ------------
 
-	constructor(root:DOM, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
+	constructor(root:DOM, private proxyClip:ClipboardProxy, private proxyMenu:MenuProxy)
 	{
 		super(root);
 
@@ -100,7 +120,6 @@ export class MixturePanel extends MainPanel
 			return;
 		}
 
-		const fs = require('fs');
 		fs.readFile(filename, 'utf-8', (err:any, data:string):void =>
 		{
 			if (err) throw err;
@@ -126,8 +145,6 @@ export class MixturePanel extends MainPanel
 
 	public saveFile(filename:string):void
 	{
-		const fs = require('fs');
-
 		let mixture = this.editor.getMixture();
 		let content = mixture.serialise();
 
@@ -201,11 +218,8 @@ export class MixturePanel extends MainPanel
 
 	protected actionFileOpen():void
 	{
-		const path = require('path');
-		const remote:Electron.Remote = require('@electron/remote');
-		const dialog = remote.dialog;
 		let filedir = this.filename && this.filename.indexOf(path.sep) ? this.filename.substring(0, this.filename.lastIndexOf(path.sep)) : undefined;
-		let params:Electron.OpenDialogOptions =
+		let params:OpenDialogOptions =
 		{
 			title: 'Open Mixture',
 			properties: ['openFile'],
@@ -216,7 +230,7 @@ export class MixturePanel extends MainPanel
 				{name: 'Mixfile Collection', extensions: ['json']},
 			]
 		};
-		dialog.showOpenDialog(params).then((value) =>
+		electronDialog.showOpenDialog(params).then((value) =>
 		{
 			if (value.canceled) return;
 			let inPlace = this.editor.getMixture().isEmpty();
@@ -249,10 +263,7 @@ export class MixturePanel extends MainPanel
 	{
 		if (this.editor.isBlank()) return;
 
-		const electron = require('electron');
-		const remote:Electron.Remote = require('@electron/remote');
-		const dialog = remote.dialog;
-		let params:Electron.SaveDialogOptions =
+		let params:SaveDialogOptions =
 		{
 			title: 'Save Mixfile',
 			//defaultPath...
@@ -261,7 +272,7 @@ export class MixturePanel extends MainPanel
 				{name: 'Mixfile', extensions: ['mixfile']}
 			]
 		};
-		dialog.showSaveDialog(params).then((value) =>
+		electronDialog.showSaveDialog(params).then((value) =>
 		{
 			if (value.canceled) return;
 			this.saveFile(value.filePath);
@@ -280,10 +291,6 @@ export class MixturePanel extends MainPanel
 		exportSDF.append(mixture.mixfile);
 		let sdfile = exportSDF.write();
 
-		const electron = require('electron'), fs = require('fs');
-		const remote:Electron.Remote = require('@electron/remote');
-		const dialog = remote.dialog;
-
 		let defPath = this.filename;
 		if (defPath)
 		{
@@ -293,7 +300,7 @@ export class MixturePanel extends MainPanel
 		}
 		else defPath = undefined;
 
-		let params:Electron.SaveDialogOptions =
+		let params:SaveDialogOptions =
 		{
 			title: 'Export as SDfile',
 			defaultPath: defPath,
@@ -305,7 +312,7 @@ export class MixturePanel extends MainPanel
 		if (this.filename && this.filename.endsWith('.mixfile'))
 			params.defaultPath = (this.filename.substring(0, this.filename.length - 8) + '.sdf').split(/[\/\\]/).pop();
 
-		dialog.showSaveDialog(params).then((value) =>
+		electronDialog.showSaveDialog(params).then((value) =>
 		{
 			if (value.canceled) return;
 			fs.writeFile(value.filePath, sdfile, (err:any):void =>
@@ -326,10 +333,7 @@ export class MixturePanel extends MainPanel
 		}
 		else defPath = undefined;
 
-		const electron = require('electron');
-		const remote:Electron.Remote = require('@electron/remote');
-		const dialog = remote.dialog;
-		let params:Electron.SaveDialogOptions =
+		let params:SaveDialogOptions =
 		{
 			'title': 'Save SVG Diagram',
 			'defaultPath': defPath,
@@ -338,23 +342,22 @@ export class MixturePanel extends MainPanel
 				{'name': 'Scalable Vector Graphics', 'extensions': ['svg']}
 			]
 		};
-		dialog.showSaveDialog(params).then((value) =>
+		electronDialog.showSaveDialog(params).then((value) =>
 		{
 			if (value.canceled) return;
-			let policy = wmk.RenderPolicy.defaultColourOnWhite();
-			let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
+			let policy = RenderPolicy.defaultColourOnWhite();
+			let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
 			let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
 			layout.collapsedBranches = this.editor.getCollapsedBranches();
 			// TODO: decide whether to pack the branches...
-			layout.packBranches = new wmk.Size(0.8 * this.editor.contentDOM.width(), 0.8 * this.editor.contentDOM.height());
+			layout.packBranches = new Size(0.8 * this.editor.contentDOM.width(), 0.8 * this.editor.contentDOM.height());
 			layout.arrange();
 
-			let gfx = new wmk.MetaVector();
+			let gfx = new MetaVector();
 			new DrawMixture(layout, gfx).draw();
 			gfx.normalise();
 			let svg = gfx.createSVG(true, true);
 
-			const fs = require('fs');
 			fs.writeFile(value.filePath, svg, (err:any):void =>
 			{
 				if (err) alert('Unable to save: ' + err);
@@ -372,7 +375,7 @@ export class MixturePanel extends MainPanel
 
 		let maker = new ExportMInChI(this.editor.getMixture().mixfile);
 		let self = this;
-		class MInChIDialog extends wmk.Dialog
+		class MInChIDialog extends Dialog
 		{
 			constructor()
 			{
@@ -381,7 +384,7 @@ export class MixturePanel extends MainPanel
 			}
 			protected populate():void
 			{
-				self.proxyClip.pushHandler(new wmk.ClipboardProxyHandler());
+				self.proxyClip.pushHandler(new ClipboardProxyHandler());
 				this.bodyDOM().setText('Calculating...');
 				(async () => await this.renderResult())();
 			}
@@ -392,19 +395,19 @@ export class MixturePanel extends MainPanel
 			}
 			private async renderResult():Promise<void>
 			{
-				await wmk.yieldDOM();
+				await yieldDOM();
 				await maker.fillInChI();
 				maker.formulate();
 
 				let body = this.bodyDOM();
 				body.empty();
 
-				let divOuter = wmk.dom('<div/>').appendTo(body);
-				let pre = wmk.dom('<span/>').appendTo(divOuter).css({'font-family': 'monospace', 'padding-top': '0.5em', 'word-break': 'break-all'});
+				let divOuter = dom('<div/>').appendTo(body);
+				let pre = dom('<span/>').appendTo(divOuter).css({'font-family': 'monospace', 'padding-top': '0.5em', 'word-break': 'break-all'});
 				let minchi = maker.getResult(), segment = maker.getSegment();
 				for (let n = 0; n < minchi.length; n++)
 				{
-					let span = wmk.dom('<span/>').appendTo(pre);
+					let span = dom('<span/>').appendTo(pre);
 					span.setText(minchi[n]);
 					if (segment[n] == MInChISegment.Header) span.setCSS('background-color', '#FFC0C0');
 					else if (segment[n] == MInChISegment.Component) span.setCSS('background-color', '#C0C0FF');
@@ -413,7 +416,7 @@ export class MixturePanel extends MainPanel
 					pre.appendHTML('<wbr/>');
 				}
 
-				let btnCopy = wmk.dom('<button class="wmk-button wmk-button-small wmk-button-default">Copy</button>').appendTo(divOuter).css({'margin-left': '0.5em'});
+				let btnCopy = dom('<button class="wmk-button wmk-button-small wmk-button-default">Copy</button>').appendTo(divOuter).css({'margin-left': '0.5em'});
 				btnCopy.onClick(() => self.proxyClip.setString(minchi));
 			}
 		}
@@ -431,4 +434,3 @@ export class MixturePanel extends MainPanel
 	}
 }
 
-/* EOF */ }

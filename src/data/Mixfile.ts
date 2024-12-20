@@ -10,8 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
-
 /*
 	The Mixfile is a raw definition of the contents of a mixture, which maps directly to the JSON datastructure
 	that holds the serialised content. For keeping an operable mixture instance, see the Mixture class.
@@ -162,4 +160,3 @@ export const MIXFILE_ROOT_FIELDS =
 }
 */
 
-/* EOF */ }

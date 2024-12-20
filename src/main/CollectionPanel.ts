@@ -10,10 +10,25 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='MenuBanner.ts'/>
-///<reference path='MainPanel.ts'/>
-
-namespace Mixtures /* BOF */ {
+import {dom, DOM} from 'webmolkit/util/dom';
+import {MixtureCollection} from '../data/MixtureCollection';
+import {MainPanel} from './MainPanel';
+import {MenuBanner, MenuBannerButton, MenuBannerCommand} from './MenuBanner';
+import {RenderPolicy} from 'webmolkit/gfx/Rendering';
+import {EditMixture} from '../mixture/EditMixture';
+import {ClipboardProxy} from 'webmolkit/ui/ClipboardProxy';
+import {MenuProxy} from 'webmolkit/ui/MenuProxy';
+import {Vec} from 'webmolkit/util/Vec';
+import {Mixture} from '../data/Mixture';
+import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {MetaVector, TextAlign} from 'webmolkit/gfx/MetaVector';
+import {DrawMixture} from '../mixture/DrawMixture';
+import {FontData} from 'webmolkit/gfx/FontData';
+import {openNewWindow} from '../startup';
+import * as fs from 'fs';
+import {OpenDialogOptions, SaveDialogOptions} from 'electron';
+import {dialog as electronDialog} from '@electron/remote';
 
 /*
 	Browsing/editing a collection of mixtures.
@@ -76,7 +91,7 @@ export class CollectionPanel extends MainPanel
 	private banner:MenuBanner;
 	private divMain:DOM;
 	private divFooter:DOM;
-	private policy = wmk.RenderPolicy.defaultColourOnWhite(20);
+	private policy = RenderPolicy.defaultColourOnWhite(20);
 	private viewType = CollectionPanelView.Detail;
 
 	private selected = -1;
@@ -85,7 +100,7 @@ export class CollectionPanel extends MainPanel
 
 	// ------------ public methods ------------
 
-	constructor(root:DOM, private proxyClip:wmk.ClipboardProxy, private proxyMenu:wmk.MenuProxy)
+	constructor(root:DOM, private proxyClip:ClipboardProxy, private proxyMenu:MenuProxy)
 	{
 		super(root);
 
@@ -128,7 +143,6 @@ export class CollectionPanel extends MainPanel
 			return;
 		}*/
 
-		const fs = require('fs');
 		fs.readFile(filename, 'utf-8', (err:any, data:string):void =>
 		{
 			if (err) throw err;
@@ -348,18 +362,18 @@ export class CollectionPanel extends MainPanel
 		divInner.css({'margin': '2px', 'padding': '2px', 'border-radius': '4px'});
 		divInner.css({'background-color': BG_NORMAL, 'border': '1px solid #808080'});
 
-		let measure = new wmk.OutlineMeasurement(0, 0, this.policy.data.pointScale);
+		let measure = new OutlineMeasurement(0, 0, this.policy.data.pointScale);
 		let layout = new ArrangeMixture(mixture, measure, this.policy);
 		layout.arrange();
 
-		let gfx = new wmk.MetaVector();
+		let gfx = new MetaVector();
 		let draw = new DrawMixture(layout, gfx);
 		draw.draw();
 
 		let tag = (idx + 1).toString(), fsz = 10, tpad = 2;
-		let wad = wmk.FontData.measureText(tag, fsz);
-		gfx.drawRect(0, 0, wad[0] + 2 * tpad, wad[1] + 2 * tpad, wmk.MetaVector.NOCOLOUR, 0, 0x000000);
-		gfx.drawText(0 + tpad, tpad, tag, fsz, 0xFFFFFF, wmk.TextAlign.Top | wmk.TextAlign.Left);
+		let wad = FontData.measureText(tag, fsz);
+		gfx.drawRect(0, 0, wad[0] + 2 * tpad, wad[1] + 2 * tpad, MetaVector.NOCOLOUR, 0, 0x000000);
+		gfx.drawText(0 + tpad, tpad, tag, fsz, 0xFFFFFF, TextAlign.Top | TextAlign.Left);
 
 		gfx.normalise();
 		let wrapSVG = dom('<div/>').appendTo(divInner).css({'display': 'inline-block'});
@@ -394,10 +408,7 @@ export class CollectionPanel extends MainPanel
 
 	protected actionFileOpen():void
 	{
-		const electron = require('electron');
-		const remote:Electron.Remote = require('@electron/remote');
-		const dialog = remote.dialog;
-		let params:any =
+		let params:OpenDialogOptions =
 		{
 			'title': 'Open Mixtures',
 			'properties': ['openFile'],
@@ -407,7 +418,7 @@ export class CollectionPanel extends MainPanel
 				{'name': 'Mixfile', 'extensions': ['mixfile']},
 			]
 		};
-		dialog.showOpenDialog(params).then((value) =>
+		electronDialog.showOpenDialog(params).then((value) =>
 		{
 			if (value.canceled) return;
 			for (let fn of value.filePaths)
@@ -437,10 +448,7 @@ export class CollectionPanel extends MainPanel
 
 	protected actionFileSaveAs():void
 	{
-		const electron = require('electron');
-		const remote:Electron.Remote = require('@electron/remote');
-		const dialog = remote.dialog;
-		let params:any =
+		let params:SaveDialogOptions =
 		{
 			title: 'Save Mixfile Collection',
 			//defaultPath...
@@ -449,7 +457,7 @@ export class CollectionPanel extends MainPanel
 				{name: 'Mixfile Collection', extensions: ['json']}
 			]
 		};
-		dialog.showSaveDialog({}).then((value) =>
+		electronDialog.showSaveDialog({}).then((value) =>
 		{
 			if (value.canceled) return;
 			this.saveFile(value.filePath);
@@ -463,7 +471,6 @@ export class CollectionPanel extends MainPanel
 	{
 		let content = this.collection.serialise();
 
-		const fs = require('fs');
 		fs.writeFile(filename, content, (err:any):void =>
 		{
 			if (err) alert('Unable to save: ' + err);
@@ -676,4 +683,3 @@ export class CollectionPanel extends MainPanel
 	}
 }
 
-/* EOF */ }

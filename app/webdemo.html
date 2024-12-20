@@ -47,13 +47,13 @@
 	//import {Mixtures, WebMolKit} from './mixfile.js';
 	let wmk = WebMolKit;
 
-	wmk.initWebMolKit('res');
+	initWebMolKit('res');
 	var widget = new Mixtures.WebWidget();
-	var mixture = new Mixtures.Mixture(JSON.parse(wmk.dom('#data').text()));
-	widget.render(wmk.DOM.find('#root'), 700, 600);
+	var mixture = new Mixtures.Mixture(JSON.parse(dom('#data').text()));
+	widget.render(DOM.find('#root'), 700, 600);
 	widget.setMixture(mixture);
 
-	let btnMInChI = wmk.dom('<button class="wmk-button wmk-button-primary">Create MInChI</button>').appendTo(wmk.DOM.find('#buttons'));
+	let btnMInChI = dom('<button class="wmk-button wmk-button-primary">Create MInChI</button>').appendTo(DOM.find('#buttons'));
 	btnMInChI.click(() => 
 	{
 		if (widget.isBlank())
@@ -61,14 +61,14 @@
 			alert('Mixture is empty.');
 			return;
 		}
-		wmk.DOM.find('#minchi').empty();
+		DOM.find('#minchi').empty();
 
 		let mixture = widget.getMixture();
 		let maker = new Mixtures.ExportMInChI(mixture.mixfile);
 		maker.fillInChI().then(() =>
 		{
 			maker.formulate();
-			let pre = wmk.dom('<pre></pre>').appendTo(wmk.DOM.find('#minchi')).css({'padding-top': '0.5em'});
+			let pre = dom('<pre></pre>').appendTo(DOM.find('#minchi')).css({'padding-top': '0.5em'});
 			pre.text(maker.getResult());
 			pre.append('\n');
 			pre.append(maker.getSegment().join(''));

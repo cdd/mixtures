@@ -10,7 +10,13 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Molecule} from 'webmolkit/data/Molecule';
+import {ON_DESKTOP} from '../startup';
+import {MolUtil} from 'webmolkit/data/MolUtil';
+import {MDLMOLWriter} from 'webmolkit/data/MDLWriter';
+import * as fs from 'fs';
+import * as path from 'path';
+import {getGlobal} from '@electron/remote';
 
 /*
 	Interoperability with InChI technology: the generator program is a native binary, the location of which
@@ -28,7 +34,6 @@ export class InChI
 
 	private available = false;
 	private inchiPath = execLocation;
-	private remote:Electron.Remote = null;
 
 	constructor()
 	{
@@ -36,13 +41,11 @@ export class InChI
 
 		if (!this.inchiPath)
 		{
-			this.remote = require('@electron/remote');
-			this.inchiPath = this.remote.getGlobal('INCHI_EXEC');
+			this.inchiPath = getGlobal('INCHI_EXEC');
 		}
 
 		if (this.inchiPath)
 		{
-			const fs = require('fs');
 			try
 			{
 				fs.accessSync(this.inchiPath, fs.constants.X_OK);
@@ -73,13 +76,13 @@ export class InChI
 	// converts a molecule to an InChI string, if possible; should check the availability first, for graceful
 	// rejection; failure results in an exception; note that it is executed synchronously: if the executable takes
 	// a long time to run, this will be a problem for the UI; the return value is [InChI, InChIKey]
-	public static async makeInChI(mol:wmk.Molecule):Promise<[string, string]>
+	public static async makeInChI(mol:Molecule):Promise<[string, string]>
 	{
 		mol = mol.clone();
-		wmk.MolUtil.expandAbbrevs(mol, true);
+		MolUtil.expandAbbrevs(mol, true);
 		for (let n = 1; n <= mol.numBonds; n++) if (mol.bondOrder(n) < 1 || mol.bondOrder(n) > 3) mol.setBondOrder(n, 1);
 
-		let writer = new wmk.MDLMOLWriter(mol);
+		let writer = new MDLMOLWriter(mol);
 		writer.enhancedFields = false;
 		let mdlmol = writer.write();
 
@@ -92,7 +95,7 @@ export class InChI
 		if (!inchi) inchi = new InChI();
 		if (!inchi.available) throw 'InChI executable is not available.';
 
-		const proc = require('child_process'), path = require('path');
+		const proc = require('child_process');
 
 		let cmd = inchi.inchiPath.replace(/ /g, '\\\ '); // very crude escaping of spaces
 		let result = proc.spawnSync(cmd, ['-STDIO', '-AuxNone', '-NoLabels', '-Key'], {input: mdlmol});
@@ -109,4 +112,3 @@ export class InChI
 	}
 }
 
-/* EOF */ }

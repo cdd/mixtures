@@ -10,7 +10,12 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {InChI} from '../data/InChI';
+import {setOnDesktop} from '../startup';
+import {RenderHTML} from './RenderHTML';
+import {TableExtract} from './TableExtract';
+import {ALL_TRANSFORMMIXTURE_FORMATS, TransformMixtures} from './TransformMixtures';
+import {XML} from 'webmolkit/util/XML';
 
 /*
 	Console utilities, to be run from NodeJS with command line arguments.
@@ -32,11 +37,11 @@ export class Console
 
 	constructor(args:string[])
 	{
-		ON_DESKTOP = true;
+		setOnDesktop(true);
 
-		const {DOMParser, XMLSerializer} = require('xmldom/dom-parser.js');
-		wmk.XML.customParser = DOMParser;
-		wmk.XML.customSerial = XMLSerializer;
+		// const {DOMParser, XMLSerializer} = require('xmldom/dom-parser.js');
+		// XML.customParser = DOMParser;
+		// XML.customSerial = XMLSerializer;
 
 		for (let n = 0; n < args.length; n++)
 		{
@@ -94,6 +99,5 @@ export class Console
 }
 
 // if being run in NodeJS context, need to export the class
-if (typeof module == 'object') module.exports['Console'] = Console;
+// if (typeof module == 'object') module.exports['Console'] = Console;
 
-/* EOF */ }

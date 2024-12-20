@@ -10,7 +10,19 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {RenderPolicy} from 'webmolkit/gfx/Rendering';
+import {InChI} from '../data/InChI';
+import {Mixfile} from '../data/Mixfile';
+import {Mixture} from '../data/Mixture';
+import {ExportMInChI} from '../mixture/ExportMInChI';
+import {ExportSDFile} from '../mixture/ExportSDFile';
+import {ImportSDFile} from '../mixture/ImportSDFile';
+import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {MetaVector} from 'webmolkit/gfx/MetaVector';
+import {DrawMixture} from '../mixture/DrawMixture';
+import {Vec} from 'webmolkit/util/Vec';
+import * as fs from 'fs';
 
 /*
 	Reads a stream of mixtures and writes it out as a stream, with format transformation as necessary.
@@ -30,7 +42,6 @@ export const ALL_TRANSFORMMIXTURE_FORMATS = Object.values(TransformMixtureFormat
 
 export class TransformMixtures
 {
-	private fs = require('fs');
 	private process = require('process');
 
 	private inputFormat:TransformMixtureFormat = null;
@@ -84,8 +95,8 @@ export class TransformMixtures
 		if ((this.outputFormat == TransformMixtureFormat.MInChI || this.outputFormat == TransformMixtureFormat.LongMInChIKey ||
 			this.outputFormat == TransformMixtureFormat.ShortMInChIKey) && !InChI.hasExecutable()) throw 'For MInChI, must specify InChI executable as command line parameter.';
 
-		this.instream = this.inputFile ? this.fs.createReadStream(this.inputFile) : this.process.stdin;
-		this.outstream = this.outputFile ? this.fs.createWriteStream(this.outputFile) : this.process.stdout;
+		this.instream = this.inputFile ? fs.createReadStream(this.inputFile) : this.process.stdin;
+		this.outstream = this.outputFile ? fs.createWriteStream(this.outputFile) : this.process.stdout;
 
 		if (this.outputFormat == TransformMixtureFormat.JSON) this.outstream.write('[\n');
 
@@ -230,12 +241,12 @@ export class TransformMixtures
 		}
 		else if (this.outputFormat == TransformMixtureFormat.SVG)
 		{
-			let policy = wmk.RenderPolicy.defaultColourOnWhite(20);
-			let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
+			let policy = RenderPolicy.defaultColourOnWhite(20);
+			let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
 			let layout = new ArrangeMixture(new Mixture(mixfile), measure, policy);
 			layout.arrange();
 
-			let gfx = new wmk.MetaVector();
+			let gfx = new MetaVector();
 			new DrawMixture(layout, gfx).draw();
 			gfx.normalise();
 			let svg = gfx.createSVG(false);
@@ -263,4 +274,3 @@ export class TransformMixtures
 
 }
 
-/* EOF */ }

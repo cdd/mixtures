@@ -10,7 +10,13 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Vec} from 'webmolkit/util/Vec';
+import {Mixture} from './Mixture';
+import {MoleculeStream} from 'webmolkit/data/MoleculeStream';
+import {StandardUnits, Units} from './Units';
+import {Molecule} from 'webmolkit/data/Molecule';
+import {ActivityType, MoleculeActivity, SketchState} from 'webmolkit/sketcher/MoleculeActivity';
+import {MixfileComponent} from './Mixfile';
 
 /*
 	Mixture normalisation options: recommendations for how to make a mixture more conformant. It is up to the caller
@@ -61,10 +67,10 @@ export class NormMixture
 			let comp = compList[n];
 			if (comp.molfile && Vec.isBlank(comp.contents))
 			{
-				let mol = wmk.MoleculeStream.readUnknown(comp.molfile);
+				let mol = MoleculeStream.readUnknown(comp.molfile);
 				if (!mol) continue;
 				let stereo = this.enumerateStereo(mol);
-				if (Vec.notBlank(stereo)) note.stereoEnum = stereo.map((mol) => wmk.MoleculeStream.writeMDLMOL(mol));
+				if (Vec.notBlank(stereo)) note.stereoEnum = stereo.map((mol) => MoleculeStream.writeMDLMOL(mol));
 			}
 
 			this.notes.push(note);
@@ -204,18 +210,18 @@ export class NormMixture
 	// ------------ private methods ------------
 
 	// if the given molecule has stereogenic centres (i.e. wavy bonds), enumerate them explicitly
-	private enumerateStereo(mol:wmk.Molecule):wmk.Molecule[]
+	private enumerateStereo(mol:Molecule):Molecule[]
 	{
-		let splitMolecule = (mol:wmk.Molecule):wmk.Molecule[] =>
+		let splitMolecule = (mol:Molecule):Molecule[] =>
 		{
-			for (let n = 1; n <= mol.numBonds; n++) if (mol.bondType(n) == wmk.Molecule.BONDTYPE_UNKNOWN)
+			for (let n = 1; n <= mol.numBonds; n++) if (mol.bondType(n) == Molecule.BONDTYPE_UNKNOWN)
 			{
 				let mol1 = mol.clone(), mol2 = mol.clone();
 				if (mol.bondOrder(n) == 1)
 				{
 					// make up & down versions of the bond
-					mol1.setBondType(n, wmk.Molecule.BONDTYPE_DECLINED);
-					mol2.setBondType(n, wmk.Molecule.BONDTYPE_INCLINED);
+					mol1.setBondType(n, Molecule.BONDTYPE_DECLINED);
+					mol2.setBondType(n, Molecule.BONDTYPE_INCLINED);
 					return [mol1, mol2];
 				}
 				else if (mol.bondOrder(n) == 2)
@@ -223,13 +229,13 @@ export class NormMixture
 					// for a cis/trans double bond, use the sketcher algorithm to rotate it; if the rotation is rejected,
 					// it'll just return the input molecule, with the stereolabel removed
 					let mol1 = mol.clone();
-					mol1.setBondType(n, wmk.Molecule.BONDTYPE_NORMAL);
+					mol1.setBondType(n, Molecule.BONDTYPE_NORMAL);
 
-					let mol2:wmk.Molecule = null;
+					let mol2:Molecule = null;
 					if (!mol.bondInRing(n))
 					{
-						let state:wmk.SketchState = {mol: mol1, currentAtom: 0, currentBond: n, selectedMask: null};
-						let activ = new wmk.MoleculeActivity(state, wmk.ActivityType.BondRotate, {});
+						let state:SketchState = {mol: mol1, currentAtom: 0, currentBond: n, selectedMask: null};
+						let activ = new MoleculeActivity(state, ActivityType.BondRotate, {});
 						activ.execute();
 						if (!activ.errmsg && activ.output.mol) mol2 = activ.output.mol;
 					}
@@ -239,7 +245,7 @@ export class NormMixture
 			return null;
 		};
 
-		let list:wmk.Molecule[] = [mol];
+		let list:Molecule[] = [mol];
 		for (let n = 0; n < list.length; n++)
 		{
 			let emols = splitMolecule(list[n]);
@@ -291,4 +297,3 @@ export class NormMixture
 	}
 }
 
-/* EOF */ }

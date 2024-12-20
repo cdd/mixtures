@@ -10,7 +10,16 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {deepClone} from 'webmolkit/util/util';
+import {Mixfile, MixfileComponent} from '../data/Mixfile';
+import {Mixture} from '../data/Mixture';
+import {NormMixture, NormMixtureNote} from '../data/NormMixture';
+import {InChI} from '../data/InChI';
+import {Molecule} from 'webmolkit/data/Molecule';
+import {MoleculeStream} from 'webmolkit/data/MoleculeStream';
+import {MolUtil} from 'webmolkit/data/MolUtil';
+import {Vec} from 'webmolkit/util/Vec';
+import {Units} from '../data/Units';
 
 // quick implementation of CRC hash codes
 let crc_table:number[] = [];
@@ -91,10 +100,10 @@ export class ExportMInChI
 		for (let comp of this.mixture.getComponents())
 		{
 			if (!comp.molfile || comp.inchi) continue;
-			let mol:wmk.Molecule = null;
-			try {mol = wmk.MoleculeStream.readUnknown(comp.molfile);}
+			let mol:Molecule = null;
+			try {mol = MoleculeStream.readUnknown(comp.molfile);}
 			catch (e) {continue;} // silent failure if it's an invalid molecule
-			if (wmk.MolUtil.isBlank(mol)) continue;
+			if (MolUtil.isBlank(mol)) continue;
 			let [inchi, inchiKey] = await InChI.makeInChI(mol);
 			comp.inchi = inchi;
 			comp.inchiKey = inchiKey;
@@ -387,4 +396,3 @@ export class ExportMInChI
 	}
 }
 
-/* EOF */ }

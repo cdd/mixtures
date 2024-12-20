@@ -10,7 +10,8 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Box, Size} from 'webmolkit/util/Geom';
+import {Vec} from 'webmolkit/util/Vec';
 
 /*
 	Try to arrange a list of boxes into a more rectangular pattern, which has a better ratio than stacking everything vertically.
@@ -27,8 +28,8 @@ interface SquarePackingCandidate
 {
 	idxStart:number;
 	springs:SquarePackingSpring[];
-	layout?:wmk.Box[];
-	outline?:wmk.Size;
+	layout?:Box[];
+	outline?:Size;
 	score?:number; // lower is better
 	hash?:string;
 }
@@ -42,15 +43,15 @@ interface SquarePackingSegment
 
 export class SquarePacking
 {
-	public outline:wmk.Size;
-	public layout:wmk.Box[] = null;
+	public outline:Size;
+	public layout:Box[] = null;
 
 	private wantRatio:number;
 
 	// --------------------- public methods ---------------------
 
 	// sets up the object with the mandatory information
-	constructor(private packSize:wmk.Size, private boxes:wmk.Box[], private hspace:number, private vspace:number)
+	constructor(private packSize:Size, private boxes:Box[], private hspace:number, private vspace:number)
 	{
 		this.wantRatio = packSize.w / packSize.h;
 
@@ -128,7 +129,7 @@ export class SquarePacking
 	private processCandidate(cand:SquarePackingCandidate):void
 	{
 		let len = this.boxes.length;
-		cand.layout = this.boxes.map((box) => new wmk.Box(0, 0, box.w, box.h));
+		cand.layout = this.boxes.map((box) => new Box(0, 0, box.w, box.h));
 		let placed = Vec.booleanArray(false, len);
 		placed[cand.idxStart] = true;
 
@@ -206,7 +207,7 @@ export class SquarePacking
 
 		let loX = 0, hiX = Vec.max(cand.layout.map((box) => box.maxX()));
 		let loY = Vec.min(cand.layout.map((box) => box.minY())), hiY = Vec.max(cand.layout.map((box) => box.maxY()));
-		cand.outline = new wmk.Size(hiX - loX, hiY - loY);
+		cand.outline = new Size(hiX - loX, hiY - loY);
 		let ratio = cand.outline.w / cand.outline.h;
 		cand.score = Math.abs(ratio - this.wantRatio) * (cand.outline.w + cand.outline.h);
 		cand.score += Vec.sum((cand.layout.map((box) => box.x)));
@@ -269,4 +270,3 @@ export class SquarePacking
 	}
 }
 
-/* EOF */ }

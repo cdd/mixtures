@@ -10,7 +10,9 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {deepClone} from 'webmolkit/util/util';
+import {Mixfile, MIXFILE_VERSION, MixfileComponent} from './Mixfile';
+import {Vec} from 'webmolkit/util/Vec';
 
 /*
 	Data container for mixtures: basically wraps the Mixfile interface, with additional functionality.
@@ -278,4 +280,3 @@ export class Mixture
 	}
 }
 
-/* EOF */ }

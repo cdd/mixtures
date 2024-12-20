@@ -10,7 +10,11 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {dom, DOM} from 'webmolkit/util/dom';
+import {Box} from 'webmolkit/util/Geom';
+import {installInlineCSS, Theme} from 'webmolkit/util/Theme';
+import {addTooltip} from 'webmolkit/ui/Tooltip';
+import {escapeHTML} from 'webmolkit/util/util';
 
 /*
 	A banner that goes along the top of the screen and fills up with clickable icons.
@@ -83,7 +87,7 @@ export class MenuBanner
 
 	constructor(private commands:MenuBannerButton[][], private callbackAction:(cmd:string) => void)
 	{
-		wmk.installInlineCSS('mixtures-menubanner', CSS_MENUBANNER);
+		installInlineCSS('mixtures-menubanner', CSS_MENUBANNER);
 	}
 
 	public render(domParent:DOM):void
@@ -136,11 +140,11 @@ export class MenuBanner
 	}
 
 	// fetch the position of the given icon, relative to the banner overall
-	public iconPosition(cmd:MenuBannerCommand):wmk.Box
+	public iconPosition(cmd:MenuBannerCommand):Box
 	{
 		let div = this.mapDiv[cmd];
 		if (!div) return null;
-		return new wmk.Box(div.elHTML.offsetLeft, div.elHTML.offsetTop, div.width(), div.height());
+		return new Box(div.elHTML.offsetLeft, div.elHTML.offsetTop, div.width(), div.height());
 	}
 
 	// ------------ private methods ------------
@@ -154,7 +158,7 @@ export class MenuBanner
 		div.css({'border-radius': '4px'});
 		if (this.selected.has(btn.cmd)) div.css({'background-color': '#D0D0D0'});
 
-		let imgURL = wmk.Theme.RESOURCE_URL + '/img/icons/' + btn.icon;
+		let imgURL = Theme.RESOURCE_URL + '/img/icons/' + btn.icon;
 		let svg = dom('<img/>').appendTo(div).attr({'src': imgURL});
 
 		div.addClass('mixtures-menubanner-button');
@@ -175,10 +179,9 @@ export class MenuBanner
 			if (!this.mapActive[btn.cmd]) return;
 			this.callbackAction(btn.cmd);
 		});
-		if (btn.tip) wmk.addTooltip(div, escapeHTML(btn.tip));
+		if (btn.tip) addTooltip(div, escapeHTML(btn.tip));
 
 		return [div, svg];
 	}
 }
 
-/* EOF */ }

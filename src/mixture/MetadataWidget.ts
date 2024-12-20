@@ -10,7 +10,15 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Widget} from 'webmolkit/ui/Widget';
+import {MixfileMetadatum} from '../data/Mixfile';
+import {dom, DOM} from 'webmolkit/util/dom';
+import {installInlineCSS} from 'webmolkit/util/Theme';
+import {OntologyTree, OntologyTreeTerm} from 'webmolkit/data/OntologyTree';
+import {Vec} from 'webmolkit/util/Vec';
+import {addTooltip, clearTooltip} from 'webmolkit/ui/Tooltip';
+import {escapeHTML} from 'webmolkit/util/util';
+import {Popup} from 'webmolkit/ui/Popup';
 
 /*
 	Widget for editing a list of metadata items.
@@ -29,7 +37,7 @@ interface MetadataWidgetLine
 	datum:MixfileMetadatum;
 }
 
-export class MetadataWidget extends wmk.Widget
+export class MetadataWidget extends Widget
 {
 	private lines:MetadataWidgetLine[] = [];
 
@@ -43,7 +51,7 @@ export class MetadataWidget extends wmk.Widget
 
 		if (metadata) for (let datum of metadata) this.lines.push({'datum': datum});
 
-		wmk.installInlineCSS('metadatawidget', CSS_METADATAWIDGET);
+		installInlineCSS('metadatawidget', CSS_METADATAWIDGET);
 	}
 
 	public render(parent:any):void
@@ -71,11 +79,11 @@ export class MetadataWidget extends wmk.Widget
 			if (typeof item == 'string')
 			{
 				div.css({'background-color': idx == 0 ? '#D0D0D0' : '#D0D0FF', 'border-radius': '3px'});
-				let branch = wmk.OntologyTree.main.getBranch(item);
+				let branch = OntologyTree.main.getBranch(item);
 				if (Vec.notBlank(branch))
 				{
 					div.setText(branch[0].label);
-					wmk.addTooltip(div, escapeHTML(branch[0].uri), null, 1000);
+					addTooltip(div, escapeHTML(branch[0].uri), null, 1000);
 				}
 				else div.setText(item);
 			}
@@ -165,10 +173,10 @@ export class MetadataWidget extends wmk.Widget
 
 	private pickNewTerm(divParent:DOM):void
 	{
-		let branchList:wmk.OntologyTreeTerm[] = [];
+		let branchList:OntologyTreeTerm[] = [];
 		const ROOTS = ['http://mixtures.io/rdf#MixtureMetadata'];
-		for (let rootURI of ROOTS) branchList.push(...wmk.OntologyTree.main.getBranchList(rootURI));
-		let popup = new wmk.Popup(divParent);
+		for (let rootURI of ROOTS) branchList.push(...OntologyTree.main.getBranchList(rootURI));
+		let popup = new Popup(divParent);
 		popup.callbackPopulate = () =>
 		{
 			this.populateBranch(popup, branchList, (term) =>
@@ -183,11 +191,11 @@ export class MetadataWidget extends wmk.Widget
 
 	private pickExtraTerm(divParent:DOM, line:MetadataWidgetLine, isProperty:boolean):void
 	{
-		let branchList:wmk.OntologyTreeTerm[] = [];
+		let branchList:OntologyTreeTerm[] = [];
 		const ROOTS_ASSERT = ['http://mixtures.io/rdf#MixtureMetadata'];
 		const ROOTS_PROP = ['http://purl.obolibrary.org/obo/UO_0000000'];
-		for (let rootURI of (isProperty ? ROOTS_PROP : ROOTS_ASSERT)) branchList.push(...wmk.OntologyTree.main.getBranchList(rootURI));
-		let popup = new wmk.Popup(divParent);
+		for (let rootURI of (isProperty ? ROOTS_PROP : ROOTS_ASSERT)) branchList.push(...OntologyTree.main.getBranchList(rootURI));
+		let popup = new Popup(divParent);
 		popup.callbackPopulate = () =>
 		{
 			this.populateBranch(popup, branchList, (term) =>
@@ -203,7 +211,7 @@ export class MetadataWidget extends wmk.Widget
 	}
 
 	// enumerates a list of clickable ontology tree items
-	private populateBranch(popup:wmk.Popup, branchList:wmk.OntologyTreeTerm[], callbackClicked:(term:wmk.OntologyTreeTerm) => void):void
+	private populateBranch(popup:Popup, branchList:OntologyTreeTerm[], callbackClicked:(term:OntologyTreeTerm) => void):void
 	{
 		let body = popup.bodyDOM();
 
@@ -217,10 +225,10 @@ export class MetadataWidget extends wmk.Widget
 			}
 			let span = dom('<span/>').appendTo(div).class('wmk-metadataitem');
 			span.setText(term.label);
-			wmk.addTooltip(span, escapeHTML(term.uri), null, 2000);
+			addTooltip(span, escapeHTML(term.uri), null, 2000);
 			span.onClick(() =>
 			{
-				wmk.clearTooltip();
+				clearTooltip();
 				popup.close();
 				callbackClicked(term);
 			});
@@ -228,4 +236,3 @@ export class MetadataWidget extends wmk.Widget
 	}
 }
 
-/* EOF */ }

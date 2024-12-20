@@ -10,7 +10,9 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {dom, DOM} from 'webmolkit/util/dom';
+import {MenuBannerCommand} from './MenuBanner';
+import {openNewWindow} from '../startup';
 
 /*
 	Base class for "main windows": an object that takes up the entire browser window document, responds to resizing, etc.
@@ -68,4 +70,3 @@ export abstract class MainPanel
 
 }
 
-/* EOF */ }

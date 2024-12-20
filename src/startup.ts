@@ -10,13 +10,21 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='decl/node.d.ts'/>
-///<reference path='main/MixturePanel.ts'/>
-
-namespace Mixtures /* BOF */ {
+import {MainPanel} from './main/MainPanel';
+import {MixturePanel} from './main/MixturePanel';
+import {DOM} from 'webmolkit/util/dom';
+import {initWebMolKit, Theme} from 'webmolkit/util/Theme';
+import {OntologyTree} from 'webmolkit/data/OntologyTree';
+import {ClipboardProxy} from 'webmolkit/ui/ClipboardProxy';
+import {MenuProxy, MenuProxyContext} from 'webmolkit/ui/MenuProxy';
+import * as path from 'path';
+import * as process from 'process';
+import {ipcRenderer} from 'electron';
+import {BrowserWindow, Menu as ElectronMenu, MenuItem as ElectronMenuItem, clipboard as electronClipboard, getCurrentWindow} from '@electron/remote';
 
 export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally
 							   // executed window version
+export function setOnDesktop(onDesktop:boolean):void {ON_DESKTOP = onDesktop;}
 
 /*
 	Startup: gets the ball rolling, and provide some high level window handling.
@@ -27,21 +35,14 @@ export async function runMixfileEditor(resURL:string, rootID:string):Promise<voi
 	let root = DOM.find('#' + rootID);
 
 	ON_DESKTOP = true;
-	wmk.initWebMolKit(resURL);
-	await wmk.OntologyTree.init();
-	await wmk.OntologyTree.main.loadFromURL(resURL + '/data/ontology/metacategory.onto');
+	initWebMolKit(resURL);
+	await OntologyTree.init();
+	await OntologyTree.main.loadFromURL(resURL + '/data/ontology/metacategory.onto');
 
-	// node/electron imports; note these are defined inside the function so as not to perturb normal web-access, which does not
-	// include these libraries
-	const path = require('path');
-	const electron = require('electron');
-	const process = require('process');
-	const remote:Electron.Remote = require('@electron/remote');
-
-	process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
+	process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
 	let url = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
-	wmk.Theme.RESOURCE_URL = path.normalize(url + '/res');
+	Theme.RESOURCE_URL = path.normalize(url + '/res');
 
 	// unpack web params: if present, they determine where to go from here
  	let params = window.location.search.substring(1).split('&');
@@ -58,37 +59,36 @@ export async function runMixfileEditor(resURL:string, rootID:string):Promise<voi
 
 	if (!panelClass && filename && filename.endsWith('.json')) panelClass = 'CollectionPanel';
 
-	let proxyClip = new wmk.ClipboardProxy();
-	const {clipboard} = electron;
-	proxyClip.getString = ():string => clipboard.readText();
-	proxyClip.setString = (str:string):void => clipboard.writeText(str);
-	proxyClip.setHTML = (html:string):void => clipboard.writeHTML(html);
+	let proxyClip = new ClipboardProxy();
+	proxyClip.getString = ():string => electronClipboard.readText();
+	proxyClip.setString = (str:string):void => electronClipboard.writeText(str);
+	proxyClip.setHTML = (html:string):void => electronClipboard.writeHTML(html);
 	proxyClip.canSetHTML = ():boolean => true;
 	proxyClip.canAlwaysGet = ():boolean => true;
 
-	let proxyMenu = new wmk.MenuProxy();
+	let proxyMenu = new MenuProxy();
 	proxyMenu.hasContextMenu = () => true;
-	proxyMenu.openContextMenu = (menuItems:wmk.MenuProxyContext[], event:MouseEvent) =>
+	proxyMenu.openContextMenu = (menuItems:MenuProxyContext[], event:MouseEvent) =>
 	{
-		let populate = (emenu:Electron.Menu, itemList:wmk.MenuProxyContext[]):void =>
+		let populate = (emenu:Electron.Menu, itemList:MenuProxyContext[]):void =>
 		{
 			for (let item of itemList)
 			{
-				if (!item || !item.label) emenu.append(new remote.MenuItem({type: 'separator'}));
-				else if (item.click) emenu.append(new remote.MenuItem(item));
+				if (!item || !item.label) emenu.append(new ElectronMenuItem({type: 'separator'}));
+				else if (item.click) emenu.append(new ElectronMenuItem(item));
 				else if (item.subMenu)
 				{
-					let subMenu = new remote.Menu();
+					let subMenu = new ElectronMenu();
 					populate(subMenu, item.subMenu);
-					emenu.append(new remote.MenuItem({label: item.label, submenu: subMenu}));
+					emenu.append(new ElectronMenuItem({label: item.label, submenu: subMenu}));
 				}
 			}
 		};
 
-		let menu = new remote.Menu();
+		let menu = new ElectronMenu();
 		populate(menu, menuItems);
 
-		menu.popup({window: remote.getCurrentWindow()});
+		menu.popup({window: getCurrentWindow()});
 	};
 
 	let main:MainPanel;
@@ -98,31 +98,34 @@ export async function runMixfileEditor(resURL:string, rootID:string):Promise<voi
 	}
 	else
 	{
+		/* !! TODO 
 		let proto = (Mixtures as any)[panelClass];
 		if (!proto) throw 'Unknown class: ' + panelClass;
-		main = new (proto as any)(root, proxyClip, proxyMenu);
+		main = new (proto as any)(root, proxyClip, proxyMenu);*/
 	}
 
 	main.loadFile(filename);
 
-	const {ipcRenderer} = electron;
 	ipcRenderer.on('menuAction', (event, args) => main.menuAction(args));	
 }
 
 // high level functionality for opening a window, with a given panel as content
-export function openNewWindow(panelClass:string, filename?:string):void
+/*export function openNewWindow(panelClass:string, filename?:string):void
 {
-	const electron = require('electron'), path = require('path');
-	const remote:Electron.Remote = require('@electron/remote');
-
 	const WEBPREF = {nodeIntegration: true, contextIsolation: false, enableRemoteModule: true, spellcheck: false};
 	let iconFN = __dirname + '/img/icon.png';
-	let bw = new remote.BrowserWindow({width: 900, height: 800, icon: iconFN, webPreferences: WEBPREF});
+	let bw = new BrowserWindow({width: 900, height: 800, icon: iconFN, webPreferences: WEBPREF});
 	let baseApp = path.normalize('file:/' + __dirname);
 	let url = baseApp + '/index.html?panel=' + panelClass;
 	if (filename) url += '&fn=' + encodeURIComponent(filename);
 	bw.loadURL(url);
-	/*bw.on('closed', function() {bw = null;});*/
-}
+}*/
 
-/* EOF */ }
+
+export function openNewWindow(panelClass:string, filename?:string, options:Record<string, string> = {}):void
+{
+	let args:Record<string, string> = {...options};
+	if (panelClass) args['panelClass'] = panelClass;
+	if (filename) args['filename'] = filename;
+	ipcRenderer.send('openWindow', args);
+}

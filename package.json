@@ -1,18 +1,33 @@
 {
-    "name": "placeholder",
-    "version": "0.0.0",
+    "name": "mixtures",
+    "description": "Utilities for chemical mixtures",
+    "version": "2.0.0",
+    "license": "Apache 2",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/cdd/mixtures.git"
+  	},
+	"main": ".",
+	"types": ".",
+	"files": [
+		"*"
+	],
     "dependencies": {
-        "@electron/remote": "",
-        "electron": "^13.0",
+        "electron": "^33.0",
+        "electron-packager": "^8.1.0",
+        "@electron/remote": "^2",
         "stream-json": "^1.7.1",
+        "webmolkit": "file:../WebMolKit/webmolkit-2.0.0.tgz",
         "xmldom": "^0.1.16"
     },
     "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^4.7",
-        "@typescript-eslint/parser": "^4.7",
-        "electron-packager": "^8.1.0",
-        "eslint": "^7.0",
-        "typescript": "^4.6"
+		"typescript": "^5",
+		"eslint": "^7.15",
+		"@typescript-eslint/parser": "^4.7",
+		"@typescript-eslint/eslint-plugin": "^4.7",
+		"ts-loader": "^9.3.1",
+		"webpack": "^5.73.0",
+		"webpack-cli": "^4.10.0"		
     },
     "build": {
         "appId": "com.cdd.mixture.MixfileEditor",
@@ -21,6 +36,10 @@
         }
     },
     "scripts": {
-        "eslint": "eslint -c ../WebMolKit/src/.eslintrc.js --ignore-pattern src/decl --quiet src/**/*.ts"
+        "eslint": "eslint -c ../WebMolKit/src/.eslintrc.js --ignore-pattern src/decl --quiet src/**/*.ts",
+		"build-tsc": "tsc",
+		"build-src": "webpack --config webpack-src.config.js",
+		"build-cmd": "webpack --config webpack-cmd.config.js",
+        "build": "tsc && webpack --config webpack-src.config.js && webpack-config-cmd.js"
     }
 }

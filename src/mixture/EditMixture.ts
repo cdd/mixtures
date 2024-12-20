@@ -10,7 +10,30 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Widget} from 'webmolkit/ui/Widget';
+import {Mixture} from '../data/Mixture';
+import {RenderPolicy} from 'webmolkit/gfx/Rendering';
+import {ArrangeMixture} from './ArrangeMixture';
+import {ClipboardProxy} from 'webmolkit/ui/ClipboardProxy';
+import {MenuProxy} from 'webmolkit/ui/MenuProxy';
+import {deepClone, eventCoords, newElement, pixelDensity} from 'webmolkit/util/util';
+import {EditCompound} from 'webmolkit/dialog/EditCompound';
+import {MixfileComponent} from '../data/Mixfile';
+import {Vec} from 'webmolkit/util/Vec';
+import {MoleculeStream} from 'webmolkit/data/MoleculeStream';
+import {Molecule} from 'webmolkit/data/Molecule';
+import {EditComponent} from './EditComponent';
+import {LookupCompoundDialog} from '../lookup/LookupCompoundDialog';
+import {MDLMOLWriter} from 'webmolkit/data/MDLWriter';
+import {ExtractCTABComponent} from '../lookup/ExtractCTABComponent';
+import {MolUtil} from 'webmolkit/data/MolUtil';
+import {Box, Size} from 'webmolkit/util/Geom';
+import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
+import {NormMixture} from '../data/NormMixture';
+import {MetaVector} from 'webmolkit/gfx/MetaVector';
+import {DrawMixture} from './DrawMixture';
+import {CoordUtil} from 'webmolkit/data/CoordUtil';
+import {Menu as ElectronMenu, MenuItem as ElectronMenuItem, getCurrentWindow} from '@electron/remote';
 
 /*
 	High level widget for the editing area for a mixture.
@@ -26,7 +49,7 @@ enum DragReason
 	Pan,
 }
 
-export class EditMixture extends wmk.Widget
+export class EditMixture extends Widget
 {
 	public callbackUpdateTitle:() => void = null;
 	public callbackInteraction:() => void = null;
@@ -34,7 +57,7 @@ export class EditMixture extends wmk.Widget
 	public monochrome = false;
 
 	protected mixture = new Mixture();
-	protected policy:wmk.RenderPolicy = null
+	protected policy:RenderPolicy = null
 	protected canvasMixture:HTMLCanvasElement;
 	protected canvasOver:HTMLCanvasElement;
 
@@ -58,13 +81,13 @@ export class EditMixture extends wmk.Widget
 	protected dragX = 0;
 	protected dragY = 0;
 	protected isEditing = false;
-	protected dlgCompound:wmk.EditCompound = null;
+	protected dlgCompound:EditCompound = null;
 
 	protected structureIntegrity:Record<string, string> = {}; // metadata key -> name for those which are sensitive to changes to structure
 
 	// ------------ public methods ------------
 
-	constructor(protected proxyClip:wmk.ClipboardProxy, protected proxyMenu:wmk.MenuProxy)
+	constructor(protected proxyClip:ClipboardProxy, protected proxyMenu:MenuProxy)
 	{
 		super();
 	}
@@ -109,7 +132,7 @@ export class EditMixture extends wmk.Widget
 	// whether or not menu commands are being received; no means that it's in dialog/editing mode
 	public isReceivingCommands():boolean {return !this.isEditing;}
 	public setEditing(isEditing:boolean):void {this.isEditing = isEditing;}
-	public compoundEditor():wmk.EditCompound {return this.dlgCompound;}
+	public compoundEditor():EditCompound {return this.dlgCompound;}
 
 	// add a metadata key that can potentially stop being valid when the structure is changed
 	public addStructureIntegrityKey(key:string, description:string):void
@@ -252,16 +275,16 @@ export class EditMixture extends wmk.Widget
 		let origin = this.layout.components[this.selectedIndex].origin;
 		let comp = this.mixture.getComponent(origin);
 
-		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
+		let mol = comp.molfile ? MoleculeStream.readUnknown(comp.molfile) : null;
 
-		this.dlgCompound = new wmk.EditCompound(mol ? mol : new wmk.Molecule(), this.contentDOM);
+		this.dlgCompound = new EditCompound(mol ? mol : new Molecule(), this.contentDOM);
 		this.dlgCompound.onSave(() =>
 		{
 			let mol = this.dlgCompound.getMolecule();
 			comp = deepClone(comp);
 			this.checkStructureIntegrity(comp, mol);
 
-			let molfile = wmk.MoleculeStream.writeMDLMOL(mol);
+			let molfile = MoleculeStream.writeMDLMOL(mol);
 			if (!molfile) molfile = null;
 
 			comp.molfile = molfile;
@@ -336,7 +359,7 @@ export class EditMixture extends wmk.Widget
 			comp = deepClone(modmix.getComponent(origin));
 			let name = dlg.getName(), mol = dlg.getMolecule();
 			if (name != null) comp.name = name;
-			if (mol != null) comp.molfile = new wmk.MDLMOLWriter(mol).write();
+			if (mol != null) comp.molfile = new MDLMOLWriter(mol).write();
 			if (modmix.setComponent(origin, comp))
 			{
 				this.setMixture(modmix);
@@ -478,14 +501,14 @@ export class EditMixture extends wmk.Widget
 		// see if it's just a regular singular molecule
 		if (!json)
 		{
-			let mol = wmk.MoleculeStream.readUnknown(str);
-			if (wmk.MolUtil.notBlank(mol))
+			let mol = MoleculeStream.readUnknown(str);
+			if (MolUtil.notBlank(mol))
 			{
 				let modmix = this.mixture.clone();
 				let comp = modmix.getComponent(origin);
 				if (comp)
 				{
-					comp.molfile = new wmk.MDLMOLWriter(mol).write();
+					comp.molfile = new MDLMOLWriter(mol).write();
 					this.setMixture(modmix);
 				}
 			}
@@ -533,7 +556,7 @@ export class EditMixture extends wmk.Widget
 	}
 
 	// return the layout around onscreen for an indicated component
-	public getComponentPosition(origin:number[]):wmk.Box
+	public getComponentPosition(origin:number[]):Box
 	{
 		for (let comp of this.layout.components) if (Vec.equals(origin, comp.origin))
 		{
@@ -564,12 +587,12 @@ export class EditMixture extends wmk.Widget
 
 		if (!this.layout)
 		{
-			let measure = new wmk.OutlineMeasurement(0, 0, this.pointScale);
-			this.policy = this.monochrome ? wmk.RenderPolicy.defaultBlackOnWhite(this.pointScale) : wmk.RenderPolicy.defaultColourOnWhite(this.pointScale);
+			let measure = new OutlineMeasurement(0, 0, this.pointScale);
+			this.policy = this.monochrome ? RenderPolicy.defaultBlackOnWhite(this.pointScale) : RenderPolicy.defaultColourOnWhite(this.pointScale);
 			this.layout = new ArrangeMixture(this.mixture, measure, this.policy);
 			this.layout.showCollapsors = true;
 			this.layout.collapsedBranches = this.collapsedBranches;
-			this.layout.packBranches = new wmk.Size(0.8 * this.contentDOM.width(), 0.8 * this.contentDOM.height());
+			this.layout.packBranches = new Size(0.8 * this.contentDOM.width(), 0.8 * this.contentDOM.height());
 			this.layout.norm = new NormMixture(this.mixture);
 			this.layout.norm.analyse();
 			this.layout.arrange();
@@ -587,7 +610,7 @@ export class EditMixture extends wmk.Widget
 			this.delayedSelect = null;
 		}
 
-		let gfx = new wmk.MetaVector();
+		let gfx = new MetaVector();
 		let draw = new DrawMixture(this.layout, gfx);
 		draw.hoverIndex = this.hoverIndex;
 		draw.activeIndex = this.activeIndex;
@@ -942,64 +965,62 @@ export class EditMixture extends wmk.Widget
 		this.activeIndex = -1;
 		this.delayedRedraw();
 
-		let electron = require('electron');
-		const remote:Electron.Remote = require('@electron/remote');
-		let menu = new remote.Menu();
+		let menu = new ElectronMenu();
 		if (idx >= 0)
 		{
 			let comp = this.layout.components[idx].content, origin = this.layout.components[idx].origin;
 			let sel = ():void => this.selectComponent(idx);
-			menu.append(new remote.MenuItem({label: 'Edit Structure', click: () => {sel(); this.editStructure();}}));
-			menu.append(new remote.MenuItem({label: 'Edit Details', click: () => {sel(); this.editDetails();}}));
-			menu.append(new remote.MenuItem({label: 'Lookup Name', click: () => {sel(); this.lookupCurrent();}}));
-			menu.append(new remote.MenuItem({label: 'Append', click: () => {sel(); this.appendToCurrent();}}));
-			menu.append(new remote.MenuItem({label: 'Prepend', click: () => {sel(); this.prependBeforeCurrent();}}));
+			menu.append(new ElectronMenuItem({label: 'Edit Structure', click: () => {sel(); this.editStructure();}}));
+			menu.append(new ElectronMenuItem({label: 'Edit Details', click: () => {sel(); this.editDetails();}}));
+			menu.append(new ElectronMenuItem({label: 'Lookup Name', click: () => {sel(); this.lookupCurrent();}}));
+			menu.append(new ElectronMenuItem({label: 'Append', click: () => {sel(); this.appendToCurrent();}}));
+			menu.append(new ElectronMenuItem({label: 'Prepend', click: () => {sel(); this.prependBeforeCurrent();}}));
 			if (origin.length > 0)
 			{
-				menu.append(new remote.MenuItem({label: 'Insert Before', click: () => {sel(); this.insertBeforeCurrent();}}));
-				menu.append(new remote.MenuItem({label: 'Insert After', click: () => {sel(); this.insertAfterCurrent();}}));
-				menu.append(new remote.MenuItem({label: 'Delete', click: () => {this.selectComponent(idx); this.deleteCurrent();}}));
+				menu.append(new ElectronMenuItem({label: 'Insert Before', click: () => {sel(); this.insertBeforeCurrent();}}));
+				menu.append(new ElectronMenuItem({label: 'Insert After', click: () => {sel(); this.insertAfterCurrent();}}));
+				menu.append(new ElectronMenuItem({label: 'Delete', click: () => {this.selectComponent(idx); this.deleteCurrent();}}));
 
 				if (origin[origin.length - 1] > 0)
-					menu.append(new remote.MenuItem({label: 'Move Up', click: () => {sel(); this.reorderCurrent(-1);}}));
+					menu.append(new ElectronMenuItem({label: 'Move Up', click: () => {sel(); this.reorderCurrent(-1);}}));
 				if (origin[origin.length - 1] < Vec.arrayLength(this.mixture.getParentComponent(origin).contents) - 1)
-					menu.append(new remote.MenuItem({label: 'Move Down', click: () => {sel(); this.reorderCurrent(1);}}));
+					menu.append(new ElectronMenuItem({label: 'Move Down', click: () => {sel(); this.reorderCurrent(1);}}));
 			}
 
-			menu.append(new remote.MenuItem({label: 'Copy', click: () => {sel(); this.clipboardCopy(false);}}));
+			menu.append(new ElectronMenuItem({label: 'Copy', click: () => {sel(); this.clipboardCopy(false);}}));
 			if (Vec.arrayLength(comp.contents) > 0)
-				menu.append(new remote.MenuItem({label: 'Copy Branch', click: () => {sel(); this.clipboardCopy(false, true);}}));
+				menu.append(new ElectronMenuItem({label: 'Copy Branch', click: () => {sel(); this.clipboardCopy(false, true);}}));
 			if (origin.length > 0)
-				menu.append(new remote.MenuItem({label: 'Cut', click: () => {sel(); this.clipboardCopy(true);}}));
-			menu.append(new remote.MenuItem({label: 'Paste', click: () => {sel(); this.clipboardPaste();}}));
+				menu.append(new ElectronMenuItem({label: 'Cut', click: () => {sel(); this.clipboardCopy(true);}}));
+			menu.append(new ElectronMenuItem({label: 'Paste', click: () => {sel(); this.clipboardPaste();}}));
 
 			if (Vec.notBlank(comp.contents))
 			{
 				let label = this.layout.components[idx].isCollapsed ? 'Expand Branch' : 'Collapse Branch';
-				menu.append(new remote.MenuItem({label: label, click: () => this.toggleCollapsed(idx)}));
+				menu.append(new ElectronMenuItem({label: label, click: () => this.toggleCollapsed(idx)}));
 			}
 		}
 		else
 		{
-			menu.append(new remote.MenuItem({label: 'Zoom In', click: () => this.zoom(1.25)}));
-			menu.append(new remote.MenuItem({label: 'Zoom Out', click: () => this.zoom(0.8)}));
+			menu.append(new ElectronMenuItem({label: 'Zoom In', click: () => this.zoom(1.25)}));
+			menu.append(new ElectronMenuItem({label: 'Zoom Out', click: () => this.zoom(0.8)}));
 		}
 
-		menu.popup({window: remote.getCurrentWindow()});
+		menu.popup({window: getCurrentWindow()});
 	}
 
 	// given that the structure may have changed, see if any metadata is potentially invalidated - and ask the user; the component parameter
 	// may be modified
-	protected checkStructureIntegrity(comp:MixfileComponent, newMol:wmk.Molecule):void
+	protected checkStructureIntegrity(comp:MixfileComponent, newMol:Molecule):void
 	{
 		let integKeys = Object.keys(this.structureIntegrity).filter((key) => (comp.identifiers && comp.identifiers[key]) || (comp.links && comp.links[key]));
 		if (integKeys.length == 0) return;
 
-		let oldMol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
-		if (wmk.MolUtil.isBlank(oldMol) && wmk.MolUtil.isBlank(newMol)) return;
-		if (oldMol && newMol && wmk.CoordUtil.sketchMappable(oldMol, newMol)) return;
+		let oldMol = comp.molfile ? MoleculeStream.readUnknown(comp.molfile) : null;
+		if (MolUtil.isBlank(oldMol) && MolUtil.isBlank(newMol)) return;
+		if (oldMol && newMol && CoordUtil.sketchMappable(oldMol, newMol)) return;
 
-		let msg = wmk.MolUtil.isBlank(newMol) ? 'Structure has been removed.' : 'Structure has changed.';
+		let msg = MolUtil.isBlank(newMol) ? 'Structure has been removed.' : 'Structure has changed.';
 		msg += `\nThe following reference${integKeys.length == 1 ? '' : 's'} may have become stale:`;
 		for (let key of integKeys) msg += '\n    ' + this.structureIntegrity[key];
 		msg += integKeys.length == 1 ? '\nRemove this reference?' : '\nRemove these references?';
@@ -1013,4 +1034,3 @@ export class EditMixture extends wmk.Widget
 	}
 }
 
-/* EOF */ }

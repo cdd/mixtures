@@ -10,7 +10,27 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Widget} from 'webmolkit/ui/Widget';
+import {MenuBanner, MenuBannerButton, MenuBannerCommand} from '../main/MenuBanner';
+import {EditMixtureWeb} from './EditMixtureWeb';
+import {EditMixture} from '../mixture/EditMixture';
+import {dom, DOM} from 'webmolkit/util/dom';
+import {ClipboardProxy, ClipboardProxyHandler, ClipboardProxyWeb} from 'webmolkit/ui/ClipboardProxy';
+import {MenuProxy, MenuProxyWeb} from 'webmolkit/ui/MenuProxy';
+import {installInlineCSS} from 'webmolkit/util/Theme';
+import {deepClone} from 'webmolkit/util/util';
+import {Molecule} from 'webmolkit/data/Molecule';
+import {MDLMOLWriter} from 'webmolkit/data/MDLWriter';
+import {MDLMOLReader} from 'webmolkit/data/MDLReader';
+import {Mixture} from '../data/Mixture';
+import {ExportSDFile} from '../mixture/ExportSDFile';
+import {RenderPolicy} from 'webmolkit/gfx/Rendering';
+import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {MetaVector} from 'webmolkit/gfx/MetaVector';
+import {DrawMixture} from '../mixture/DrawMixture';
+import {FontData} from 'webmolkit/gfx/FontData';
+import {Box} from 'webmolkit/util/Geom';
 
 /*
 	A pure web entrypoint into the Mixfile Editor, which does not rely on Electron. It can be embedded into any regular web page.
@@ -76,7 +96,7 @@ interface WebWidgetPopover
 	textLines:string[]; // some number of lines to show
 }
 
-export class WebWidget extends wmk.Widget
+export class WebWidget extends Widget
 {
 	public callbackGoBack:() => void = null; // optional: gets an icon if defined
 	public callbackLookup:(editor:EditMixtureWeb) => void = null; // optional: gets an icon if defined
@@ -96,25 +116,25 @@ export class WebWidget extends wmk.Widget
 
 	// ------------ public methods ------------
 
-	constructor(public proxyClip?:wmk.ClipboardProxy, public proxyMenu?:wmk.MenuProxy)
+	constructor(public proxyClip?:ClipboardProxy, public proxyMenu?:MenuProxy)
 	{
 		super();
 
-		if (!this.proxyClip) this.proxyClip = new wmk.ClipboardProxyWeb();
-		if (!this.proxyMenu) this.proxyMenu = new wmk.MenuProxyWeb();
+		if (!this.proxyClip) this.proxyClip = new ClipboardProxyWeb();
+		if (!this.proxyMenu) this.proxyMenu = new MenuProxyWeb();
 
 		// the 'navigator' object is being overhauled: it should have a more structured userAgentData property on most browsers; if not it
 		// falls back to the older .platform property, which will trigger a deprecation warning on a browser; but for Electron context, it's OK
 		let nav = navigator as any; 
 		this.isMacKeyboard = nav.userAgentData ? nav.userAgentData.platform == 'macOS' : nav.platform.startsWith('Mac');
 
-		let handler = new wmk.ClipboardProxyHandler();
-		handler.copyEvent = (andCut:boolean, proxy:wmk.ClipboardProxy):boolean =>
+		let handler = new ClipboardProxyHandler();
+		handler.copyEvent = (andCut:boolean, proxy:ClipboardProxy):boolean =>
 		{
 			this.menuAction(andCut ? MenuBannerCommand.Cut : MenuBannerCommand.Copy);
 			return true;
 		};
-		handler.pasteEvent = (proxy:wmk.ClipboardProxy):boolean =>
+		handler.pasteEvent = (proxy:ClipboardProxy):boolean =>
 		{
 			this.menuAction(MenuBannerCommand.Paste);
 			return true;
@@ -126,7 +146,7 @@ export class WebWidget extends wmk.Widget
 	{
 		super.render(parent);
 
-		wmk.installInlineCSS('mixtures-webwidget', CSS_WIDGET);
+		installInlineCSS('mixtures-webwidget', CSS_WIDGET);
 
 		let content = this.contentDOM;
 		content.el.id = 'mixtureEditorWidget';
@@ -176,16 +196,16 @@ export class WebWidget extends wmk.Widget
 
 		if (this.callbackEditStructure)
 		{
-			this.editor.callbackStructureEditor = (mol, callbackSuccess:(mol:wmk.Molecule) => void) =>
+			this.editor.callbackStructureEditor = (mol, callbackSuccess:(mol:Molecule) => void) =>
 			{
 				this.proxyClip.pushHandler(null);
-				if (!mol) mol = new wmk.Molecule();
-				let molfile = new wmk.MDLMOLWriter(mol).write();
+				if (!mol) mol = new Molecule();
+				let molfile = new MDLMOLWriter(mol).write();
 				this.editor.setEditing(true);
 				this.callbackEditStructure(molfile,
 					(molfile:string):void =>
 					{
-						mol = molfile ? new wmk.MDLMOLReader(molfile).parse() : mol;
+						mol = molfile ? new MDLMOLReader(molfile).parse() : mol;
 						callbackSuccess(mol);
 					},
 					():void =>
@@ -304,12 +324,12 @@ export class WebWidget extends wmk.Widget
 	}
 	private actionExportSVG():void
 	{
-		let policy = wmk.RenderPolicy.defaultColourOnWhite();
-		let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
+		let policy = RenderPolicy.defaultColourOnWhite();
+		let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
 		let layout = new ArrangeMixture(this.editor.getMixture(), measure, policy);
 		layout.arrange();
 
-		let gfx = new wmk.MetaVector();
+		let gfx = new MetaVector();
 		new DrawMixture(layout, gfx).draw();
 		gfx.normalise();
 		let svg = gfx.createSVG();
@@ -332,7 +352,7 @@ export class WebWidget extends wmk.Widget
 	{
 		if (!this.editor.getMixture().isEmpty() || !this.contentDOM) return;
 
-		wmk.FontData.main.initNativeFont();
+		FontData.main.initNativeFont();
 
 		let divCover = dom('<div/>').appendTo(this.contentDOM).css({'grid-area': 'start / 1 / end / 1', 'pointer-events': 'none', 'z-index': '1000'}).class('mixtures-webwidget-overlay');
 		setTimeout(() => 
@@ -342,7 +362,7 @@ export class WebWidget extends wmk.Widget
 
 		for (let popover of this.initialPopovers)
 		{
-			let box:wmk.Box;
+			let box:Box;
 			if (popover.anchor)
 			{
 				box = this.banner.iconPosition(popover.anchor);
@@ -371,7 +391,7 @@ export class WebWidget extends wmk.Widget
 		this.editor.callbackInteraction = removeCover;
 	}
 
-	private renderPopover(parent:DOM, avoidBox:wmk.Box, textLines:string[]):void
+	private renderPopover(parent:DOM, avoidBox:Box, textLines:string[]):void
 	{
 		const FONT = 'sans-serif', FSZ = 15;
 
@@ -380,7 +400,7 @@ export class WebWidget extends wmk.Widget
 		let textW = 0, ascent = 0, descent = 0;
 		for (let line of textLines)
 		{
-			let wad = wmk.FontData.measureTextNative(line, FONT, FSZ);
+			let wad = FontData.measureTextNative(line, FONT, FSZ);
 			textW = Math.max(textW, wad[0]);
 			[ascent, descent] = [wad[1], wad[2]];
 		}
@@ -391,13 +411,13 @@ export class WebWidget extends wmk.Widget
 
 		let totalW = textW + 2 * PADDING, totalH = textH + 2 * PADDING + NIPPLEH;
 
-		let box = new wmk.Box(avoidBox.midX() - 0.5 * totalW, avoidBox.maxY() + 2, totalW, totalH);
+		let box = new Box(avoidBox.midX() - 0.5 * totalW, avoidBox.maxY() + 2, totalW, totalH);
 		box.x = Math.min(outerW - totalW, Math.max(0, box.x));
 
 		let div = dom('<div/>').appendTo(parent).css({'position': 'absolute'});
 		div.setBoundaryPixels(box.x, box.y, box.w, box.h);
 
-		let gfx = new wmk.MetaVector();
+		let gfx = new MetaVector();
 		gfx.setSize(totalW, totalH);
 
 		let nx = avoidBox.midX() - box.x;
@@ -432,4 +452,3 @@ export class WebWidget extends wmk.Widget
 	}
 }
 
-/* EOF */ }

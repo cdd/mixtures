@@ -10,7 +10,16 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {RenderPolicy} from 'webmolkit/gfx/Rendering';
+import {MixtureCollection} from '../data/MixtureCollection';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {DrawMixture} from '../mixture/DrawMixture';
+import {ExportMInChI, MInChISegment} from '../mixture/ExportMInChI';
+import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
+import {MetaVector} from 'webmolkit/gfx/MetaVector';
+import {escapeHTML} from 'webmolkit/util/util';
+import * as path from 'path';
+import * as fs from 'fs';
 
 /*
 	Loads a mixture collection and emits it as visualisable HTML.
@@ -18,9 +27,6 @@ namespace Mixtures /* BOF */ {
 
 export class RenderHTML
 {
-	private fs = require('fs');
-	private path = require('path');
-
 	constructor(private htmlFile:string, private withMInChI:boolean)
 	{
 	}
@@ -28,7 +34,7 @@ export class RenderHTML
 	public async exec():Promise<void>
 	{
 		let content:string;
-		try {content = this.fs.readFileSync(this.htmlFile).toString();}
+		try {content = fs.readFileSync(this.htmlFile).toString();}
 		catch (ex) {throw 'Unable to read file ' + this.htmlFile + ': ' + ex;}
 
 		let mixlist = MixtureCollection.deserialise(content);
@@ -49,8 +55,8 @@ export class RenderHTML
 		
 		emitln('<body><table>');
 
-		let policy = wmk.RenderPolicy.defaultColourOnWhite(15);
-		let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
+		let policy = RenderPolicy.defaultColourOnWhite(15);
+		let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
 
 		for (let n = 0; n < mixlist.count; n++)
 		{
@@ -62,7 +68,7 @@ export class RenderHTML
 			let layout = new ArrangeMixture(mixture, measure, policy);
 			layout.arrange();
 
-			let gfx = new wmk.MetaVector();
+			let gfx = new MetaVector();
 			let draw = new DrawMixture(layout, gfx);
 			draw.draw();
 			gfx.normalise();
@@ -102,4 +108,3 @@ export class RenderHTML
 	// ------------ private methods ------------
 }
 
-/* EOF */ }

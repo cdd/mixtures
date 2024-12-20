@@ -10,13 +10,22 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Dialog} from 'webmolkit/dialog/Dialog';
+import {dom, DOM} from 'webmolkit/util/dom';
+import {PubChemSearch, PubChemSearchResult} from './PubChemSearch';
+import {Molecule} from 'webmolkit/data/Molecule';
+import {hasInlineCSS, installInlineCSS} from 'webmolkit/util/Theme';
+import {RenderPolicy} from 'webmolkit/gfx/Rendering';
+import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
+import {ArrangeMolecule} from 'webmolkit/gfx/ArrangeMolecule';
+import {MetaVector} from 'webmolkit/gfx/MetaVector';
+import {DrawMolecule} from 'webmolkit/gfx/DrawMolecule';
 
 /*
 	Dialog for finding a compound by name using remote webservices.
 */
 
-export class LookupCompoundDialog extends wmk.Dialog
+export class LookupCompoundDialog extends Dialog
 {
 	private spanStatus:DOM;
 	private btnSearch:DOM;
@@ -32,7 +41,7 @@ export class LookupCompoundDialog extends wmk.Dialog
 	private nameList:string[] = [];
 	private nameDOM:DOM[] = [];
 	private molSelected = -1;
-	private molList:wmk.Molecule[] = [];
+	private molList:Molecule[] = [];
 	private molDOM:DOM[] = [];
 
 	private callbackSelect:(source?:LookupCompoundDialog) => void = null;
@@ -43,7 +52,7 @@ export class LookupCompoundDialog extends wmk.Dialog
 	{
 		super();
 
-		if (!wmk.hasInlineCSS('mixtures-lookupcompound')) wmk.installInlineCSS('mixtures-lookupcompound', this.composeCSS());
+		if (!hasInlineCSS('mixtures-lookupcompound')) installInlineCSS('mixtures-lookupcompound', this.composeCSS());
 
 		this.title = 'Lookup Compound';
 		this.minPortionWidth = 95;
@@ -105,7 +114,7 @@ export class LookupCompoundDialog extends wmk.Dialog
 	{
 		return this.nameSelected < 0 ? null : this.nameList[this.nameSelected];
 	}
-	public getMolecule():wmk.Molecule
+	public getMolecule():Molecule
 	{
 		return this.molSelected < 0 ? null : this.molList[this.molSelected];
 	}
@@ -165,13 +174,13 @@ export class LookupCompoundDialog extends wmk.Dialog
 
 		if (result.mol)
 		{
-			let policy = wmk.RenderPolicy.defaultColourOnWhite();
-			let measure = new wmk.OutlineMeasurement(0, 0, policy.data.pointScale);
-			let layout = new wmk.ArrangeMolecule(result.mol, measure, policy);
+			let policy = RenderPolicy.defaultColourOnWhite();
+			let measure = new OutlineMeasurement(0, 0, policy.data.pointScale);
+			let layout = new ArrangeMolecule(result.mol, measure, policy);
 			layout.arrange();
 			layout.squeezeInto(0, 0, 300, 300);
-			let gfx = new wmk.MetaVector();
-			new wmk.DrawMolecule(layout, gfx).draw();
+			let gfx = new MetaVector();
+			new DrawMolecule(layout, gfx).draw();
 			gfx.normalise();
 
 			let svg = dom(gfx.createSVG()).appendTo(divMol).css({'display': 'inline-block'});
@@ -275,4 +284,3 @@ export class LookupCompoundDialog extends wmk.Dialog
 	}
 }
 
-/* EOF */ }
