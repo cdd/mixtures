@@ -11,12 +11,12 @@
 */
 
 import {DataSheet, DataSheetColumn} from 'webmolkit/data/DataSheet';
-import {Mixfile, MixfileComponent} from '../data/Mixfile';
 import {MDLSDFWriter} from 'webmolkit/data/MDLWriter';
 import {Molecule} from 'webmolkit/data/Molecule';
 import {MDLMOLReader} from 'webmolkit/data/MDLReader';
 import {Vec} from 'webmolkit/util/Vec';
 import {ExportMInChI} from './ExportMInChI';
+import {Mixfile, MixfileComponent} from './Mixfile';
 
 /*
 	Interoperability with SDfiles: conversion of the Mixfile hierarchy into a flattened SDfile is useful for presenting to

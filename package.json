@@ -40,6 +40,6 @@
 		"build-tsc": "tsc",
 		"build-src": "webpack --config webpack-src.config.js",
 		"build-cmd": "webpack --config webpack-cmd.config.js",
-        "build": "tsc && webpack --config webpack-src.config.js && webpack-config-cmd.js"
+        "build": "tsc && webpack --config webpack-src.config.js && webpack --config webpack-cmd.config.js"
     }
 }

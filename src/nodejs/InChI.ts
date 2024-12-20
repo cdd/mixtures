@@ -11,12 +11,12 @@
 */
 
 import {Molecule} from 'webmolkit/data/Molecule';
-import {ON_DESKTOP} from '../startup';
 import {MolUtil} from 'webmolkit/data/MolUtil';
 import {MDLMOLWriter} from 'webmolkit/data/MDLWriter';
 import * as fs from 'fs';
 import * as path from 'path';
 import {getGlobal} from '@electron/remote';
+import {InChIDelegate, InChIResult} from '../mixture/InChIDelegate';
 
 /*
 	Interoperability with InChI technology: the generator program is a native binary, the location of which
@@ -26,7 +26,7 @@ import {getGlobal} from '@electron/remote';
 let execLocation:string = null;
 let inchi:InChI = null;
 
-export class InChI
+export class InChI extends InChIDelegate
 {
 	// optional override: when using the Emscripten-ported version of InChI, set this function to call the
 	// natively encoded implementation
@@ -37,7 +37,7 @@ export class InChI
 
 	constructor()
 	{
-		if (!ON_DESKTOP) return;
+		super();
 
 		if (!this.inchiPath)
 		{
@@ -76,7 +76,7 @@ export class InChI
 	// converts a molecule to an InChI string, if possible; should check the availability first, for graceful
 	// rejection; failure results in an exception; note that it is executed synchronously: if the executable takes
 	// a long time to run, this will be a problem for the UI; the return value is [InChI, InChIKey]
-	public static async makeInChI(mol:Molecule):Promise<[string, string]>
+	public async generate(mol:Molecule):Promise<InChIResult>
 	{
 		mol = mol.clone();
 		MolUtil.expandAbbrevs(mol, true);
@@ -86,10 +86,10 @@ export class InChI
 		writer.enhancedFields = false;
 		let mdlmol = writer.write();
 
-		if (this.nativeMolfileToInChI != null)
+		if (InChI.nativeMolfileToInChI != null)
 		{
-			let inchi = await this.nativeMolfileToInChI(mdlmol, '-AuxNone -NoLabels');
-			return [inchi, null]; // NOTE: this version doesn't provide a key; address this in the future
+			let inchi = await InChI.nativeMolfileToInChI(mdlmol, '-AuxNone -NoLabels');
+			return {inchi: inchi, inchiKey: null}; // NOTE: this version doesn't provide a key; address this in the future
 		}
 
 		if (!inchi) inchi = new InChI();
@@ -108,7 +108,7 @@ export class InChI
 			console.log('MDL Molfile:\n' + mdlmol);
 			throw 'Invalid returned by InChI generator: ' + raw;
 		}
-		return bits;
+		return {inchi: bits[0], inchiKey: bits[1]};
 	}
 }
 

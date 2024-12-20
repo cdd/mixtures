@@ -11,7 +11,6 @@
 */
 
 import {RenderPolicy} from 'webmolkit/gfx/Rendering';
-import {MixtureCollection} from '../data/MixtureCollection';
 import {ArrangeMixture} from '../mixture/ArrangeMixture';
 import {DrawMixture} from '../mixture/DrawMixture';
 import {ExportMInChI, MInChISegment} from '../mixture/ExportMInChI';
@@ -20,6 +19,8 @@ import {MetaVector} from 'webmolkit/gfx/MetaVector';
 import {escapeHTML} from 'webmolkit/util/util';
 import * as path from 'path';
 import * as fs from 'fs';
+import {MixtureCollection} from '../mixture/MixtureCollection';
+import {InChI} from '../nodejs/InChI';
 
 /*
 	Loads a mixture collection and emits it as visualisable HTML.
@@ -79,7 +80,7 @@ export class RenderHTML
 
 			if (this.withMInChI)
 			{
-				let maker = new ExportMInChI(mixture.mixfile);
+				let maker = new ExportMInChI(mixture.mixfile, new InChI());
 				await maker.fillInChI();
 				maker.formulate();
 				//let minchi = creator.getResult();

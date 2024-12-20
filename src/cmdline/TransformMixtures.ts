@@ -11,9 +11,6 @@
 */
 
 import {RenderPolicy} from 'webmolkit/gfx/Rendering';
-import {InChI} from '../data/InChI';
-import {Mixfile} from '../data/Mixfile';
-import {Mixture} from '../data/Mixture';
 import {ExportMInChI} from '../mixture/ExportMInChI';
 import {ExportSDFile} from '../mixture/ExportSDFile';
 import {ImportSDFile} from '../mixture/ImportSDFile';
@@ -23,6 +20,9 @@ import {MetaVector} from 'webmolkit/gfx/MetaVector';
 import {DrawMixture} from '../mixture/DrawMixture';
 import {Vec} from 'webmolkit/util/Vec';
 import * as fs from 'fs';
+import {InChI} from '../nodejs/InChI';
+import {Mixfile} from '../mixture/Mixfile';
+import {Mixture} from '../mixture/Mixture';
 
 /*
 	Reads a stream of mixtures and writes it out as a stream, with format transformation as necessary.
@@ -218,7 +218,7 @@ export class TransformMixtures
 		else if (this.outputFormat == TransformMixtureFormat.MInChI)
 		{
 			if (!InChI.isAvailable()) throw 'InChI unavailable: need to specify executable on command line';
-			let minchi = new ExportMInChI(mixfile);
+			let minchi = new ExportMInChI(mixfile, new InChI());
 			await minchi.fillInChI();
 			minchi.formulate();
 			chunk = minchi.getResult() + '\n';
@@ -226,7 +226,7 @@ export class TransformMixtures
 		else if (this.outputFormat == TransformMixtureFormat.LongMInChIKey)
 		{
 			if (!InChI.isAvailable()) throw 'InChI unavailable: need to specify executable on command line';
-			let minchi = new ExportMInChI(mixfile);
+			let minchi = new ExportMInChI(mixfile, new InChI());
 			await minchi.fillInChI();
 			let hashkey = minchi.makeLongHashKey();
 			chunk = hashkey + '\n';
@@ -234,7 +234,7 @@ export class TransformMixtures
 		else if (this.outputFormat == TransformMixtureFormat.ShortMInChIKey)
 		{
 			if (!InChI.isAvailable()) throw 'InChI unavailable: need to specify executable on command line';
-			let minchi = new ExportMInChI(mixfile);
+			let minchi = new ExportMInChI(mixfile, new InChI());
 			await minchi.fillInChI();
 			let hashkey = minchi.makeShortHashKey();
 			chunk = hashkey + '\n';

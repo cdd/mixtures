@@ -12,7 +12,6 @@
 
 import {Dialog} from 'webmolkit/dialog/Dialog';
 import {dom, DOM} from 'webmolkit/util/dom';
-import {PubChemSearch, PubChemSearchResult} from './PubChemSearch';
 import {Molecule} from 'webmolkit/data/Molecule';
 import {hasInlineCSS, installInlineCSS} from 'webmolkit/util/Theme';
 import {RenderPolicy} from 'webmolkit/gfx/Rendering';
@@ -20,6 +19,7 @@ import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
 import {ArrangeMolecule} from 'webmolkit/gfx/ArrangeMolecule';
 import {MetaVector} from 'webmolkit/gfx/MetaVector';
 import {DrawMolecule} from 'webmolkit/gfx/DrawMolecule';
+import {PubChemSearch, PubChemSearchResult} from './PubChemSearch';
 
 /*
 	Dialog for finding a compound by name using remote webservices.

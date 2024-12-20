@@ -10,8 +10,7 @@
 	Made available under the Gnu Public License v3.0
 */
 
-import {InChI} from '../data/InChI';
-import {setOnDesktop} from '../startup';
+import {InChI} from '../nodejs/InChI';
 import {RenderHTML} from './RenderHTML';
 import {TableExtract} from './TableExtract';
 import {ALL_TRANSFORMMIXTURE_FORMATS, TransformMixtures} from './TransformMixtures';
@@ -37,8 +36,6 @@ export class Console
 
 	constructor(args:string[])
 	{
-		setOnDesktop(true);
-
 		// const {DOMParser, XMLSerializer} = require('xmldom/dom-parser.js');
 		// XML.customParser = DOMParser;
 		// XML.customSerial = XMLSerializer;

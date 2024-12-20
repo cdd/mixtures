@@ -1,1 +1,1 @@
-export * from '../src/startup';
+export * from '../src/electron/startup';

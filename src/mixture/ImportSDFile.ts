@@ -11,13 +11,13 @@
 */
 
 import {Molecule} from 'webmolkit/data/Molecule';
-import {Mixfile, MixfileComponent} from '../data/Mixfile';
 import {Vec} from 'webmolkit/util/Vec';
 import {MDLSDFReader} from 'webmolkit/data/MDLReader';
 import {DataSheetColumn} from 'webmolkit/data/DataSheet';
-import {Mixture} from '../data/Mixture';
 import {MDLMOLWriter} from 'webmolkit/data/MDLWriter';
-import {StandardUnits, Units} from '../data/Units';
+import {Mixfile, MixfileComponent} from './Mixfile';
+import {Mixture} from './Mixture';
+import {StandardUnits, Units} from './Units';
 
 /*
 	Importing one or more mixtures from chunks of text that represent an SDfile with special mixture fields.

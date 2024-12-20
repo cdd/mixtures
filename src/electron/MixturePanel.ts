@@ -11,14 +11,10 @@
 */
 
 import {dom, DOM} from 'webmolkit/util/dom';
-import {EditMixture} from '../mixture/EditMixture';
 import {MainPanel} from './MainPanel';
 import {MenuBanner, MenuBannerButton, MenuBannerCommand} from './MenuBanner';
 import {ClipboardProxy, ClipboardProxyHandler} from 'webmolkit/ui/ClipboardProxy';
 import {MenuProxy} from 'webmolkit/ui/MenuProxy';
-import {Mixture} from '../data/Mixture';
-import {MIXFILE_VERSION} from '../data/Mixfile';
-import {openNewWindow} from '../startup';
 import {ExportSDFile} from '../mixture/ExportSDFile';
 import {RenderPolicy} from 'webmolkit/gfx/Rendering';
 import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
@@ -26,7 +22,6 @@ import {ArrangeMixture} from '../mixture/ArrangeMixture';
 import {Size} from 'webmolkit/util/Geom';
 import {MetaVector} from 'webmolkit/gfx/MetaVector';
 import {DrawMixture} from '../mixture/DrawMixture';
-import {InChI} from '../data/InChI';
 import {ExportMInChI, MInChISegment} from '../mixture/ExportMInChI';
 import {Dialog} from 'webmolkit/dialog/Dialog';
 import {yieldDOM} from 'webmolkit/util/util';
@@ -34,6 +29,12 @@ import {Dialog as ElectronDialog, OpenDialogOptions, SaveDialogOptions, clipboar
 import {dialog as electronDialog, getCurrentWindow} from '@electron/remote';
 import * as fs from 'fs';
 import * as path from 'path';
+import {EditMixture} from './EditMixture';
+import {Mixture} from '../mixture/Mixture';
+import {MIXFILE_VERSION} from '../mixture/Mixfile';
+import {openNewWindow} from './startup';
+import {InChI} from '../nodejs/InChI';
+import {InChIDelegate} from '../mixture/InChIDelegate';
 
 /*
 	Viewing/editing window: dedicated entirely to the sketching of a mixture.
@@ -79,7 +80,7 @@ export class MixturePanel extends MainPanel
 {
 	private filename:string = null;
 	private banner:MenuBanner;
-	private editor = new EditMixture(this.proxyClip, this.proxyMenu);
+	private editor:EditMixture;
 
 	// ------------ public methods ------------
 
@@ -89,6 +90,7 @@ export class MixturePanel extends MainPanel
 
 		this.banner = new MenuBanner(BANNER, (cmd:MenuBannerCommand) => this.menuAction(cmd));
 
+		this.editor = new EditMixture(this.inchi, this.proxyClip, this.proxyMenu);
 		this.editor.callbackUpdateTitle = () => this.updateTitle();
 
 		let divFlex = dom('<div/>').appendTo(root).css({'display': 'flex'});
@@ -373,7 +375,7 @@ export class MixturePanel extends MainPanel
 			return;
 		}
 
-		let maker = new ExportMInChI(this.editor.getMixture().mixfile);
+		let maker = new ExportMInChI(this.editor.getMixture().mixfile, this.inchi);
 		let self = this;
 		class MInChIDialog extends Dialog
 		{

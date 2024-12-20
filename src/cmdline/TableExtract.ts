@@ -10,8 +10,6 @@
 	Made available under the Gnu Public License v3.0
 */
 
-import {MixfileComponent} from '../data/Mixfile';
-import {MixtureCollection} from '../data/MixtureCollection';
 import {DataSheet} from 'webmolkit/data/DataSheet';
 import {AssayProvenance} from 'webmolkit/aspect/AssayProvenance';
 import {MeasurementData} from 'webmolkit/aspect/MeasurementData';
@@ -21,9 +19,11 @@ import {MDLSDFReader} from 'webmolkit/data/MDLReader';
 import {MDLMOLWriter} from 'webmolkit/data/MDLWriter';
 import {Mixture as MixtureAspect} from 'webmolkit/aspect/Mixture';
 import {Vec} from 'webmolkit/util/Vec';
-import {Mixture} from '../data/Mixture';
 import * as fs from 'fs';
 import * as path from 'path';
+import {MixtureCollection} from '../mixture/MixtureCollection';
+import {Mixture} from '../mixture/Mixture';
+import {MixfileComponent} from '../mixture/Mixfile';
 
 /*
 	Table extraction: create Mixfile instances from tabular data sources, with the help of directions for placing columns into

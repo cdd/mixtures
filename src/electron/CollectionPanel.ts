@@ -11,24 +11,24 @@
 */
 
 import {dom, DOM} from 'webmolkit/util/dom';
-import {MixtureCollection} from '../data/MixtureCollection';
 import {MainPanel} from './MainPanel';
 import {MenuBanner, MenuBannerButton, MenuBannerCommand} from './MenuBanner';
 import {RenderPolicy} from 'webmolkit/gfx/Rendering';
-import {EditMixture} from '../mixture/EditMixture';
 import {ClipboardProxy} from 'webmolkit/ui/ClipboardProxy';
 import {MenuProxy} from 'webmolkit/ui/MenuProxy';
 import {Vec} from 'webmolkit/util/Vec';
-import {Mixture} from '../data/Mixture';
 import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
 import {ArrangeMixture} from '../mixture/ArrangeMixture';
 import {MetaVector, TextAlign} from 'webmolkit/gfx/MetaVector';
 import {DrawMixture} from '../mixture/DrawMixture';
 import {FontData} from 'webmolkit/gfx/FontData';
-import {openNewWindow} from '../startup';
 import * as fs from 'fs';
 import {OpenDialogOptions, SaveDialogOptions} from 'electron';
 import {dialog as electronDialog} from '@electron/remote';
+import {MixtureCollection} from '../mixture/MixtureCollection';
+import {EditMixture} from './EditMixture';
+import {Mixture} from '../mixture/Mixture';
+import {openNewWindow} from './startup';
 
 /*
 	Browsing/editing a collection of mixtures.
@@ -514,7 +514,7 @@ export class CollectionPanel extends MainPanel
 	{
 		if (this.selected < 0) return;
 
-		this.editor = new EditMixture(this.proxyClip, this.proxyMenu);
+		this.editor = new EditMixture(this.inchi, this.proxyClip, this.proxyMenu);
 
 		this.divMain.empty();
 		this.editor.render(this.divMain);

@@ -11,7 +11,6 @@
 */
 
 import {Widget} from 'webmolkit/ui/Widget';
-import {MixfileMetadatum} from '../data/Mixfile';
 import {dom, DOM} from 'webmolkit/util/dom';
 import {installInlineCSS} from 'webmolkit/util/Theme';
 import {OntologyTree, OntologyTreeTerm} from 'webmolkit/data/OntologyTree';
@@ -19,6 +18,7 @@ import {Vec} from 'webmolkit/util/Vec';
 import {addTooltip, clearTooltip} from 'webmolkit/ui/Tooltip';
 import {escapeHTML} from 'webmolkit/util/util';
 import {Popup} from 'webmolkit/ui/Popup';
+import {MixfileMetadatum} from '../mixture/Mixfile';
 
 /*
 	Widget for editing a list of metadata items.

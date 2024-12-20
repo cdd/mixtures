@@ -10,8 +10,8 @@
 	Made available under the Gnu Public License v3.0
 */
 
-import {MainPanel} from './main/MainPanel';
-import {MixturePanel} from './main/MixturePanel';
+import {MainPanel} from './MainPanel';
+import {MixturePanel} from './MixturePanel';
 import {DOM} from 'webmolkit/util/dom';
 import {initWebMolKit, Theme} from 'webmolkit/util/Theme';
 import {OntologyTree} from 'webmolkit/data/OntologyTree';
@@ -21,6 +21,7 @@ import * as path from 'path';
 import * as process from 'process';
 import {ipcRenderer} from 'electron';
 import {BrowserWindow, Menu as ElectronMenu, MenuItem as ElectronMenuItem, clipboard as electronClipboard, getCurrentWindow} from '@electron/remote';
+import {CollectionPanel} from './CollectionPanel';
 
 export let ON_DESKTOP = false; // by default assume it's running in a regular web page; switch to true if it's the locally
 							   // executed window version
@@ -92,16 +93,13 @@ export async function runMixfileEditor(resURL:string, rootID:string):Promise<voi
 	};
 
 	let main:MainPanel;
-	if (!panelClass)
+	if (!panelClass || panelClass == 'MixturePanel')
 	{
-		let dw = main = new MixturePanel(root, proxyClip, proxyMenu);
+		main = new MixturePanel(root, proxyClip, proxyMenu);
 	}
-	else
+	else if (panelClass == 'CollectionPanel')
 	{
-		/* !! TODO 
-		let proto = (Mixtures as any)[panelClass];
-		if (!proto) throw 'Unknown class: ' + panelClass;
-		main = new (proto as any)(root, proxyClip, proxyMenu);*/
+		main = new CollectionPanel(root, proxyClip, proxyMenu);
 	}
 
 	main.loadFile(filename);

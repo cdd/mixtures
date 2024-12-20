@@ -11,15 +11,15 @@
 */
 
 import {deepClone} from 'webmolkit/util/util';
-import {Mixfile, MixfileComponent} from '../data/Mixfile';
-import {Mixture} from '../data/Mixture';
-import {NormMixture, NormMixtureNote} from '../data/NormMixture';
-import {InChI} from '../data/InChI';
 import {Molecule} from 'webmolkit/data/Molecule';
 import {MoleculeStream} from 'webmolkit/data/MoleculeStream';
 import {MolUtil} from 'webmolkit/data/MolUtil';
 import {Vec} from 'webmolkit/util/Vec';
-import {Units} from '../data/Units';
+import {Mixfile, MixfileComponent} from './Mixfile';
+import {NormMixture, NormMixtureNote} from './NormMixture';
+import {Mixture} from './Mixture';
+import {InChIDelegate} from './InChIDelegate';
+import {Units} from './Units';
 
 // quick implementation of CRC hash codes
 let crc_table:number[] = [];
@@ -82,7 +82,7 @@ export class ExportMInChI
 
 	// ------------ public methods ------------
 
-	constructor(mixfile:Mixfile)
+	constructor(mixfile:Mixfile, private inchi:InChIDelegate)
 	{
 		this.mixture = new Mixture(deepClone(mixfile));
 		this.norm = new NormMixture(this.mixture);
@@ -94,8 +94,6 @@ export class ExportMInChI
 	// the parameter mixture was modified; note that if any components have an InChI that is wrong, this will be believed
 	public async fillInChI():Promise<boolean>
 	{
-		if (!InChI.isAvailable()) return false; // silent failure: the caller should check if specific action is required
-
 		let modified = false;
 		for (let comp of this.mixture.getComponents())
 		{
@@ -104,7 +102,7 @@ export class ExportMInChI
 			try {mol = MoleculeStream.readUnknown(comp.molfile);}
 			catch (e) {continue;} // silent failure if it's an invalid molecule
 			if (MolUtil.isBlank(mol)) continue;
-			let [inchi, inchiKey] = await InChI.makeInChI(mol);
+			let {inchi, inchiKey} = await this.inchi.generate(mol);
 			comp.inchi = inchi;
 			comp.inchiKey = inchiKey;
 			modified = true;

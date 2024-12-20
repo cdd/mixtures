@@ -12,22 +12,23 @@
 
 import {Dialog} from 'webmolkit/dialog/Dialog';
 import {ClipboardProxy, ClipboardProxyHandler} from 'webmolkit/ui/ClipboardProxy';
-import {MixfileComponent} from '../data/Mixfile';
 import {dom, DOM} from 'webmolkit/util/dom';
 import {OptionList} from 'webmolkit/ui/OptionList';
 import {deepClone} from 'webmolkit/util/util';
 import {installInlineCSS} from 'webmolkit/util/Theme';
-import {InChI} from '../data/InChI';
-import {KeyValueWidget} from './KeyValueWidget';
 import {OntologyTree} from 'webmolkit/data/OntologyTree';
-import {MetadataWidget} from './MetadataWidget';
 import {Vec} from 'webmolkit/util/Vec';
-import {Mixture} from '../data/Mixture';
 import {Popup} from 'webmolkit/ui/Popup';
-import {Units} from '../data/Units';
 import {MoleculeStream} from 'webmolkit/data/MoleculeStream';
 import {MolUtil} from 'webmolkit/data/MolUtil';
 import {Chemistry} from 'webmolkit/data/Chemistry';
+import {MixfileComponent} from '../mixture/Mixfile';
+import {InChI} from '../nodejs/InChI';
+import {KeyValueWidget} from './KeyValueWidget';
+import {Mixture} from '../mixture/Mixture';
+import {Units} from '../mixture/Units';
+import {MetadataWidget} from './MetadataWidget';
+import {InChIDelegate} from '../mixture/InChIDelegate';
 
 /*
 	High level widget for the editing area for a mixture.
@@ -90,7 +91,7 @@ export class EditComponent extends Dialog
 
 	// ------------ public methods ------------
 
-	constructor(component:MixfileComponent, private parentSize:[number, number], parent:DOM = null)
+	constructor(component:MixfileComponent, private inchi:InChIDelegate, private parentSize:[number, number], parent:DOM = null)
 	{
 		super(parent);
 
@@ -593,7 +594,7 @@ export class EditComponent extends Dialog
 
 		try
 		{
-			let inchi = Vec.first(await InChI.makeInChI(mol));
+			let {inchi} = await this.inchi.generate(mol);
 			this.lineInChI.setValue(inchi);
 		}
 		catch (ex) {alert('InChI generation failed: ' + ex);}

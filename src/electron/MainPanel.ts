@@ -12,7 +12,8 @@
 
 import {dom, DOM} from 'webmolkit/util/dom';
 import {MenuBannerCommand} from './MenuBanner';
-import {openNewWindow} from '../startup';
+import {openNewWindow} from './startup';
+import {InChI} from '../nodejs/InChI';
 
 /*
 	Base class for "main windows": an object that takes up the entire browser window document, responds to resizing, etc.
@@ -20,6 +21,8 @@ import {openNewWindow} from '../startup';
 
 export abstract class MainPanel
 {
+	protected inchi = new InChI();
+
 	// ------------ public methods ------------
 
 	constructor(public root:DOM)

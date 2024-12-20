@@ -11,11 +11,8 @@
 */
 
 import {Molecule} from 'webmolkit/data/Molecule';
-import {MixfileComponent} from '../data/Mixfile';
 import {Box, Size} from 'webmolkit/util/Geom';
 import {ArrangeMolecule} from 'webmolkit/gfx/ArrangeMolecule';
-import {NormMixture} from '../data/NormMixture';
-import {Mixture} from '../data/Mixture';
 import {ArrangeMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
 import {RenderPolicy} from 'webmolkit/gfx/Rendering';
 import {Vec} from 'webmolkit/util/Vec';
@@ -24,6 +21,9 @@ import {formatDouble} from 'webmolkit/util/util';
 import {OntologyTree} from 'webmolkit/data/OntologyTree';
 import {SquarePacking} from './SquarePacking';
 import {FontData} from 'webmolkit/gfx/FontData';
+import {MixfileComponent} from './Mixfile';
+import {NormMixture} from './NormMixture';
+import {Mixture} from './Mixture';
 
 /*
 	Arranging a Mixfile: will create a tree layout for all of the components, according to parameters.

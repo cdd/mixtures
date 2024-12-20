@@ -11,29 +11,30 @@
 */
 
 import {Widget} from 'webmolkit/ui/Widget';
-import {Mixture} from '../data/Mixture';
 import {RenderPolicy} from 'webmolkit/gfx/Rendering';
-import {ArrangeMixture} from './ArrangeMixture';
 import {ClipboardProxy} from 'webmolkit/ui/ClipboardProxy';
 import {MenuProxy} from 'webmolkit/ui/MenuProxy';
 import {deepClone, eventCoords, newElement, pixelDensity} from 'webmolkit/util/util';
 import {EditCompound} from 'webmolkit/dialog/EditCompound';
-import {MixfileComponent} from '../data/Mixfile';
 import {Vec} from 'webmolkit/util/Vec';
 import {MoleculeStream} from 'webmolkit/data/MoleculeStream';
 import {Molecule} from 'webmolkit/data/Molecule';
 import {EditComponent} from './EditComponent';
-import {LookupCompoundDialog} from '../lookup/LookupCompoundDialog';
 import {MDLMOLWriter} from 'webmolkit/data/MDLWriter';
-import {ExtractCTABComponent} from '../lookup/ExtractCTABComponent';
 import {MolUtil} from 'webmolkit/data/MolUtil';
 import {Box, Size} from 'webmolkit/util/Geom';
 import {OutlineMeasurement} from 'webmolkit/gfx/ArrangeMeasurement';
-import {NormMixture} from '../data/NormMixture';
 import {MetaVector} from 'webmolkit/gfx/MetaVector';
-import {DrawMixture} from './DrawMixture';
 import {CoordUtil} from 'webmolkit/data/CoordUtil';
 import {Menu as ElectronMenu, MenuItem as ElectronMenuItem, getCurrentWindow} from '@electron/remote';
+import {Mixture} from '../mixture/Mixture';
+import {ArrangeMixture} from '../mixture/ArrangeMixture';
+import {MixfileComponent} from '../mixture/Mixfile';
+import {LookupCompoundDialog} from '../electron/LookupCompoundDialog';
+import {InChIDelegate} from '../mixture/InChIDelegate';
+import {ExtractCTABComponent} from '../mixture/ExtractCTABComponent';
+import {NormMixture} from '../mixture/NormMixture';
+import {DrawMixture} from '../mixture/DrawMixture';
 
 /*
 	High level widget for the editing area for a mixture.
@@ -87,7 +88,7 @@ export class EditMixture extends Widget
 
 	// ------------ public methods ------------
 
-	constructor(protected proxyClip:ClipboardProxy, protected proxyMenu:MenuProxy)
+	constructor(protected inchi:InChIDelegate, protected proxyClip:ClipboardProxy, protected proxyMenu:MenuProxy)
 	{
 		super();
 	}
@@ -318,7 +319,7 @@ export class EditMixture extends Widget
 
 		let w = window.innerWidth * 0.8, h = window.innerHeight * 0.8;
 
-		let dlg = new EditComponent(deepClone(comp), [w, h], this.contentDOM);
+		let dlg = new EditComponent(deepClone(comp), this.inchi, [w, h], this.contentDOM);
 		dlg.proxyClip = this.proxyClip;
 		dlg.onSave(() =>
 		{
@@ -621,7 +622,6 @@ export class EditMixture extends Widget
 		gfx.offsetY = this.offsetY;
 		gfx.setSize(width, height);
 		gfx.renderCanvas(this.canvasMixture, true);
-
 	}
 
 	// assuming that layout is already defined, modifies the offset/scale so that

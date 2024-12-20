@@ -3,7 +3,7 @@ const path = require('path');
 module.exports = 
 {
 	entry: './dist/index-cmd.ts',
-	target: 'electron-main',
+	target: 'node',
 	module: 
 	{
 		rules: 
@@ -12,11 +12,8 @@ module.exports =
 				test: /\.ts$/,
 				use: 'ts-loader',
 				exclude: [
-					/node_modules/, 
-					/src\/startup/, 
-					/src\/data\/InChI/,
-					/src\/main/,
-					/src\/mixture\/EditMixture/
+					/node_modules/,
+					/src\/electron/,
 				]
 			},
 		],

@@ -12,11 +12,11 @@
 
 import {MDLMOLReader, MDLReaderGroupMixture, MDLReaderLinkNode} from 'webmolkit/data/MDLReader';
 import {Molecule} from 'webmolkit/data/Molecule';
-import {MixfileComponent} from '../data/Mixfile';
 import {Vec} from 'webmolkit/util/Vec';
 import {MDLMOLWriter} from 'webmolkit/data/MDLWriter';
 import {MolUtil} from 'webmolkit/data/MolUtil';
 import {deepClone} from 'webmolkit/util/util';
+import {MixfileComponent} from './Mixfile';
 
 /*
 	Checks the supplied string to see if it is a CTAB (V2000/V3000) with features that make enumerable. If so,
