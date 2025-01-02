@@ -16,6 +16,7 @@ module.exports =
 					/src\/electron/,
 				]
 			},
+			{test: /\.svg$/, loader: 'raw-loader'},
 		],
 	},
 	resolve: 
