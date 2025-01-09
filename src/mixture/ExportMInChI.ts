@@ -1,7 +1,7 @@
 /*
 	Mixfile Editor & Viewing Libraries
 
-	(c) 2017-2020 Collaborative Drug Discovery, Inc
+	(c) 2017-2025 Collaborative Drug Discovery, Inc
 
 	All rights reserved
 
@@ -10,7 +10,16 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {deepClone} from 'webmolkit/util/util';
+import {Molecule} from 'webmolkit/mol/Molecule';
+import {MoleculeStream} from 'webmolkit/io/MoleculeStream';
+import {MolUtil} from 'webmolkit/mol/MolUtil';
+import {Vec} from 'webmolkit/util/Vec';
+import {Mixfile, MixfileComponent} from './Mixfile';
+import {NormMixture, NormMixtureNote} from './NormMixture';
+import {Mixture} from './Mixture';
+import {InChIDelegate} from './InChIDelegate';
+import {Units} from './Units';
 
 // quick implementation of CRC hash codes
 let crc_table:number[] = [];
@@ -73,7 +82,7 @@ export class ExportMInChI
 
 	// ------------ public methods ------------
 
-	constructor(mixfile:Mixfile)
+	constructor(mixfile:Mixfile, private inchi:InChIDelegate)
 	{
 		this.mixture = new Mixture(deepClone(mixfile));
 		this.norm = new NormMixture(this.mixture);
@@ -85,17 +94,15 @@ export class ExportMInChI
 	// the parameter mixture was modified; note that if any components have an InChI that is wrong, this will be believed
 	public async fillInChI():Promise<boolean>
 	{
-		if (!InChI.isAvailable()) return false; // silent failure: the caller should check if specific action is required
-
 		let modified = false;
 		for (let comp of this.mixture.getComponents())
 		{
 			if (!comp.molfile || comp.inchi) continue;
-			let mol:wmk.Molecule = null;
-			try {mol = wmk.MoleculeStream.readUnknown(comp.molfile);}
+			let mol:Molecule = null;
+			try {mol = MoleculeStream.readUnknown(comp.molfile);}
 			catch (e) {continue;} // silent failure if it's an invalid molecule
-			if (wmk.MolUtil.isBlank(mol)) continue;
-			let [inchi, inchiKey] = await InChI.makeInChI(mol);
+			if (MolUtil.isBlank(mol)) continue;
+			let {inchi, inchiKey} = await this.inchi.generate(mol);
 			comp.inchi = inchi;
 			comp.inchiKey = inchiKey;
 			modified = true;
@@ -387,4 +394,3 @@ export class ExportMInChI
 	}
 }
 
-/* EOF */ }

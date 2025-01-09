@@ -1,7 +1,7 @@
 /*
 	Mixfile Editor & Viewing Libraries
 
-	(c) 2017-2021 Collaborative Drug Discovery, Inc
+	(c) 2017-2025 Collaborative Drug Discovery, Inc
 
 	All rights reserved
 
@@ -10,7 +10,14 @@
 	Made available under the Gnu Public License v3.0
 */
 
-namespace Mixtures /* BOF */ {
+import {Molecule} from 'webmolkit/mol/Molecule';
+import {Vec} from 'webmolkit/util/Vec';
+import {MDLSDFReader} from 'webmolkit/io/MDLReader';
+import {DataSheetColumn} from 'webmolkit/ds/DataSheet';
+import {MDLMOLWriter} from 'webmolkit/io/MDLWriter';
+import {Mixfile, MixfileComponent} from './Mixfile';
+import {Mixture} from './Mixture';
+import {StandardUnits, Units} from './Units';
 
 /*
 	Importing one or more mixtures from chunks of text that represent an SDfile with special mixture fields.
@@ -18,7 +25,7 @@ namespace Mixtures /* BOF */ {
 
 interface ImportComponent
 {
-	mol:wmk.Molecule;
+	mol:Molecule;
 	name:string;
 	conc:string;
 	hier:string;
@@ -69,11 +76,11 @@ export class ImportSDFile
 	// have identified one SDfile record (ending in $$$$), so carve it up into an upcoming component
 	private processBlock(sdfile:string):void
 	{
-		let reader = new wmk.MDLSDFReader(sdfile);
+		let reader = new MDLSDFReader(sdfile);
 		reader.upcastColumns = false;
 		let ds = reader.parse();
 		if (!ds || ds.numRows == 0) return;
-		let colMol = ds.firstColOfType(wmk.DataSheetColumn.Molecule);
+		let colMol = ds.firstColOfType(DataSheetColumn.Molecule);
 		let colName = ds.findColByName('Name');
 		let colHier = ds.findColByName('MINCHI$N');
 		let colConc = ds.findColByName('MINCHI$C');
@@ -95,7 +102,7 @@ export class ImportSDFile
 
 		for (let incomp of this.components)
 		{
-			let molfile = incomp.mol ? new wmk.MDLMOLWriter(incomp.mol).write() : undefined;
+			let molfile = incomp.mol ? new MDLMOLWriter(incomp.mol).write() : undefined;
 			let origin = incomp.hier.split('.').map((str) => parseInt(str) - 1);
 			let idx = origin.pop();
 			let parent = mixture.getComponent(origin);
@@ -185,4 +192,3 @@ export class ImportSDFile
 	}
 }
 
-/* EOF */ }

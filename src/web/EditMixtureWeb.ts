@@ -1,7 +1,7 @@
 /*
     Mixfile Editor & Viewing Libraries
 
-    (c) 2017-2020 Collaborative Drug Discovery, Inc
+    (c) 2017-2025 Collaborative Drug Discovery, Inc
 
     All rights reserved
 
@@ -10,32 +10,36 @@
 	Made available under the Gnu Public License v3.0
 */
 
-///<reference path='../mixture/EditMixture.ts'/>
-
-namespace Mixtures /* BOF */ {
+import {Molecule} from 'webmolkit/mol/Molecule';
+import {ClipboardProxy} from 'webmolkit/ui/ClipboardProxy';
+import {MenuProxy, MenuProxyContext} from 'webmolkit/ui/MenuProxy';
+import {deepClone, eventCoords} from 'webmolkit/util/util';
+import {Vec} from 'webmolkit/util/Vec';
+import {MoleculeStream} from 'webmolkit/io/MoleculeStream';
+import {CoordUtil} from 'webmolkit/mol/CoordUtil';
+import {EditMixture} from './EditMixture';
 
 /*
-	Modified version of the EditMixture class that replaces the default Electron desktop functionality
-	with web-compatible equivalents.
+	Specialisation of the EditMixture class that works in a regular web environment.
 */
 
 export class EditMixtureWeb extends EditMixture
 {
 	public callbackLookup:(editor:EditMixtureWeb) => void = null; // optional: added to context menu if defined
-	public callbackStructureEditor:(mol:wmk.Molecule, onSuccess:(mol:wmk.Molecule) => void) => void = null; // optional editor replacement
+	public callbackStructureEditor:(mol:Molecule, onSuccess:(mol:Molecule) => void) => void = null; // optional editor replacement
 	public callbackFreeformKey:(edit:EditMixture, event:KeyboardEvent) => void = null;
 
 	private isMacKeyboard:boolean;
 
 	// ------------ public methods ------------
 
-	constructor(proxyClip:wmk.ClipboardProxy, proxyMenu?:wmk.MenuProxy)
+	constructor(proxyClip:ClipboardProxy, proxyMenu?:MenuProxy)
 	{
-		super(proxyClip, proxyMenu);
+		super(null, proxyClip, proxyMenu);
 
 		// the 'navigator' object is being overhauled: it should have a more structured userAgentData property on most browsers; if not it
 		// falls back to the older .platform property, which will trigger a deprecation warning on a browser; but for Electron context, it's OK
-		let nav = navigator as any; 
+		let nav = navigator as any;
 		this.isMacKeyboard = nav.userAgentData ? nav.userAgentData.platform == 'macOS' : nav.platform.startsWith('Mac');
 	}
 
@@ -58,7 +62,7 @@ export class EditMixtureWeb extends EditMixture
 		this.activeIndex = -1;
 		this.delayedRedraw();
 
-		let menu:wmk.MenuProxyContext[] = [];
+		let menu:MenuProxyContext[] = [];
 
 		if (idx >= 0)
 		{
@@ -176,7 +180,7 @@ export class EditMixtureWeb extends EditMixture
 		if (this.selectedIndex < 0) return;
 		let origin = this.layout.components[this.selectedIndex].origin;
 		let comp = this.mixture.getComponent(origin);
-		let mol = comp.molfile ? wmk.MoleculeStream.readUnknown(comp.molfile) : null;
+		let mol = comp.molfile ? MoleculeStream.readUnknown(comp.molfile) : null;
 
 		this.isEditing = true;
 		this.callbackStructureEditor(mol, (mol) =>
@@ -186,8 +190,8 @@ export class EditMixtureWeb extends EditMixture
 			comp = deepClone(comp);
 			this.checkStructureIntegrity(comp, mol);
 
-			wmk.CoordUtil.normaliseBondDistances(mol);
-			let molfile = mol && mol.numAtoms > 0 ? wmk.MoleculeStream.writeMDLMOL(mol) : undefined;
+			CoordUtil.normaliseBondDistances(mol);
+			let molfile = mol && mol.numAtoms > 0 ? MoleculeStream.writeMDLMOL(mol) : undefined;
 			if (!molfile) molfile = null;
 
 			comp.molfile = molfile;
@@ -201,4 +205,3 @@ export class EditMixtureWeb extends EditMixture
 	}
 }
 
-/* EOF */ }

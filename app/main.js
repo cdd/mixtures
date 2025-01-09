@@ -11,11 +11,12 @@
 */
 
 const electron = require('electron');
-const {app, BrowserWindow} = electron;
+const {app, BrowserWindow, ipcMain} = electron;
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;
 app.allowRendererProcessReuse = true;
-require('@electron/remote/main').initialize();
+const remoteMain = require('@electron/remote/main');
+remoteMain.initialize();
 
 app.on('window-all-closed', function() 
 {
@@ -47,25 +48,11 @@ const INIT_URL = 'file://' + __dirname + '/index.html';
 
 let mainWindows = [];
 
-app.on('window-all-closed', function() 
-{
-	/*if (process.platform != 'darwin')*/ app.quit();
-});
+ipcMain.on('openWindow', (event, arg) => openWindow(arg));
 
 app.on('ready', function() 
 { 
-	for (let fn of files)
-	{
-		let wnd = new BrowserWindow(BROWSER_PARAMS);
-		let url = INIT_URL;
-		if (fn) url += '?fn=' + encodeURIComponent(fn);
-		wnd.loadURL(url); 
-		wnd.on('closed', () => 
-		{
-			wnd.removeAllListeners();
-			for (let n = 0; n < mainWindows.length; n++) if (mainWindows[n] === wnd) {mainWindows.splice(n, 1); break;}
-		});
-	}
+	for (let fn of files) openWindow({filename: fn});
 	setupMenu();
 });
 
@@ -187,3 +174,131 @@ function setupMenu()
 	const menu = Menu.buildFromTemplate(template);
 	Menu.setApplicationMenu(menu);
 }
+
+function openWindow(args)
+{
+	const {filename, filedir, panelClass, datasheet} = args;
+	let wnd = new BrowserWindow(BROWSER_PARAMS);
+	remoteMain.enable(wnd.webContents);
+	let url = INIT_URL;
+
+	let qargs = [];
+	if (filename) qargs.push('fn=' + encodeURIComponent(args.filename));
+	if (panelClass) qargs.push('panelClass=' + encodeURIComponent(args.panelClass));
+	if (qargs.length > 0) url += '?' + qargs.join('&');
+
+	wnd.loadURL(url); 
+	wnd.on('closed', () => 
+	{
+		wnd.removeAllListeners();
+		for (let n = 0; n < mainWindows.length; n++) if (mainWindows[n] === wnd) {mainWindows.splice(n, 1); break;}
+	});
+}
+
+
+/*
+function openWindow(args)
+{
+	const {filename, filedir, panelClass, datasheet} = args;
+
+	// workflow panel in edit mode (bring up existing panel)
+	if (panelClass == 'WorkflowPanel' && workflowWnd && !filename)
+	{
+		workflowWnd.show();
+		return;
+	}
+
+	let browserParams = panelClass == 'WorkflowPanel' ? WORKFLOW_PARAMS : BROWSER_PARAMS;
+	let wnd = new BrowserWindow(browserParams);
+	require('@electron/remote/main').enable(wnd.webContents);
+
+	let url = INIT_URL;
+
+	let qargs = [];
+	if (filename) qargs.push('fn=' + encodeURIComponent(args.filename));
+	if (filedir) qargs.push('dir=' + encodeURIComponent(args.filedir));
+	if (panelClass) qargs.push('panelClass=' + encodeURIComponent(args.panelClass));
+	if (datasheet)
+	{
+		let dataTag = 'data' + (++watermark);
+		global[dataTag] = args.datasheet;
+		qargs.push('data=' + encodeURIComponent(dataTag));
+	}
+
+	if (qargs.length > 0) url += '?' + qargs.join('&');
+
+	wnd.loadURL(url);
+	if (panelClass == 'WorkflowPanel')
+	{
+		if (!filename) workflowWnd = wnd;
+		setupBasicMenu(wnd);
+	}
+	else setupMainMenu(wnd);
+
+	// intercept closing events so that the renderer process can decide whether it's game time
+	let srcID = wnd.id;
+	wnd.on('close', (event) =>
+	{
+		event.preventDefault();
+		wnd.webContents.send('requestClose', srcID);
+	});
+
+	wnd.on('closed', (event) =>
+	{
+		if (srcID == workflowWnd?.id) workflowWnd = null;
+		wnd.removeAllListeners();
+	});
+}
+
+{
+	const {filename, filedir, panelClass, datasheet} = args;
+
+	// workflow panel in edit mode (bring up existing panel)
+	if (panelClass == 'WorkflowPanel' && workflowWnd && !filename)
+	{
+		workflowWnd.show();
+		return;
+	}
+
+	let browserParams = panelClass == 'WorkflowPanel' ? WORKFLOW_PARAMS : BROWSER_PARAMS;
+	let wnd = new BrowserWindow(browserParams);
+	require('@electron/remote/main').enable(wnd.webContents);
+
+	let url = INIT_URL;
+
+	let qargs = [];
+	if (filename) qargs.push('fn=' + encodeURIComponent(args.filename));
+	if (filedir) qargs.push('dir=' + encodeURIComponent(args.filedir));
+	if (panelClass) qargs.push('panelClass=' + encodeURIComponent(args.panelClass));
+	if (datasheet)
+	{
+		let dataTag = 'data' + (++watermark);
+		global[dataTag] = args.datasheet;
+		qargs.push('data=' + encodeURIComponent(dataTag));
+	}
+
+	if (qargs.length > 0) url += '?' + qargs.join('&');
+
+	wnd.loadURL(url);
+	if (panelClass == 'WorkflowPanel')
+	{
+		if (!filename) workflowWnd = wnd;
+		setupBasicMenu(wnd);
+	}
+	else setupMainMenu(wnd);
+
+	// intercept closing events so that the renderer process can decide whether it's game time
+	let srcID = wnd.id;
+	wnd.on('close', (event) =>
+	{
+		event.preventDefault();
+		wnd.webContents.send('requestClose', srcID);
+	});
+
+	wnd.on('closed', (event) =>
+	{
+		if (srcID == workflowWnd?.id) workflowWnd = null;
+		wnd.removeAllListeners();
+	});
+}
+*/

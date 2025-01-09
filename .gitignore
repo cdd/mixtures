@@ -4,3 +4,5 @@ deprecated
 dist
 package-lock.json
 app/mixfile.js*
+chemical-mixtures*.tgz
+.npmrc
