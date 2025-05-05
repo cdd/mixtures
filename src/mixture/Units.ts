@@ -39,6 +39,7 @@ export enum StandardUnits
 	g_L = 'http://purl.obolibrary.org/obo/UO_0000175', // grams per litre (g/L)
 	mg_L = 'http://purl.obolibrary.org/obo/UO_0000273', // milligrams per litre (aka micrograms per mL)
 	ug_L = 'http://purl.obolibrary.org/obo/UO_0000275', // micrograms per litre (aka nanograms per mL)
+	mg_mL = 'http://purl.obolibrary.org/obo/UO_0000176', // milligrams per millilitre (aka grams per L)
 	mol_kg = 'http://purl.obolibrary.org/obo/UO_0000068', // moles per kilogram
 
 	// absolute units (these are often converted to concentrations when possible)
@@ -81,6 +82,7 @@ const PAIR_UNIT_NAMES:any[] =
 	[StandardUnits.g_L, 'g/L'],
 	[StandardUnits.mg_L, 'mg/L'],
 	[StandardUnits.ug_L, '\u{03BC}g/L', 'ug/L'],
+	[StandardUnits.mg_mL, 'mg/mL'],
 	[StandardUnits.mol_kg, 'mol/kg'],
 
 	[StandardUnits.kg, 'kg'],
@@ -120,6 +122,7 @@ const PAIR_UNIT_MINCHI:any[] =
 	[StandardUnits.g_L, 'wv', 1E-3],
 	[StandardUnits.mg_L, 'wv', 1E-6],
 	[StandardUnits.ug_L, 'wv', 1E-9],
+	[StandardUnits.mg_mL, 'wv', 1E-3],
 	[StandardUnits.mol_kg, 'mb', 1],
 	[StandardUnits.ppm, 'pp', 1E-6],
 	[StandardUnits.ppb, 'pp', 1E-9],
