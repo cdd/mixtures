@@ -18,7 +18,7 @@ import {RenderPolicy} from 'webmolkit/gfx/Rendering';
 import {DrawMolecule} from 'webmolkit/gfx/DrawMolecule';
 
 /*
-	Drawing a Mixfile, which has been rendered.
+	Drawing a Mixfile, which has been arranged already.
 */
 
 export class DrawMixture
@@ -27,6 +27,9 @@ export class DrawMixture
 	public activeIndex = -1; // component that is actively engaged with UI
 	public selectedIndex = -1; // component that is passively selected
 
+	// optionally override drawing functionality within a component; return true if the rendering was intercepted,
+	// or false to fall back to default rendering
+	public callbackDrawMolecule:(comp:ArrangeMixtureComponent, gfx:MetaVector, box:Box) => boolean = null;
 	public callbackDrawNameLine:(comp:ArrangeMixtureComponent, line:ArrangeMixtureLine, gfx:MetaVector, box:Box) => boolean = null;
 
 	private measure:ArrangeMeasurement;
@@ -84,7 +87,16 @@ export class DrawMixture
 
 		this.vg.drawRect(box.x, box.y, box.w, box.h, 0x808080, 1, bg);
 
-		if (comp.molLayout) new DrawMolecule(comp.molLayout, this.vg).draw();
+			if (comp.molLayout)
+			{
+				let b1 = comp.boundary, b2 = comp.molBox;
+				comp.molLayout.squeezeInto(b1.x + b2.x, b1.y + b2.y, b2.w, b2.h);
+			}
+
+		let molBox = new Box(comp.boundary.x + comp.molBox.x, comp.boundary.y + comp.molBox.y, comp.molBox.w, comp.molBox.h);
+		let override = this.callbackDrawMolecule && this.callbackDrawMolecule(comp, this.vg, molBox);
+
+		if (!override && comp.molLayout) new DrawMolecule(comp.molLayout, this.vg).draw();
 
 		if (comp.nameLines.length > 0)
 		{

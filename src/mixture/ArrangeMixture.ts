@@ -94,6 +94,10 @@ export class ArrangeMixture
 	public softwrapName:number; // name wrapping at selected characters kicks in after this width
 	public includeIdentifiers = true; // if switched off, identifiers won't be included in text
 
+	// optionally override the size estimation for the molecule: note that this should be paired with overriding
+	// the actual drawing; return null to fall back to default sizing, or zero-size to indicate nothing
+	public callbackMoleculeSize:(comp:ArrangeMixtureComponent) => Size = null;
+
 	// --------------------- public methods ---------------------
 
 	// sets up the object with the mandatory information
@@ -252,7 +256,7 @@ export class ArrangeMixture
 		// assemble the components into a flat hierarchy
 		let examineBranch = (origin:number[], mixcomp:MixfileComponent, idx:number):void =>
 		{
-			let comp:ArrangeMixtureComponent = {origin: origin, content: mixcomp, parentIdx: idx};
+			let comp:ArrangeMixtureComponent = {origin, content: mixcomp, parentIdx: idx};
 			let parentIdx = this.components.push(comp) - 1;
 
 			// see if it's been indicated as collapsed
@@ -276,7 +280,13 @@ export class ArrangeMixture
 
 			// handle molecule, if any
 			if (mixcomp.molfile) comp.mol = MoleculeStream.readUnknown(mixcomp.molfile);
-			if (comp.mol)
+
+			let molsz = this.callbackMoleculeSize && this.callbackMoleculeSize(comp);
+			if (molsz)
+			{
+				comp.molBox = Box.fromSize(molsz);
+			}
+			else if (comp.mol)
 			{
 				comp.molLayout = new ArrangeMolecule(comp.mol, this.measure, this.policy);
 				comp.molLayout.arrange();
