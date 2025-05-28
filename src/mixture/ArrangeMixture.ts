@@ -284,7 +284,7 @@ export class ArrangeMixture
 			let molsz = this.callbackMoleculeSize && this.callbackMoleculeSize(comp);
 			if (molsz)
 			{
-				comp.molBox = Box.fromSize(molsz);
+				comp.molBox = new Box(padding, padding, Math.ceil(molsz.w), Math.ceil(molsz.h));
 			}
 			else if (comp.mol)
 			{
