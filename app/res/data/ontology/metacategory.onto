@@ -48,3 +48,9 @@ http://mixtures.io/rdf#MixtureMetadata metadata
 - - http://www.bioassayontology.org/bao#BAO_0000201 percent inhibition
 - - http://mixtures.io/rdf#IsActive is active
 - - http://mixtures.io/rdf#IsInactive is inactive
+
+- http://mixtures.io/rdf#Antibody antibody
+- - http://mixtures.io/rdf#AntibodyStructure antibody structure
+- - http://mixtures.io/rdf#AntibodyLightChain antibody light chain
+- - http://mixtures.io/rdf#AntibodyHeavyChain antibody heavy chain
+- - http://mixtures.io/rdf#AntibodyDrugConjugate antibody drug conjugate
