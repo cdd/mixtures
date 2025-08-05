@@ -93,6 +93,7 @@ export class ArrangeMixture
 	public hardwrapName:number; // name width guaranteed not longer than this
 	public softwrapName:number; // name wrapping at selected characters kicks in after this width
 	public includeIdentifiers = true; // if switched off, identifiers won't be included in text
+	public includeMetadata = true; // if switched off, the raw metadata content won't be included in text
 
 	// optionally override the size estimation for the molecule: note that this should be paired with overriding
 	// the actual drawing; return null to fall back to default sizing, or zero-size to indicate nothing
@@ -318,7 +319,7 @@ export class ArrangeMixture
 				else line += val;
 				comp.nameLines.push({text: this.truncateEllipsis(line), col: 0x42007E, source: ArrangeMixtureLineSource.Identifier});
 			}
-			if (mixcomp.metadata) for (let meta of mixcomp.metadata)
+			if (this.includeMetadata && mixcomp.metadata) for (let meta of mixcomp.metadata)
 			{
 				let metaString = (m:string | number):string =>
 				{

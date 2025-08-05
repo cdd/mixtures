@@ -1,7 +1,7 @@
 {
     "name": "chemical-mixtures",
     "description": "Utilities for chemical mixtures",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "license": "Apache 2",
     "repository": {
         "type": "git",
